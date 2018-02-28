@@ -49,8 +49,8 @@ if __name__ == "__main__":
                        use_cuda = use_gpu)
   data_loader = get_data_loader(GLOVE_FILE, 
                                 vocab, 
-                                batch_size = 16,
-                                num_workers = 0)
+                                batch_size = 8,
+                                num_workers = 4)
 
   if use_gpu:
     model = model.cuda()

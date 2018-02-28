@@ -3,25 +3,32 @@ import traceback
 import string
 import linecache
 import torch
+from collections import OrderedDict
 from definitions import get_a_definition
 from torch.utils.data import Dataset, DataLoader
+import pdb
+import mmap
+from multiprocessing import Manager
 
+MAX_CACHED_LINES=50
 PUNC = set(string.punctuation)
 def clean_str(string):
     return "".join([c for c in string.lower() if c not in PUNC])
 
 class DefinitionsDataset(Dataset):
 
-  def __init__(self, vocab_file, vocab, shuffle):
-    if shuffle:
-        with open(vocab_file,'r') as f:
-            self.vocab_lines = f.readlines()
-    else:
-        self.vocab_file = vocab_file
-    self.shuffle = shuffle
+  def __init__(self, vocab_file_name, vocab):
+    with open(vocab_file_name, "r") as f:
+      self.vocab_file = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
+    self.process_manager = Manager()
+    self.shared_mem = self.process_manager.dict()
+    self.shared_mem['idx_offset'] = 0
+    self.shared_mem['oldest_line'] = 0
+    self.shared_mem['at_file_line'] = 0
     self.vocab_len = len(vocab.stoi)
     self.vocab = vocab
-    self.idx_offset = 0
+    for i in range(MAX_CACHED_LINES-1):
+        self.get_vocab_pair(i)
 
   def __len__(self):
     return self.vocab_len
@@ -30,16 +37,16 @@ class DefinitionsDataset(Dataset):
     """
     Return (definition, embedding)
     """
-    word,embedding = self.get_vocab_pair(idx + self.idx_offset)
+    word,embedding = self.get_vocab_pair(idx + self.shared_mem['idx_offset'])
     definition = None
     while definition is None:
-      self.idx_offset += 1
-      word,embedding = self.get_vocab_pair(idx + self.idx_offset)
+      self.shared_mem['idx_offset'] += 1
+      word,embedding = self.get_vocab_pair(idx + self.shared_mem['idx_offset'])
       definition = get_a_definition(word)
       if definition is None:
           continue
       try:
-        words = [clean_str(word) for word in definition.split()]
+        words = [clean_str(word) for word in definition.split(' ')]
         definition = []
         for i,word in enumerate(words):
             if word in self.vocab.stoi:
@@ -53,24 +60,28 @@ class DefinitionsDataset(Dataset):
     return (np.array(definition), embedding.astype(np.float32))
 
   def get_vocab_pair(self, idx):
+    if idx in self.shared_mem:
+      return self.shared_mem[idx]
     word = None
     while word is None:
-        if self.shuffle:
-            line = self.vocab_lines[idx]
-        else:
-            line = linecache.getline(self.vocab_file, idx + self.idx_offset + 1)
-        splitLine = line.split()
+        line = self.vocab_file.readline().decode().strip()
+        self.shared_mem['at_file_line']+=1
+        splitLine = line.split(' ')
         if len(line) == 0:
-            self.idx_offset += 1
+            self.shared_mem['idx_offset'] += 1
             continue
         try:
             word = splitLine[0]
             embedding = np.array([float(val) for val in splitLine[1:]])
         except Exception as e:
             print(e)
-            print(splitLine)
-            self.idx_offset += 1
-    return (word, embedding)
+            self.shared_mem['idx_offset'] += 1
+    ret = (word, embedding)
+    self.shared_mem[self.shared_mem['at_file_line']] = ret
+    if idx > self.shared_mem['oldest_line']:
+        self.shared_mem['oldest_line'] = idx
+
+    return ret
 
 def collate_fn(data):
     """Creates mini-batch tensors from the list of tuples (src_seq, trg_seq).
@@ -107,10 +118,10 @@ def collate_fn(data):
     return src_seqs, src_lengths, trg_seqs
 
 
-def get_data_loader(vocab_file, vocab, batch_size=8, num_workers=1, shuffle=False):
-  dataset = DefinitionsDataset(vocab_file, vocab, shuffle)
+def get_data_loader(vocab_file, vocab, batch_size=8, num_workers=8):
+  dataset = DefinitionsDataset(vocab_file, vocab)
   return DataLoader(dataset, 
                     batch_size=batch_size, 
                     num_workers=num_workers, 
                     collate_fn=collate_fn,
-                    shuffle=shuffle)
+                    shuffle=False)
