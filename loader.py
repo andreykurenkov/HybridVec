@@ -78,11 +78,14 @@ class DefinitionsDataset(Dataset):
             continue
         try:
             word = splitLine[0]
+            for x in splitLine[1:]:
+                try:
+                    float(x)
+                except:
+                    print(x)
             embedding = np.array([float(val) for val in splitLine[1:]])
         except Exception as e:
             print(e)
-            print(splitLine)
-            print(line)
             self.idx_offset += 1
     ret = (word, embedding)
     self.file_lines[self.at_file_line] = ret
