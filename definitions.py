@@ -3,8 +3,7 @@ from nltk.corpus import wordnet
 from vocabulary.vocabulary import Vocabulary as vb
 
 def get_wordnet_synsets(word):
-    synsets = wordnet.synsets(word)
-    return synsets.definition
+    return wordnet.synsets(word)
 
 def get_wordnet_definitions(word):
     return [s.definition for s in get_wordnet_synsets(word)]
