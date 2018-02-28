@@ -45,7 +45,7 @@ if __name__ == "__main__":
                        embed_size = VOCAB_DIM, 
                        hidden_size = CONFIG['n_hidden'],
                        use_cuda = use_gpu)
-  data_loader = get_data_loader(GLOVE_FILE, vocab)
+  data_loader,dataset = get_data_loader(GLOVE_FILE, vocab)
 
   if use_gpu:
     model = model.cuda()
@@ -59,7 +59,8 @@ if __name__ == "__main__":
   monitor_module(model, writer)
 
   sys.stdout = None
-
+  for i in range(10):
+      print(dataset[i])
   for epoch in range(CONFIG['max_epochs']):  # loop over the dataset multiple times
 
     running_loss = 0.0

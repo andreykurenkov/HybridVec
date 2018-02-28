@@ -61,4 +61,4 @@ class DefinitionsDataset(Dataset):
 
 def get_data_loader(vocab_file, vocab):
   dataset = DefinitionsDataset(vocab_file, vocab)
-  return DataLoader(dataset, batch_size=1, num_workers=1, shuffle=True)
+  return DataLoader(dataset, batch_size=1, num_workers=1, shuffle=True),dataset
