@@ -83,6 +83,7 @@ class DefinitionsDataset(Dataset):
                     float(x)
                 except:
                     print(x)
+                    print(splitLine.index(x))
                     print(splitLine)
                     break
             embedding = np.array([float(val) for val in splitLine[1:]])
