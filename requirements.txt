@@ -9,6 +9,7 @@ goslate==1.5.1
 html5lib==0.9999999
 idna==2.6
 Markdown==2.6.11
+nltk==3.2.5
 numpy==1.14.1
 Pillow==5.0.0
 protobuf==3.5.1
@@ -17,6 +18,7 @@ pytorch-monitor==0.11
 PyYAML==3.12
 pyzmq==17.0.0
 requests==2.18.4
+requests-cache==0.4.13
 scikit-learn==0.19.1
 scipy==1.0.0
 sh==1.12.14
