@@ -46,7 +46,7 @@ if __name__ == "__main__":
                        embed_size = VOCAB_DIM, 
                        hidden_size = CONFIG['n_hidden'],
                        use_cuda = use_gpu)
-  data_loader,dataset = get_data_loader(GLOVE_FILE, vocab)
+  data_loader = get_data_loader(GLOVE_FILE, vocab)
 
   if use_gpu:
     model = model.cuda()

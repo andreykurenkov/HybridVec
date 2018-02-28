@@ -37,7 +37,7 @@ class DefinitionsDataset(Dataset):
         definition = definition[list(definition.keys())[0]][0]
         words = [clean_str(word) for word in definition.split()]
         definition = []
-        for word in words:
+        for i,word in enumerate(words):
             if word in self.vocab.stoi:
                 definition.append(self.vocab.stoi[word])
             else:
@@ -66,6 +66,9 @@ class DefinitionsDataset(Dataset):
     return (word, embedding)
 
 
-def get_data_loader(vocab_file, vocab):
+def get_data_loader(vocab_file, vocab, batch_size=8, num_workers=1):
   dataset = DefinitionsDataset(vocab_file, vocab)
-  return DataLoader(dataset, batch_size=1, num_workers=1, shuffle=True),dataset
+  return DataLoader(dataset, 
+                    batch_size=batch_size, 
+                    num_workers=num_workers, 
+                    shuffle=True)

@@ -29,8 +29,12 @@ class Def2VecModel(nn.Module):
     self.gru = nn.GRU(embed_size, hidden_size, num_layers, batch_first=True)
     self.output_layer = nn.Linear(hidden_size, output_size)
 
-  def forward(self, defn, use_cuda = True):
-    inputs = Variable(defn)
+  def forward(self, inputs, use_cuda = True):
+    (x, x_lengths) = inputs.Text
+    print(x_lengths)
+    lengths = lengths.view(-1).tolist()
+    packed_emb = nn.utils.rnn.pack_padded_sequence(embed_input, lengths)
+
     batch_size, input_size = inputs.shape
     embed = self.embeddings(inputs.view(-1, input_size)).view(batch_size, input_size, -1)
     h0 = Variable(torch.zeros(self.num_layers, batch_size, self.hidden_size))
