@@ -39,7 +39,7 @@ class DefinitionsDataset(Dataset):
                       word in definition.split()]
       except Exception as e:
         print('Error in lookup')
-        traceback.print_stack()
+        traceback.print_exc()
         definition = None
     return (np.array(definition), embedding.astype(np.float32))
 
