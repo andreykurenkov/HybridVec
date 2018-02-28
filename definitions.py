@@ -14,7 +14,7 @@ def get_glosbe_definitions(word):
     '[{"text": "Someone who is from the hills; especially from a rural area, with a connotation of a lack of refinement or sophistication.", "seq": 0}, {"text": "someone who is from the hills", "seq": 1}, {"text": "A white person from the rural southern part of the United States.", "seq": 2}]'
 
     """
-    return vb.meaning(word)
+    return vb.meaning(word, format="list")
 
 def get_a_definition(word):
     """
