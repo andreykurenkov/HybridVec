@@ -72,18 +72,12 @@ class DefinitionsDataset(Dataset):
     while word is None:
         line = self.vocab_file.readline()
         self.at_file_line+=1
-        splitLine = line.split()
+        splitLine = line.split(' ')
         if len(line) == 0:
             self.idx_offset += 1
             continue
         try:
             word = splitLine[0]
-            for x in splitLine[1:]:
-                try:
-                    float(x)
-                except:
-                    pdb.set_trace()
-                    break
             embedding = np.array([float(val) for val in splitLine[1:]])
         except Exception as e:
             print(e)
