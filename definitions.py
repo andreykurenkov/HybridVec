@@ -22,10 +22,10 @@ def get_a_definition(word):
     """
     definitions = get_wordnet_definitions(word)
 
-    if len(definitions) == 0:
+    if not definitions:
         definitions = get_glosbe_definitions(word)
 
-    if len(definitions) != 0:
+    if definitions:
         return random.choice(definitions)
 
     return None
