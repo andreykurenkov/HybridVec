@@ -1,9 +1,9 @@
 import numpy as np
 import traceback
 import string
-from definitions import get_wordnet_definition
 import linecache
 import torch
+from definitions import get_wordnet_definition
 from torch.utils.data import Dataset, DataLoader
 
 PUNC = set(string.punctuation)
@@ -84,7 +84,7 @@ def collate_fn(data):
         padded_seqs = torch.zeros(len(sequences), max(lengths)).long()
         for i, seq in enumerate(sequences):
             end = lengths[i]
-            padded_seqs[i, :end] = seq[:end]
+            padded_seqs[i, :end] = torch.from_numpy(seq[:end])
         return padded_seqs, lengths
 
     # sort a list by sequence length (descending order) to use pack_padded_sequence
