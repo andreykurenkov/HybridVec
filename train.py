@@ -48,17 +48,40 @@ if __name__ == "__main__":
 
   if use_gpu:
     model = model.cuda()
-  opt = optim.Adam(model.parameters(), lr=0.0001, weight_decay=0)
-
-  defn, embed = next(iter(dataloader))
-  gt = Variable(embed)
-  if use_gpu:
-    defn = defn.cuda()
-    gt = gt.cuda()
-  pred = model(defn)
-  loss = nn.MSELoss()
+  criterion = nn.MSELoss()
+  optimizer = optim.Adam(model.parameters(), 
+                         lr=CONFIG['learning_rate'], 
+                         weight_decay=0)
   
   # setup the experiment
   writer = init_experiment(CONFIG)
   monitor_module(model, writer)
 
+  for epoch in range(CONFIG['max_epochs']):  # loop over the dataset multiple times
+
+    running_loss = 0.0
+    for i, data in enumerate(data_loader, 0):
+      # get the inputs
+      inputs, labels = data
+      labels = Variable(labels)
+      if use_gpu:
+        inputs = defn.cuda()
+        labels = labels.cuda()
+
+      # zero the parameter gradients
+      optimizer.zero_grad()
+
+      # forward + backward + optimize
+      outputs = model(inputs)
+      loss = criterion(outputs, labels)
+      loss.backward()
+      optimizer.step()
+
+      # print statistics
+      running_loss += loss.data[0]
+      if i % 2000 == 1999:    # print every 2000 mini-batches
+        print('[%d, %5d] loss: %.3f' %
+               (epoch + 1, i + 1, running_loss / 2000))
+        running_loss = 0.0
+
+  print('Finished Training')
