@@ -1,18 +1,18 @@
 import sys
 import traceback
-import numpy as np
 import torch
 import torch.optim as optim
 import torch.nn as nn
-import scipy
-from scipy import stats
+import numpy as np
 from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
 from model import Def2VecModel
 from torch.autograd import Variable
 import torchtext.vocab as vocab
 from pytorch_monitor import monitor_module, init_experiment
-
 from loader import get_data_loader, DefinitionsDataset
+import requests_cache
+
+requests_cache.install_cache('wordnet_cache')
 
 VOCAB_DIM = 300
 VOCAB_SOURCE = '6B'
