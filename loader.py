@@ -34,6 +34,7 @@ class DefinitionsDataset(Dataset):
       if definition is None:
           continue
       try:
+        print(definition)
         words = [clean_str(word) for word in definition.split()]
         definition = []
         for i,word in enumerate(words):
