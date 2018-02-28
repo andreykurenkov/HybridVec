@@ -65,7 +65,7 @@ if __name__ == "__main__":
       inputs, labels = data
       labels = Variable(labels)
       if use_gpu:
-        inputs = defn.cuda()
+        inputs = inputs.cuda()
         labels = labels.cuda()
 
       # zero the parameter gradients
