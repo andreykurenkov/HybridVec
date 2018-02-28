@@ -35,6 +35,7 @@ CONFIG = dict(
 
     # model config
     n_hidden=128,
+    print_freq=1,
 )
 
 if __name__ == "__main__":
@@ -85,10 +86,12 @@ if __name__ == "__main__":
 
       # print statistics
       running_loss += loss.data[0]
-      if i % 10 == 9:    # print every 10 mini-batches
+      if i % CONFIG['print_freq'] == (CONFIG['print_freq']-1):    # print every 10 mini-batches
         end = timer()
         print('[%d, %5d] loss: %.4f , perf: %.4f' %
-               (epoch + 1, i + 1, running_loss / 10, (end-start)/10))
+               (epoch + 1, i + 1, 
+                running_loss / CONFIG['print_freq'], 
+                (end-start)/CONFIG['print_freq']))
         start = end
         running_loss = 0.0
 
