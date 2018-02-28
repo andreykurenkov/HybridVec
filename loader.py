@@ -61,7 +61,6 @@ class DefinitionsDataset(Dataset):
                 definition.append(0)
       except Exception as e:
         print('Error in lookup')
-        print(splitLine)
         traceback.print_exc()
         definition = None
     return (np.array(definition), embedding.astype(np.float32))
@@ -82,6 +81,7 @@ class DefinitionsDataset(Dataset):
             embedding = np.array([float(val) for val in splitLine[1:]])
         except Exception as e:
             print(e)
+            print(splitLine)
             self.idx_offset += 1
     ret = (word, embedding)
     self.file_lines[self.at_file_line] = ret
