@@ -3,7 +3,7 @@ import traceback
 import string
 import linecache
 import torch
-from definitions import get_wordnet_definition
+from definitions import get_a_definition
 from torch.utils.data import Dataset, DataLoader
 
 PUNC = set(string.punctuation)
@@ -30,11 +30,10 @@ class DefinitionsDataset(Dataset):
     while definition is None:
       self.idx_offset += 1
       word,embedding = self.get_vocab_pair(idx + self.idx_offset)
-      definition = get_wordnet_definition(word)
+      definition = get_a_definition(word)
       if definition is None:
           continue
       try:
-        definition = definition[list(definition.keys())[0]][0]
         words = [clean_str(word) for word in definition.split()]
         definition = []
         for i,word in enumerate(words):
