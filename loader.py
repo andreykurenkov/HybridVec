@@ -78,14 +78,13 @@ def collate_fn(data):
         src_seqs: torch tensor of shape (batch_size, padded_length).
         src_lengths: list of length (batch_size); valid length for each padded source sequence.
         trg_seqs: torch tensor of shape (batch_size, padded_length).
-        trg_lengths: list of length (batch_size); valid length for each padded target sequence.
     """
     def merge(sequences):
         lengths = [len(seq) for seq in sequences]
         padded_seqs = torch.zeros(len(sequences), max(lengths)).long()
         for i, seq in enumerate(sequences):
             end = lengths[i]
-            padded_seqs[i, :end] = seq[:end]
+            padded_seqs[i, :end] = seq.data[:end]
         return padded_seqs, lengths
 
     # sort a list by sequence length (descending order) to use pack_padded_sequence
