@@ -81,7 +81,6 @@ class DefinitionsDataset(Dataset):
             embedding = np.array([float(val) for val in splitLine[1:]])
         except Exception as e:
             print(e)
-            print(splitLine)
             self.idx_offset += 1
     ret = (word, embedding)
     self.file_lines[self.at_file_line] = ret
