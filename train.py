@@ -1,11 +1,11 @@
 import sys
-import time
 import traceback
 import torch
 import torch.optim as optim
 import torch.nn as nn
 import numpy as np
 from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
+from timeit import default_timer as timer
 from model import Def2VecModel
 from torch.autograd import Variable
 import torchtext.vocab as vocab
@@ -62,7 +62,7 @@ if __name__ == "__main__":
   for epoch in range(CONFIG['max_epochs']):  # loop over the dataset multiple times
 
     running_loss = 0.0
-    start = time.time()
+    start = timer()
     for i, data in enumerate(data_loader, 0):
       # get the inputs
       inputs, labels = data
@@ -83,9 +83,9 @@ if __name__ == "__main__":
       # print statistics
       running_loss += loss.data[0]
       if i % 10 == 9:    # print every 10 mini-batches
-        end = time.time()
+        end = timer()
         print('[%d, %5d] loss: %.6f , perf: %s' %
-               (epoch + 1, i + 1, running_loss / 10, str(end-start)))
+               (epoch + 1, i + 1, running_loss / 10, str((end-start)/10)))
         start = end
         running_loss = 0.0
 
