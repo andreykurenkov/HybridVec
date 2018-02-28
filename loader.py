@@ -35,8 +35,13 @@ class DefinitionsDataset(Dataset):
           continue
       try:
         definition = definition[list(definition.keys())[0]][0]
-        definition = [self.vocab.stoi[clean_str(word)] for \
-                      word in definition.split()]
+        words = [clean_str(word) for word in definition.split()]
+        definition = []
+        for word in words:
+            if word in self.vocab.stoi:
+                definition.append(self.vocab.stoi[word])
+            else:
+                definition.append(0)
       except Exception as e:
         print('Error in lookup')
         traceback.print_exc()
