@@ -68,7 +68,7 @@ if __name__ == "__main__":
     start = timer()
     for i, data in enumerate(data_loader, 0):
       # get the inputs
-      inputs, labels = data
+      inputs, input_lengths, labels = data
       labels = Variable(labels)
       if use_gpu:
         inputs = inputs.cuda()
@@ -78,7 +78,7 @@ if __name__ == "__main__":
       optimizer.zero_grad()
 
       # forward + backward + optimize
-      outputs = model(inputs)
+      outputs = model(inputs, input_lengths)
       loss = criterion(outputs, labels)
       loss.backward()
       optimizer.step()
