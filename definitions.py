@@ -6,7 +6,7 @@ def get_wordnet_synsets(word):
     return wordnet.synsets(word)
 
 def get_wordnet_definitions(word):
-    return [s.definition for s in get_wordnet_synsets(word)]
+    return [s.definition() for s in get_wordnet_synsets(word)]
 
 def get_glosbe_definitions(word):
     """
