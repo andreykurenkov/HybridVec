@@ -31,8 +31,8 @@ class Def2VecModel(nn.Module):
 
   def forward(self, inputs, lengths):
     inputs = Variable(inputs)
-    inputs = nn.utils.rnn.pack_padded_sequence(inputs, lengths, batch_first=True)
     batch_size, input_size = inputs.shape
+    inputs = nn.utils.rnn.pack_padded_sequence(inputs, lengths, batch_first=True)
     embed = self.embeddings(inputs.view(-1, input_size)).view(batch_size, input_size, -1)
     h0 = Variable(torch.zeros(self.num_layers, batch_size, self.hidden_size))
     if self.use_cuda:
