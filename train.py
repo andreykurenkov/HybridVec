@@ -36,15 +36,6 @@ CONFIG = dict(
     n_hidden=128,
 )
 
-
-class TracePrints(object):
-  def __init__(self):    
-    self.stdout = sys.stdout
-  def write(self, s):
-    self.stdout.write("Writing %r\n" % s)
-    traceback.print_stack(file=self.stdout)
-
-
 if __name__ == "__main__":
   vocab = vocab.GloVe(name=VOCAB_SOURCE, dim=VOCAB_DIM)
   use_gpu = torch.cuda.is_available()
