@@ -61,6 +61,7 @@ class DefinitionsDataset(Dataset):
                 definition.append(0)
       except Exception as e:
         print('Error in lookup')
+        print(splitLine)
         traceback.print_exc()
         definition = None
     return (np.array(definition), embedding.astype(np.float32))
