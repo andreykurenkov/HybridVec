@@ -6,7 +6,7 @@ import torch
 from collections import OrderedDict
 from definitions import get_a_definition
 from torch.utils.data import Dataset, DataLoader
-
+import pdb
 PUNC = set(string.punctuation)
 def clean_str(string):
     return "".join([c for c in string.lower() if c not in PUNC])
@@ -82,10 +82,7 @@ class DefinitionsDataset(Dataset):
                 try:
                     float(x)
                 except:
-                    print(x)
-                    print(splitLine.index(x))
-                    print(splitLine)
-                    print(line)
+                    pdb.set_trace()
                     break
             embedding = np.array([float(val) for val in splitLine[1:]])
         except Exception as e:
