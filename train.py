@@ -69,6 +69,7 @@ if __name__ == "__main__":
     for i, data in enumerate(data_loader, 0):
       # get the inputs
       inputs, input_lengths, labels = data
+      print(labels)
       labels = Variable(labels)
       if use_gpu:
         inputs = inputs.cuda()
