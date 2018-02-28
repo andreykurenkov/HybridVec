@@ -1,6 +1,6 @@
 import sys
 import traceback
-#import requests_cache
+import requests_cache
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -13,7 +13,7 @@ import torchtext.vocab as vocab
 from pytorch_monitor import monitor_module, init_experiment
 from loader import get_data_loader, DefinitionsDataset
 
-#requests_cache.install_cache('dict_cache')
+requests_cache.install_cache('dict_cache')
 
 VOCAB_DIM = 300
 VOCAB_SOURCE = '6B'
@@ -50,7 +50,7 @@ if __name__ == "__main__":
   data_loader = get_data_loader(GLOVE_FILE, 
                                 vocab, 
                                 batch_size = 16,
-                                num_workers = 8)
+                                num_workers = 0)
 
   if use_gpu:
     model = model.cuda()
