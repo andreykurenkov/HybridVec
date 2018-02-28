@@ -84,8 +84,8 @@ if __name__ == "__main__":
       running_loss += loss.data[0]
       if i % 10 == 9:    # print every 10 mini-batches
         end = timer()
-        print('[%d, %5d] loss: %.6f , perf: %s' %
-               (epoch + 1, i + 1, running_loss / 10, str((end-start)/10)))
+        print('[%d, %5d] loss: %.4f , perf: %.4f' %
+               (epoch + 1, i + 1, running_loss / 10, (end-start)/10))
         start = end
         running_loss = 0.0
 
