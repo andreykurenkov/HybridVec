@@ -31,9 +31,9 @@ class Def2VecModel(nn.Module):
 
   def forward(self, inputs, use_cuda = True):
     (x, x_lengths) = inputs.Text
-    print(x_lengths)
-    lengths = lengths.view(-1).tolist()
-    packed_emb = nn.utils.rnn.pack_padded_sequence(embed_input, lengths)
+    lengths = x_lengths.view(-1).tolist()
+    print(lengths)
+    #packed_emb = nn.utils.rnn.pack_padded_sequence(embed_input, lengths)
 
     batch_size, input_size = inputs.shape
     embed = self.embeddings(inputs.view(-1, input_size)).view(batch_size, input_size, -1)

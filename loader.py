@@ -7,6 +7,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 
 PUNC = set(string.punctuation)
+DEF_LEN = 25
 def clean_str(string):
     return "".join([c for c in string.lower() if c not in PUNC])
 
@@ -38,10 +39,14 @@ class DefinitionsDataset(Dataset):
         words = [clean_str(word) for word in definition.split()]
         definition = []
         for i,word in enumerate(words):
+            if i>DEF_LEN:
+                break
             if word in self.vocab.stoi:
                 definition.append(self.vocab.stoi[word])
             else:
                 definition.append(0)
+        for x in range(i,DEF_LEN):
+            definition.append(0)
       except Exception as e:
         print('Error in lookup')
         traceback.print_exc()
