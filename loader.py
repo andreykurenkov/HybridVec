@@ -1,10 +1,14 @@
 import numpy as np
+import traceback
 import string
 from definitions import get_wordnet_definition
 import linecache
 import torch
 from torch.utils.data import Dataset, DataLoader
 
+PUNC = set(string.punctuation)
+def clean_str(string):
+    return "".join([c for c in string.lower() if c not in PUNC])
 
 class DefinitionsDataset(Dataset):
 
@@ -31,13 +35,11 @@ class DefinitionsDataset(Dataset):
           continue
       try:
         definition = definition[list(definition.keys())[0]][0]
-        exclude = set(string.punctuation)
-        definition = [self.vocab.stoi["".join([c for c in word.lower() if \
-                                               c not in exclude])] for \
+        definition = [self.vocab.stoi[clean_str(word)] for \
                       word in definition.split()]
       except Exception as e:
         print('Error in lookup')
-        print(e)
+        traceback.print_stack()
         definition = None
     return (np.array(definition), embedding.astype(np.float32))
 
