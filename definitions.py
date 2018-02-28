@@ -2,9 +2,12 @@ import random
 from nltk.corpus import wordnet
 from vocabulary.vocabulary import Vocabulary as vb
 
-def get_wordnet_definition(word):
+def get_wordnet_synsets(word):
     synsets = wordnet.synsets(word)
     return synsets.definition
+
+def get_wordnet_definitions(word):
+    return [s.definition for s in get_wordnet_synsets(word)]
 
 def get_glosbe_definitions(word):
     """
@@ -18,8 +21,12 @@ def get_a_definition(word):
     """
     Get a definition from any source, or None if not available
     """
-    definition = get_wordnet_definition(word)
-    print(definition)
-    if definition is None:
-        definition = random.choice(get_glosbe_definitions(word))['text']
-    return definition
+    definitions = get_wordnet_definitions(word)
+
+    if len(definitions) == 0:
+        definitions = [g['text'] for g in get_glosbe_definitions(word)]
+
+    if len(definitions) != 0:
+        return random.choice(definition)
+
+    return None
