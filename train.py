@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import torch
 import torch.optim as optim
@@ -56,6 +57,8 @@ if __name__ == "__main__":
   # setup the experiment
   writer,config = init_experiment(CONFIG)
   monitor_module(model, writer)
+
+  sys.stdout = None
 
   for epoch in range(CONFIG['max_epochs']):  # loop over the dataset multiple times
 
