@@ -44,7 +44,6 @@ class TracePrints(object):
     self.stdout.write("Writing %r\n" % s)
     traceback.print_stack(file=self.stdout)
 
-sys.stdout = TracePrints()
 
 if __name__ == "__main__":
   vocab = vocab.GloVe(name=VOCAB_SOURCE, dim=VOCAB_DIM)
