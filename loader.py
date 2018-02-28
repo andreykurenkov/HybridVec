@@ -95,7 +95,7 @@ def collate_fn(data):
 
     # merge sequences (from tuple of 1D tensor to 2D tensor)
     src_seqs, src_lengths = merge(src_seqs)
-    trg_seqs = np.stack(trg_seqs, axis = 0)
+    trg_seqs = torch.from_numpy(np.stack(trg_seqs, axis = 0))
 
     return src_seqs, src_lengths, trg_seqs
 
