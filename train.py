@@ -54,7 +54,7 @@ if __name__ == "__main__":
                          weight_decay=0)
   
   # setup the experiment
-  writer = init_experiment(CONFIG)
+  writer,config = init_experiment(CONFIG)
   monitor_module(model, writer)
 
   for epoch in range(CONFIG['max_epochs']):  # loop over the dataset multiple times
