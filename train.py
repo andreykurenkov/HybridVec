@@ -50,7 +50,7 @@ if __name__ == "__main__":
   data_loader = get_data_loader(GLOVE_FILE, 
                                 vocab, 
                                 batch_size = 16,
-                                num_workers = 4)
+                                num_workers = 0)
 
   if use_gpu:
     model = model.cuda()
