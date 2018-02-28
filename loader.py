@@ -121,7 +121,7 @@ def collate_fn(data):
     return src_seqs, src_lengths, trg_seqs
 
 
-def get_data_loader(vocab_file, vocab, batch_size=8, num_workers=1):
+def get_data_loader(vocab_file, vocab, batch_size=8, num_workers=8):
   dataset = DefinitionsDataset(vocab_file, vocab)
   return DataLoader(dataset, 
                     batch_size=batch_size, 

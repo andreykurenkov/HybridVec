@@ -35,7 +35,7 @@ CONFIG = dict(
 
     # model config
     n_hidden=128,
-    print_freq=1,
+    print_freq=10,
 )
 
 if __name__ == "__main__":
