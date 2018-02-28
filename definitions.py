@@ -26,6 +26,6 @@ def get_a_definition(word):
         definitions = get_glosbe_definitions(word)
 
     if len(definitions) != 0:
-        return random.choice(definition)
+        return random.choice(definitions)
 
     return None
