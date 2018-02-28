@@ -3,6 +3,7 @@ import traceback
 import string
 import linecache
 import torch
+from collections import OrderedDict
 from definitions import get_a_definition
 from torch.utils.data import Dataset, DataLoader
 
@@ -10,12 +11,29 @@ PUNC = set(string.punctuation)
 def clean_str(string):
     return "".join([c for c in string.lower() if c not in PUNC])
 
+class LimitedSizeDict(OrderedDict):
+  def __init__(self, *args, **kwds):
+    self.size_limit = kwds.pop("size_limit", None)
+    OrderedDict.__init__(self, *args, **kwds)
+    self._check_size_limit()
+
+  def __setitem__(self, key, value):
+    OrderedDict.__setitem__(self, key, value)
+    self._check_size_limit()
+
+  def _check_size_limit(self):
+    if self.size_limit is not None:
+      while len(self) > self.size_limit:
+        self.popitem(last=False)
+
 class DefinitionsDataset(Dataset):
 
-  def __init__(self, vocab_file, vocab):
-    self.vocab_file = vocab_file
+  def __init__(self, vocab_file_name, vocab):
+    self.vocab_file = open(vocab_file_name,'r')
     self.vocab_len = len(vocab.stoi)
     self.vocab = vocab
+    self.file_lines = LimitedSizeDict(size_limit=50)
+    self.at_file_line = 0
     self.idx_offset = 0
 
   def __len__(self):
@@ -48,9 +66,12 @@ class DefinitionsDataset(Dataset):
     return (np.array(definition), embedding.astype(np.float32))
 
   def get_vocab_pair(self, idx):
+    if idx in self.file_lines:
+      return self.file_lines[idx]
     word = None
     while word is None:
-        line = linecache.getline(self.vocab_file, idx + self.idx_offset + 1)
+        line = self.vocab_file.readline()
+        self.at_file_line+=1
         splitLine = line.split()
         if len(line) == 0:
             self.idx_offset += 1
@@ -62,7 +83,9 @@ class DefinitionsDataset(Dataset):
             print(e)
             print(splitLine)
             self.idx_offset += 1
-    return (word, embedding)
+    ret = (word, embedding)
+    self.file_lines[self.at_file_line] = ret
+    return ret
 
 def collate_fn(data):
     """Creates mini-batch tensors from the list of tuples (src_seq, trg_seq).
