@@ -23,6 +23,8 @@ def get_a_definition(word):
     definitions = get_wordnet_definitions(word)
 
     if len(definitions) == 0:
+        print(get_glosbe_definitions(word))
+        print([g for g in get_glosbe_definitions(word)])
         definitions = [g['text'] for g in get_glosbe_definitions(word)]
 
     if len(definitions) != 0:
