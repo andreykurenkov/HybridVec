@@ -1,4 +1,5 @@
 import sys
+import time
 import traceback
 import torch
 import torch.optim as optim
@@ -61,6 +62,7 @@ if __name__ == "__main__":
   for epoch in range(CONFIG['max_epochs']):  # loop over the dataset multiple times
 
     running_loss = 0.0
+    start = time.time()
     for i, data in enumerate(data_loader, 0):
       # get the inputs
       inputs, labels = data
@@ -80,9 +82,11 @@ if __name__ == "__main__":
 
       # print statistics
       running_loss += loss.data[0]
-      if i % 10 == 9:    # print every 9 mini-batches
-        print('[%d, %5d] loss: %.3f' %
-               (epoch + 1, i + 1, running_loss / 2000))
+      if i % 10 == 9:    # print every 10 mini-batches
+        end = time.time()
+        print('[%d, %5d] loss: %.6f , perf: %s' %
+               (epoch + 1, i + 1, running_loss / 10, str(end-start)))
+        start = end
         running_loss = 0.0
 
   print('Finished Training')
