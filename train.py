@@ -58,8 +58,6 @@ if __name__ == "__main__":
   writer,config = init_experiment(CONFIG)
   monitor_module(model, writer)
 
-  for i in range(1000):
-      dataset[i]
   for epoch in range(CONFIG['max_epochs']):  # loop over the dataset multiple times
 
     running_loss = 0.0
