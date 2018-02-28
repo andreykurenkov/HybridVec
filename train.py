@@ -70,7 +70,7 @@ if __name__ == "__main__":
       # get the inputs
       inputs, input_lengths, labels = data
       print(inputs.size())
-      print(input_lengths.size())
+      print(len(input_lengths))
       print(labels.size())
       labels = Variable(labels)
       if use_gpu:
