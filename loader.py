@@ -84,7 +84,7 @@ def collate_fn(data):
         padded_seqs = torch.zeros(len(sequences), max(lengths)).long()
         for i, seq in enumerate(sequences):
             end = lengths[i]
-            padded_seqs.data[i, :end] = seq[:end]
+            padded_seqs[i, :end] = seq[:end]
         return padded_seqs, lengths
 
     # sort a list by sequence length (descending order) to use pack_padded_sequence
