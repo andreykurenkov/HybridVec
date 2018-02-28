@@ -38,5 +38,7 @@ class Def2VecModel(nn.Module):
     if self.use_cuda:
       h0 = h0.cuda()
     gru_outputs, _ = self.gru(embed, h0)
-    our_embedding = self.output_layer(torch.mean(gru_outputs, dim=1))
+    unpacked, unpacked_len = torch.nn.utils.rnn.pad_packed_sequence(
+                                        gru_outputs, batch_first=True)
+    our_embedding = self.output_layer(torch.mean(unpacked, dim=1))
     return our_embedding
