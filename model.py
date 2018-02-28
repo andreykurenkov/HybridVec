@@ -35,6 +35,7 @@ class Def2VecModel(nn.Module):
     #print(lengths)
     #packed_emb = nn.utils.rnn.pack_padded_sequence(embed_input, lengths)
 
+    inputs = Variable(inputs)
     batch_size, input_size = inputs.shape
     embed = self.embeddings(inputs.view(-1, input_size)).view(batch_size, input_size, -1)
     h0 = Variable(torch.zeros(self.num_layers, batch_size, self.hidden_size))
