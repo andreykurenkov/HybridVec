@@ -82,6 +82,7 @@ class DefinitionsDataset(Dataset):
         except Exception as e:
             print(e)
             print(splitLine)
+            print(line)
             self.idx_offset += 1
     ret = (word, embedding)
     self.file_lines[self.at_file_line] = ret
