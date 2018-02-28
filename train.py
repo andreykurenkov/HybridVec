@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
   sys.stdout = None
   for i in range(1000):
-      print(dataset[i])
+      print(str(dataset[i]))
   for epoch in range(CONFIG['max_epochs']):  # loop over the dataset multiple times
 
     running_loss = 0.0
