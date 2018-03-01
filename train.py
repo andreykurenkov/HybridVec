@@ -13,26 +13,23 @@ from loader import get_data_loader, DefinitionsDataset
 from tensorboardX import SummaryWriter
 
 
-VOCAB_DIM = 300
+VOCAB_DIM = 100
 VOCAB_SOURCE = '6B'
 GLOVE_FILE = 'data/glove.%s.%dd.shuffled.txt'%(VOCAB_SOURCE, VOCAB_DIM)
 
-# an example config dict
 CONFIG = dict(
     title="An Experiment",
     description="Testing out a NN",
     log_dir='logs',
-    run_name='Milestone', # defaults to START_TIME-HOST_NAME
-#     run_comment='custom run comment' # gets appended to run_name as RUN_NAME-RUN_COMMENT
 
     # hyperparams
     random_seed=42,
     learning_rate=.001,
     max_epochs=5,
-    batch_size=16,
+    batch_size=32,
 
     # model config
-    n_hidden=128,
+    n_hidden=150,
     print_freq=10,
 )
 
@@ -43,6 +40,7 @@ if __name__ == "__main__":
 
   model = Def2VecModel(vocab,
                        embed_size = VOCAB_DIM, 
+                       output_size = VOCAB_DIM, 
                        hidden_size = CONFIG['n_hidden'],
                        use_cuda = use_gpu)
   data_loader = get_data_loader(GLOVE_FILE, 
@@ -58,8 +56,6 @@ if __name__ == "__main__":
                          weight_decay=0)
   
   # setup the experiment
-  #writer,config = init_experiment(CONFIG)
-  #monitor_module(model, writer)
   writer = SummaryWriter()
 
   total_time = 0
@@ -89,8 +85,8 @@ if __name__ == "__main__":
       running_loss += loss.data[0]
       writer.add_scalar('loss', loss.data[0], total_iter)
       if i % CONFIG['print_freq'] == (CONFIG['print_freq']-1):    # print every 10 mini-batches
-        writer.add_embedding(outputs, 
-                           metadata=inputs.data, 
+        writer.add_embedding(outputs.data, 
+                           metadata=inputs, 
                            global_step=total_iter)
         end = time()
         diff = end-start
