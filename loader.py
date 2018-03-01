@@ -50,7 +50,7 @@ class DefinitionsDataset(Dataset):
         print('Error in lookup')
         traceback.print_exc()
         definition = None
-    return (np.array(definition), embedding.astype(np.float32))
+    return (word, np.array(definition), embedding.astype(np.float32))
 
   def get_vocab_pair(self, idx):
     word = None
@@ -98,13 +98,13 @@ def collate_fn(data):
     data.sort(key=lambda x: len(x[0]), reverse=True)
 
     # seperate source and target sequences
-    src_seqs, trg_seqs = zip(*data)
+    word, src_seqs, trg_seqs = zip(*data)
 
     # merge sequences (from tuple of 1D tensor to 2D tensor)
     src_seqs, src_lengths = merge(src_seqs)
     trg_seqs = torch.from_numpy(np.stack(trg_seqs, axis = 0))
 
-    return src_seqs, src_lengths, trg_seqs
+    return word, src_seqs, src_lengths, trg_seqs
 
 
 def get_data_loader(vocab_file, vocab, batch_size=8, num_workers=1, shuffle=False):

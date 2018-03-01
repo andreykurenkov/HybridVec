@@ -66,7 +66,7 @@ if __name__ == "__main__":
     start = time()
     for i, data in enumerate(data_loader, 0):
       # get the inputs
-      inputs, input_lengths, labels = data
+      word, inputs, input_lengths, labels = data
       labels = Variable(labels)
       if use_gpu:
         inputs = inputs.cuda()
@@ -86,7 +86,7 @@ if __name__ == "__main__":
       writer.add_scalar('loss', loss.data[0], total_iter)
       if i % CONFIG['print_freq'] == (CONFIG['print_freq']-1):    # print every 10 mini-batches
         writer.add_embedding(outputs.data, 
-                           metadata=inputs, 
+                           metadata=word, 
                            global_step=total_iter)
         end = time()
         diff = end-start
