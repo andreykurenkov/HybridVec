@@ -1,4 +1,5 @@
 import sys
+import collections
 import traceback
 import torch
 import torch.optim as optim
@@ -12,7 +13,7 @@ import torchtext.vocab as vocab
 from loader import get_data_loader, DefinitionsDataset
 from tensorboardX import SummaryWriter
 
-
+EMBEDDING_SIZE = 40000
 VOCAB_DIM = 100
 VOCAB_SOURCE = '6B'
 GLOVE_FILE = 'data/glove.%s.%dd.shuffled.txt'%(VOCAB_SOURCE, VOCAB_DIM)
@@ -60,13 +61,17 @@ if __name__ == "__main__":
 
   total_time = 0
   total_iter = 0
+
+  EMBEDDING_SIZE = 2000
+  embed_outs = None
+  embed_labels = []
   for epoch in range(CONFIG['max_epochs']):  # loop over the dataset multiple times
 
     running_loss = 0.0
     start = time()
     for i, data in enumerate(data_loader, 0):
       # get the inputs
-      word, inputs, input_lengths, labels = data
+      words, inputs, input_lengths, labels = data
       labels = Variable(labels)
       if use_gpu:
         inputs = inputs.cuda()
@@ -84,9 +89,20 @@ if __name__ == "__main__":
       # print statistics
       running_loss += loss.data[0]
       writer.add_scalar('loss', loss.data[0], total_iter)
+      if embed_outs is None:
+        embed_outs = outputs.data
+        embed_labels = words
+      else:
+        embed_outs = torch.cat([embed_outs, outputs.data])
+        embed_labels += words
+        num_outs = embed_outs.shape[0]
+        if num_outs > EMBEDDING_SIZE:
+          diff = num_outs - EMBEDDING_SIZE
+          embed_outs = embed_outs[diff:]
+          embed_labels = embed_labels[diff:]
       if i % CONFIG['print_freq'] == (CONFIG['print_freq']-1):    # print every 10 mini-batches
-        writer.add_embedding(outputs.data, 
-                           metadata=word, 
+        writer.add_embedding(embed_outs, 
+                           metadata=embed_labels, 
                            global_step=total_iter)
         end = time()
         diff = end-start
