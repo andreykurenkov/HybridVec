@@ -56,7 +56,7 @@ class DefinitionsDataset(Dataset):
     word = None
     while word is None:
         if self.shuffle:
-            line = self.vocab_lines[idx]
+            line = self.vocab_lines[idx+self.idx_offset+1]
         else:
             line = linecache.getline(self.vocab_file, idx + self.idx_offset + 1)
         splitLine = line.split()

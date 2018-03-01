@@ -17,7 +17,7 @@ class Def2VecModel(nn.Module):
                embed_size=300, 
                num_layers=2,
                use_cuda=False,
-               use_packing=True):
+               use_packing=False):
     super(Def2VecModel, self).__init__()
     self.use_packing = use_packing
     self.use_cuda = use_cuda

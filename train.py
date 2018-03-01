@@ -1,37 +1,35 @@
 import sys
 import traceback
-import requests_cache
 import torch
 import torch.optim as optim
 import torch.nn as nn
 import numpy as np
 from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
-from timeit import default_timer as timer
+from time import time
 from model import Def2VecModel
 from torch.autograd import Variable
 import torchtext.vocab as vocab
-from pytorch_monitor import monitor_module, init_experiment
 from loader import get_data_loader, DefinitionsDataset
+from tensorboardX import SummaryWriter
 
-requests_cache.install_cache('dict_cache')
 
 VOCAB_DIM = 300
 VOCAB_SOURCE = '6B'
-GLOVE_FILE = 'data/glove.%s.%dd.txt'%(VOCAB_SOURCE, VOCAB_DIM)
+GLOVE_FILE = 'data/glove.%s.%dd.shuffled.txt'%(VOCAB_SOURCE, VOCAB_DIM)
 
 # an example config dict
 CONFIG = dict(
     title="An Experiment",
     description="Testing out a NN",
     log_dir='logs',
-#     run_name='custom run name', # defaults to START_TIME-HOST_NAME
+    run_name='Milestone', # defaults to START_TIME-HOST_NAME
 #     run_comment='custom run comment' # gets appended to run_name as RUN_NAME-RUN_COMMENT
 
     # hyperparams
     random_seed=42,
     learning_rate=.001,
     max_epochs=5,
-    batch_size=1,
+    batch_size=16,
 
     # model config
     n_hidden=128,
@@ -49,8 +47,8 @@ if __name__ == "__main__":
                        use_cuda = use_gpu)
   data_loader = get_data_loader(GLOVE_FILE, 
                                 vocab, 
-                                batch_size = 8,
-                                num_workers = 4)
+                                batch_size = CONFIG['batch_size'],
+                                num_workers = 16)
 
   if use_gpu:
     model = model.cuda()
@@ -60,13 +58,16 @@ if __name__ == "__main__":
                          weight_decay=0)
   
   # setup the experiment
-  writer,config = init_experiment(CONFIG)
-  monitor_module(model, writer)
+  #writer,config = init_experiment(CONFIG)
+  #monitor_module(model, writer)
+  writer = SummaryWriter()
 
+  total_time = 0
+  total_iter = 0
   for epoch in range(CONFIG['max_epochs']):  # loop over the dataset multiple times
 
     running_loss = 0.0
-    start = timer()
+    start = time()
     for i, data in enumerate(data_loader, 0):
       # get the inputs
       inputs, input_lengths, labels = data
@@ -86,13 +87,24 @@ if __name__ == "__main__":
 
       # print statistics
       running_loss += loss.data[0]
+      writer.add_scalar('loss', loss.data[0], total_iter)
       if i % CONFIG['print_freq'] == (CONFIG['print_freq']-1):    # print every 10 mini-batches
-        end = timer()
-        print('[%d, %5d] loss: %.4f , perf: %.4f' %
+        writer.add_embedding(outputs, 
+                           metadata=inputs.data, 
+                           global_step=total_iter)
+        end = time()
+        diff = end-start
+        total_time+=diff
+        print('[%d, %5d] loss: %.4f , time/iter: %.2fs, total time: %.2fs' %
                (epoch + 1, i + 1, 
                 running_loss / CONFIG['print_freq'], 
-                (end-start)/CONFIG['print_freq']))
+                diff/CONFIG['print_freq'],
+                total_time))
+
         start = end
         running_loss = 0.0
+      total_iter+=1
+  writer.export_scalars_to_json("./all_scalars.json")
+  writer.close()
 
   print('Finished Training')
