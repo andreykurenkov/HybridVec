@@ -14,8 +14,8 @@ from tensorboardX import SummaryWriter
 
 
 VOCAB_DIM = 300
-VOCAB_SOURCE = '6B'
-GLOVE_FILE = 'data/glove.%s.%dd.shuffled.txt'%(VOCAB_SOURCE, VOCAB_DIM)
+VOCAB_SOURCE = 'sample'
+GLOVE_FILE = 'data/glove.%s.%d.txt'%(VOCAB_SOURCE, VOCAB_DIM)
 
 # an example config dict
 CONFIG = dict(
@@ -37,26 +37,26 @@ CONFIG = dict(
 )
 
 if __name__ == "__main__":
-  vocab = vocab.GloVe(name=VOCAB_SOURCE, dim=VOCAB_DIM)
+  vocab = vocab.GloVe(name="6B", dim=VOCAB_DIM)
   use_gpu = torch.cuda.is_available()
   print("Using GPU:", use_gpu)
 
   model = Def2VecModel(vocab,
-                       embed_size = VOCAB_DIM, 
+                       embed_size = VOCAB_DIM,
                        hidden_size = CONFIG['n_hidden'],
                        use_cuda = use_gpu)
-  data_loader = get_data_loader(GLOVE_FILE, 
-                                vocab, 
+  data_loader = get_data_loader(GLOVE_FILE,
+                                vocab,
                                 batch_size = CONFIG['batch_size'],
                                 num_workers = 16)
 
   if use_gpu:
     model = model.cuda()
   criterion = nn.MSELoss()
-  optimizer = optim.Adam(model.parameters(), 
-                         lr=CONFIG['learning_rate'], 
+  optimizer = optim.Adam(model.parameters(),
+                         lr=CONFIG['learning_rate'],
                          weight_decay=0)
-  
+
   # setup the experiment
   #writer,config = init_experiment(CONFIG)
   #monitor_module(model, writer)
@@ -89,15 +89,15 @@ if __name__ == "__main__":
       running_loss += loss.data[0]
       writer.add_scalar('loss', loss.data[0], total_iter)
       if i % CONFIG['print_freq'] == (CONFIG['print_freq']-1):    # print every 10 mini-batches
-        writer.add_embedding(outputs, 
-                           metadata=inputs.data, 
+        writer.add_embedding(outputs,
+                           metadata=inputs.data,
                            global_step=total_iter)
         end = time()
         diff = end-start
         total_time+=diff
         print('[%d, %5d] loss: %.4f , time/iter: %.2fs, total time: %.2fs' %
-               (epoch + 1, i + 1, 
-                running_loss / CONFIG['print_freq'], 
+               (epoch + 1, i + 1,
+                running_loss / CONFIG['print_freq'],
                 diff/CONFIG['print_freq'],
                 total_time))
 
