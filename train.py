@@ -12,6 +12,9 @@ from torch.autograd import Variable
 import torchtext.vocab as vocab
 from loader import get_data_loader, DefinitionsDataset
 from tensorboardX import SummaryWriter
+import requests_cache
+
+requests_cache.install_cache('cache')
 
 EMBEDDING_SIZE = 40000
 VOCAB_DIM = 100
@@ -27,7 +30,7 @@ CONFIG = dict(
     random_seed=42,
     learning_rate=.001,
     max_epochs=5,
-    batch_size=32,
+    batch_size=24,
 
     # model config
     n_hidden=150,
@@ -47,7 +50,7 @@ if __name__ == "__main__":
   data_loader = get_data_loader(GLOVE_FILE, 
                                 vocab, 
                                 batch_size = CONFIG['batch_size'],
-                                num_workers = 16)
+                                num_workers = 12)
 
   if use_gpu:
     model = model.cuda()

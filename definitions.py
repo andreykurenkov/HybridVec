@@ -1,6 +1,20 @@
 import random
 from nltk.corpus import wordnet
 from vocabulary.vocabulary import Vocabulary as vb
+import sys  
+from wordnik import swagger, WordApi
+reload(sys)  
+sys.setdefaultencoding('utf8')
+apiUrl = 'http://api.wordnik.com/v4'
+apiKey = 'a1b28252f1c2bd049897a03d4e81e85c5d6dbca71cb8dcac8'
+client = swagger.ApiClient(apiKey, apiUrl)
+wordApi = WordApi.WordApi(client)
+
+def get_wordnik_definitions(word):
+    defns = wordApi.getDefinitions(word)
+    if defns is None:
+        return []
+    return [d.text for d in defns]
 
 def get_wordnet_synsets(word):
     return wordnet.synsets(word)
@@ -23,9 +37,12 @@ def get_a_definition(word):
     definitions = get_wordnet_definitions(word)
 
     if not definitions:
+        definitions = get_wordnik_definitions(word)
+
+    if not definitions:
         definitions = get_glosbe_definitions(word)
 
     if definitions:
-        return random.choice(definitions)
+        return str(random.choice(definitions))
 
     return None
