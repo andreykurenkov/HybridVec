@@ -10,11 +10,11 @@ from torch.autograd import Variable
 
 class Def2VecModel(nn.Module):
 
-  def __init__(self, 
-               vocab, 
-               output_size=300, 
-               hidden_size=128, 
-               embed_size=300, 
+  def __init__(self,
+               vocab,
+               output_size=300,
+               hidden_size=128,
+               embed_size=300,
                num_layers=2,
                use_cuda=False,
                use_packing=False):
