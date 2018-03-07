@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import collections
 import traceback
@@ -27,9 +28,9 @@ CONFIG = dict(
     random_seed=42,
     learning_rate=.001,
     max_epochs=5,
-    batch_size=24,
+    batch_size=8,
     n_hidden=150,
-    print_freq=10,
+    print_freq=1,
 )
 
 if __name__ == "__main__":
@@ -46,8 +47,10 @@ if __name__ == "__main__":
                        use_packing = False)
   data_loader = get_data_loader(GLOVE_FILE,
                                 vocab,
+                                VOCAB_DIM,
                                 batch_size = CONFIG['batch_size'],
-                                num_workers = 12)
+                                num_workers = 12,
+                                shuffle=True)
 
   if use_gpu:
     model = model.cuda()
@@ -73,9 +76,7 @@ if __name__ == "__main__":
 
     for i, data in enumerate(data_loader, 0):
 
-      print("Batch", i)
-
-      words, inputs, input_lengths, labels = data
+      words, inputs, lengths, labels = data
       labels = Variable(labels)
 
       if use_gpu:
@@ -83,7 +84,7 @@ if __name__ == "__main__":
         labels = labels.cuda()
 
       optimizer.zero_grad()
-      outputs = model(inputs, input_lengths)
+      outputs = model(inputs)
       loss = criterion(outputs, labels)
       loss.backward()
       optimizer.step()
@@ -110,7 +111,7 @@ if __name__ == "__main__":
         end = time()
         diff = end-start
         total_time+=diff
-        print('[%d, %5d] loss: %.4f , time/iter: %.2fs, total time: %.2fs'
+        print('Epoch: %d, batch: %d, loss: %.4f , time/iter: %.2fs, total time: %.2fs' %
                (epoch + 1, i + 1,
                 running_loss / CONFIG['print_freq'],
                 diff/CONFIG['print_freq'],

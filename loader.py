@@ -1,7 +1,6 @@
 import numpy as np
 import traceback
 import string
-import linecache
 import torch
 from definitions import get_a_definition
 from torch.utils.data import Dataset, DataLoader
@@ -13,63 +12,66 @@ def clean_str(string):
 
 class DefinitionsDataset(Dataset):
 
-  def __init__(self, vocab_file, vocab, shuffle):
-    with open(vocab_file,'r') as f:
-        self.vocab_lines = f.readlines()
-    self.vocab_file = vocab_file
-    self.shuffle = shuffle
-    self.vocab_len = len(vocab.stoi)
-    self.vocab = vocab
-    self.idx_offset = 0
+  def __init__(self, vocab_file, glove, shuffle, embedding_size):
+    self.vocab_lines = open(vocab_file, "r").readlines()
+    self.glove = glove
+    self.embedding_size = embedding_size
+    if shuffle:
+      np.random.shuffle(self.vocab_lines)
 
   def __len__(self):
     return len(self.vocab_lines)
 
   def __getitem__(self, idx):
-    """
-    Return (definition, embedding)
-    """
-    word, embedding = self.get_vocab_pair(idx + self.idx_offset)
-    definition = None
-    while definition is None:
-      self.idx_offset += 1
-      word,embedding = self.get_vocab_pair(idx + self.idx_offset)
-      definition = get_a_definition(word)
-      if definition is None:
-          continue
-      try:
-        words = [clean_str(word) for word in definition.split()]
-        definition = []
-        for i,word in enumerate(words):
-            if word in self.vocab.stoi:
-                definition.append(self.vocab.stoi[word])
-            else:
-                definition.append(0)
-      except Exception as e:
-        print('Error in lookup')
-        traceback.print_exc()
-        definition = None
-    return (word, np.array(definition), embedding.astype(np.float32))
+    line = self.vocab_lines[idx]
+    split_line = line.split()
+    word = split_line[0]
+    embedding = np.array([float(val) for val in split_line[1:]])
+    definition = get_a_definition(word)
+    if not definition:
+      return ("<UNK>", np.zeros(1, dtype=np.float32), np.zeros(self.embedding_size, dtype=np.float32))
+    words = [clean_str(word) for word in definition.split()]
+    definition = [self.glove.stoi[w] if w in self.glove.stoi else 0 for w in words]
+    return (word, np.array(definition).astype(np.float32), embedding.astype(np.float32))
 
-  def get_vocab_pair(self, idx):
-    word = None
-    while word is None:
-        if self.shuffle:
-            line = self.vocab_lines[idx+self.idx_offset+1]
-        else:
-            line = linecache.getline(self.vocab_file, idx + self.idx_offset + 1)
-        splitLine = line.split()
-        if len(line) == 0:
-            self.idx_offset += 1
-            continue
-        try:
-            word = splitLine[0]
-            embedding = np.array([float(val) for val in splitLine[1:]])
-        except Exception as e:
-            print(e)
-            print(splitLine)
-            self.idx_offset += 1
-    return (word, embedding)
+    # word, embedding = self.get_vocab_pair(idx + self.idx_offset)
+    # definition = None
+  #   while definition is None:
+  #     self.idx_offset += 1
+  #     word, embedding = self.get_vocab_pair(idx + self.idx_offset)
+  #     definition = get_a_definition(word)
+  #     if definition is None:
+  #         continue
+  #     try:
+  #       words = [clean_str(word) for word in definition.split()]
+  #       definition = []
+  #       for i,word in enumerate(words):
+  #           if word in self.vocab.stoi:
+  #               definition.append(self.vocab.stoi[word])
+  #           else:
+  #               definition.append(0)
+  #     except Exception as e:
+  #       print('Error in lookup')
+  #       traceback.print_exc()
+  #       definition = None
+  #   return (word, np.array(definition), embedding.astype(np.float32))
+  #
+  # def get_vocab_pair(self, idx):
+  #   word = None
+  #   while word is None:
+  #     line = self.vocab_lines[idx+self.idx_offset+1]
+  #     splitLine = line.split()
+  #     if len(line) == 0:
+  #       self.idx_offset += 1
+  #       continue
+  #     try:
+  #       word = splitLine[0]
+  #       embedding = np.array([float(val) for val in splitLine[1:]])
+  #     except Exception as e:
+  #       print(e)
+  #       print(splitLine)
+  #       self.idx_offset += 1
+  #   return (word, embedding)
 
 def collate_fn(data):
     """Creates mini-batch tensors from the list of tuples (src_seq, trg_seq).
@@ -106,8 +108,8 @@ def collate_fn(data):
     return word, src_seqs, src_lengths, trg_seqs
 
 
-def get_data_loader(vocab_file, vocab, batch_size=8, num_workers=1, shuffle=False):
-  dataset = DefinitionsDataset(vocab_file, vocab, shuffle)
+def get_data_loader(vocab_file, vocab, embedding_size, batch_size=8, num_workers=1, shuffle=False):
+  dataset = DefinitionsDataset(vocab_file, vocab, shuffle, embedding_size)
   return DataLoader(dataset,
                     batch_size=batch_size,
                     num_workers=num_workers,
