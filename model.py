@@ -35,14 +35,14 @@ class Def2VecModel(nn.Module):
     inputs = Variable(inputs)
     batch_size, input_size = inputs.shape
     embed = self.embeddings(inputs.view(-1, input_size)).view(batch_size, input_size, -1)
-    # if self.use_packing:
-      # embed = nn.utils.rnn.pack_padded_sequence(embed, lengths, batch_first=True)
+    if self.use_packing:
+      embed = nn.utils.rnn.pack_padded_sequence(embed, lengths, batch_first=True)
     h0 = Variable(torch.zeros(self.num_layers, batch_size, self.hidden_size))
     if self.use_cuda:
       h0 = h0.cuda()
     gru_outputs, _ = self.gru(embed, h0)
-    # if self.use_packing:
-      # gru_outputs, unpacked_len = torch.nn.utils.rnn.pad_packed_sequence(
-                                        # gru_outputs, batch_first=True)
+    if self.use_packing:
+      gru_outputs, unpacked_len = torch.nn.utils.rnn.pad_packed_sequence(
+                                        gru_outputs, batch_first=True)
     our_embedding = self.output_layer(torch.mean(gru_outputs, dim=1))
     return our_embedding
