@@ -32,7 +32,7 @@ class Def2VecModel(nn.Module):
                       batch_first=True, dropout = 0.1)
     self.output_layer = nn.Linear(hidden_size, output_size)
 
-  def forward(self, inputs):
+  def forward(self, inputs, lengths = None):
     inputs = Variable(inputs)
     batch_size, input_size = inputs.shape
     embed = self.embeddings(inputs.view(-1, input_size)).view(batch_size, input_size, -1)
