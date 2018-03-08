@@ -1,6 +1,7 @@
 import numpy as np
 import traceback
 import string
+import random
 import torch
 from definitions import get_a_definition
 from torch.utils.data import Dataset, DataLoader
@@ -12,33 +13,35 @@ def clean_str(string):
 
 class DefinitionsDataset(Dataset):
 
-  def __init__(self, vocab_file, glove, shuffle, embedding_size):
-    self.vocab_lines = open(vocab_file, "r").readlines()
-    self.glove = glove
-    self.embedding_size = embedding_size
-    if shuffle:
-      np.random.shuffle(self.vocab_lines)
+    def __init__(self, vocab_file, glove, shuffle, embedding_size):
+        with open(vocab_file, "r") as f:
+            self.vocab_lines = f.readlines()
+        self.glove = glove
+        self.embedding_size = embedding_size
+        self.shuffle = shuffle
+        if shuffle:
+            np.random.shuffle(self.vocab_lines)
 
-  def __len__(self):
-    return len(self.vocab_lines)
+    def __len__(self):
+        return len(self.vocab_lines)
 
-  def get_idx_info(idx):
-    line = self.vocab_lines[idx]
-    split_line = line.split()
-    word = split_line[0]
-    definition = get_a_definition(word)
-    embedding = np.array([float(val) for val in split_line[1:]])
-    return word, definition, embedding
+    def get_idx_info(self, idx):
+        line = self.vocab_lines[idx]
+        split_line = line.split()
+        word = split_line[0]
+        definition = get_a_definition(word)
+        embedding = np.array([float(val) for val in split_line[1:]])
+        return word, definition, embedding
 
-  def __getitem__(self, idx):
-    word, definition, embedding = self.get_idx_info(idx)
-    if self.shuffle:
-        while not definition:
-            idx = random.randomint(len(self))
-            word, definition, embedding = self.get_idx_info(idx)
-    words = [clean_str(word) for word in definition.split()]
-    definition = [self.glove.stoi[w] if w in self.glove.stoi else 0 for w in words]
-    return (word, np.array(definition).astype(np.float32), embedding.astype(np.float32))
+    def __getitem__(self, idx):
+        word, definition, embedding = self.get_idx_info(idx)
+        if self.shuffle:
+            while not definition:
+                idx = random.randint(0,len(self))
+                word, definition, embedding = self.get_idx_info(idx)
+        words = [clean_str(word) for word in definition.split()]
+        definition = [self.glove.stoi[w] if w in self.glove.stoi else 0 for w in words]
+        return (word, np.array(definition).astype(np.float32), embedding.astype(np.float32))
 
 def collate_fn(data):
     """Creates mini-batch tensors from the list of tuples (src_seq, trg_seq).
@@ -76,9 +79,9 @@ def collate_fn(data):
 
 
 def get_data_loader(vocab_file, vocab, embedding_size, batch_size=8, num_workers=1, shuffle=False):
-  dataset = DefinitionsDataset(vocab_file, vocab, shuffle, embedding_size)
-  return DataLoader(dataset,
-                    batch_size=batch_size,
-                    num_workers=num_workers,
-                    collate_fn=collate_fn,
-                    shuffle=shuffle)
+    dataset = DefinitionsDataset(vocab_file, vocab, shuffle, embedding_size)
+    return DataLoader(dataset,
+                      batch_size=batch_size,
+                      num_workers=num_workers,
+                      collate_fn=collate_fn,
+                      shuffle=shuffle)

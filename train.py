@@ -13,8 +13,10 @@ from torch.autograd import Variable
 import torchtext.vocab as vocab
 from loader import get_data_loader, DefinitionsDataset
 from tensorboardX import SummaryWriter
+from pytorch_monitor import monitor_module, init_experiment
 import requests_cache
 
+DEBUG_LOG = True
 requests_cache.install_cache('cache')
 
 VOCAB_DIM = 100
@@ -22,13 +24,15 @@ VOCAB_SOURCE = '6B'
 GLOVE_FILE = 'data/glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
 
 CONFIG = dict(
-    title="An Experiment",
-    description="Testing out a NN",
+    title="def2vec",
+    description="Translating definitions to word vectors",
+    run_name='full_debug_run', # defaults to START_TIME-HOST_NAME
+    run_comment='1', # gets appended to run_name as RUN_NAME-RUN_COMMENT
     log_dir='logs',
     random_seed=42,
-    learning_rate=.001,
+    learning_rate=.0005,
     max_epochs=5,
-    batch_size=32,
+    batch_size=16,
     n_hidden=150,
     print_freq=1,
 )
@@ -59,7 +63,11 @@ if __name__ == "__main__":
                          lr=CONFIG['learning_rate'],
                          weight_decay=0)
 
-  writer = SummaryWriter()
+  if DEBUG_LOG:
+      writer = init_experiment(CONFIG)
+      monitor_module(model, writer)
+  else:
+      writer = SummaryWriter()
 
   total_time = 0
   total_iter = 0
