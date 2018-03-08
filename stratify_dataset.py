@@ -11,8 +11,8 @@ if __name__ == "__main__":
   rare_words = [line.split()[0] for line in open("data/rw/rw.txt", "r").readlines()]
   rare_words = set(rare_words)
 
-  train_output = open("data/train_{}".format(args.vocab_file), "w")
-  test_output = open("data/test_{}".format(args.vocab_file), "w")
+  train_output = open("data/train_{}".format(args.vocab_file.split("/")[-1]), "w")
+  test_output = open("data/test_{}".format(args.vocab_file.split("/")[-1]), "w")
 
   for line in tqdm(open(args.vocab_file, "r"), total=4*10**5):
     word = line.split()[0]
