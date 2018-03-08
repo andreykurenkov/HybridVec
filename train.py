@@ -24,112 +24,112 @@ VOCAB_SOURCE = '6B'
 GLOVE_FILE = 'data/glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
 
 CONFIG = dict(
-    title="def2vec",
-    description="Translating definitions to word vectors",
-    run_name='full_debug_run', # defaults to START_TIME-HOST_NAME
-    run_comment='1', # gets appended to run_name as RUN_NAME-RUN_COMMENT
-    log_dir='logs',
-    random_seed=42,
-    learning_rate=.0005,
-    max_epochs=5,
-    batch_size=16,
-    n_hidden=150,
-    print_freq=1,
+        title="def2vec",
+        description="Translating definitions to word vectors",
+        run_name='full_debug_run', # defaults to START_TIME-HOST_NAME
+        run_comment='1', # gets appended to run_name as RUN_NAME-RUN_COMMENT
+        log_dir='logs',
+        random_seed=42,
+        learning_rate=.0005,
+        max_epochs=5,
+        batch_size=16,
+        n_hidden=150,
+        print_freq=1,
+        write_embed_freq=100,
 )
 
 if __name__ == "__main__":
+    vocab = vocab.GloVe(name=VOCAB_SOURCE, dim=VOCAB_DIM)
+    use_gpu = torch.cuda.is_available()
+    print("Using GPU:", use_gpu)
 
-  vocab = vocab.GloVe(name=VOCAB_SOURCE, dim=VOCAB_DIM)
-  use_gpu = torch.cuda.is_available()
-  print("Using GPU:", use_gpu)
+    model = Def2VecModel(vocab,
+                         embed_size = VOCAB_DIM,
+                         output_size = VOCAB_DIM,
+                         hidden_size = CONFIG['n_hidden'],
+                         use_cuda = use_gpu,
+                         use_packing = False)
+    data_loader = get_data_loader(GLOVE_FILE,
+                                    vocab,
+                                    VOCAB_DIM,
+                                    batch_size = CONFIG['batch_size'],
+                                    num_workers = 8,
+                                    shuffle=True)
 
-  model = Def2VecModel(vocab,
-                       embed_size = VOCAB_DIM,
-                       output_size = VOCAB_DIM,
-                       hidden_size = CONFIG['n_hidden'],
-                       use_cuda = use_gpu,
-                       use_packing = False)
-  data_loader = get_data_loader(GLOVE_FILE,
-                                vocab,
-                                VOCAB_DIM,
-                                batch_size = CONFIG['batch_size'],
-                                num_workers = 8,
-                                shuffle=True)
+    if use_gpu:
+        model = model.cuda()
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(),
+                             lr=CONFIG['learning_rate'],
+                             weight_decay=0)
 
-  if use_gpu:
-    model = model.cuda()
-  criterion = nn.MSELoss()
-  optimizer = optim.Adam(model.parameters(),
-                         lr=CONFIG['learning_rate'],
-                         weight_decay=0)
+    if DEBUG_LOG:
+            writer,conf = init_experiment(CONFIG)
+            monitor_module(model, writer)
+    else:
+            writer = SummaryWriter()
 
-  if DEBUG_LOG:
-      writer = init_experiment(CONFIG)
-      monitor_module(model, writer)
-  else:
-      writer = SummaryWriter()
+    total_time = 0
+    total_iter = 0
 
-  total_time = 0
-  total_iter = 0
+    EMBEDDING_SIZE = 2000
+    embed_outs = None
+    embed_labels = []
 
-  EMBEDDING_SIZE = 2000
-  embed_outs = None
-  embed_labels = []
+    for epoch in range(CONFIG['max_epochs']):
 
-  for epoch in range(CONFIG['max_epochs']):
-
-    running_loss = 0.0
-    start = time()
-    print("Epoch", epoch)
-
-    for i, data in enumerate(data_loader, 0):
-
-      words, inputs, lengths, labels = data
-      labels = Variable(labels)
-
-      if use_gpu:
-        inputs = inputs.cuda()
-        labels = labels.cuda()
-
-      optimizer.zero_grad()
-      outputs = model(inputs)
-      loss = criterion(outputs, labels)
-      loss.backward()
-      optimizer.step()
-
-      # print statistics
-      running_loss += loss.data[0]
-      writer.add_scalar('loss', loss.data[0], total_iter)
-      if embed_outs is None:
-        embed_outs = outputs.data
-        embed_labels = words
-      else:
-        embed_outs = torch.cat([embed_outs, outputs.data])
-        embed_labels += words
-        num_outs = embed_outs.shape[0]
-        if num_outs > EMBEDDING_SIZE:
-          diff = num_outs - EMBEDDING_SIZE
-          embed_outs = embed_outs[diff:]
-          embed_labels = embed_labels[diff:]
-
-      if i % CONFIG['print_freq'] == (CONFIG['print_freq']-1):
-        writer.add_embedding(embed_outs,
-                           metadata=embed_labels,
-                           global_step=total_iter)
-        end = time()
-        diff = end-start
-        total_time+=diff
-        print('Epoch: %d, batch: %d, loss: %.4f , time/iter: %.2fs, total time: %.2fs' %
-               (epoch + 1, i + 1,
-                running_loss / CONFIG['print_freq'],
-                diff/CONFIG['print_freq'],
-                total_time))
-
-        start = end
         running_loss = 0.0
-      total_iter += 1
+        start = time()
+        print("Epoch", epoch)
 
-  writer.export_scalars_to_json("./all_scalars.json")
-  writer.close()
+        for i, data in enumerate(data_loader, 0):
+            words, inputs, lengths, labels = data
+            labels = Variable(labels)
 
-  print('Finished Training')
+            if use_gpu:
+                inputs = inputs.cuda()
+                labels = labels.cuda()
+
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            # print statistics
+            running_loss += loss.data[0]
+            writer.add_scalar('loss', loss.data[0], total_iter)
+            if embed_outs is None:
+                embed_outs = outputs.data
+                embed_labels = words
+            else:
+                embed_outs = torch.cat([embed_outs, outputs.data])
+                embed_labels += words
+                num_outs = embed_outs.shape[0]
+                if num_outs > EMBEDDING_SIZE:
+                    diff = num_outs - EMBEDDING_SIZE
+                    embed_outs = embed_outs[diff:]
+                    embed_labels = embed_labels[diff:]
+
+            if i % CONFIG['print_freq'] == (CONFIG['print_freq']-1):
+                end = time()
+                diff = end-start
+                total_time+=diff
+                print('Epoch: %d, batch: %d, loss: %.4f , time/iter: %.2fs, total time: %.2fs' %
+                             (epoch + 1, i + 1,
+                                running_loss / CONFIG['print_freq'],
+                                diff/CONFIG['print_freq'],
+                                total_time))
+                start = end
+                running_loss = 0.0
+            if i % CONFIG['write_embed_freq'] == (CONFIG['write_embed_freq']-1):
+                writer.add_embedding(embed_outs,
+                                     metadata=embed_labels,
+                                     global_step=total_iter)
+
+            total_iter += 1
+
+    writer.export_scalars_to_json("./all_scalars.json")
+    writer.close()
+
+    print('Finished Training')

@@ -33,13 +33,13 @@ def get_glosbe_definitions(word):
     """
     return vb.meaning(word, format="list")
 
-def get_a_definition(word, filter_repetion = True):
+def get_a_definition(word, filter_repetition = True):
     """
     Get a definition from any source, or None if not available
     
     Args:
         word: str of word to define
-        filter_repetion: whether to remove reocurrence of word, eg healthy = the state of having health
+        filter_repetiyion: whether to remove reocurrence of word, eg healthy = the state of having health
     """
     definition = None
     definitions = get_wordnet_definitions(word)
@@ -53,10 +53,11 @@ def get_a_definition(word, filter_repetion = True):
         if definitions:
             definition = str(random.choice(definitions))
 
-        if definition and filter_repition:
+        if definition and filter_repetition:
             stem = stemmer.stem(word)
             definition.replace(' %s '%stem,' stem ')
-    except:
+    except Exception as e:
+        print(e)
         return None
     
     return definition
