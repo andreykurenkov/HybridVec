@@ -108,7 +108,7 @@ if __name__ == "__main__":
                 labels = labels.cuda()
 
             optimizer.zero_grad()
-            outputs = model(inputs)
+            outputs = model(inputs, lengths)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
