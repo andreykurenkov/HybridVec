@@ -14,6 +14,7 @@ import torchtext.vocab as vocab
 from loader import get_data_loader, DefinitionsDataset
 from tensorboardX import SummaryWriter
 from pytorch_monitor import monitor_module, init_experiment
+import torch.nn.init as init
 import requests_cache
 
 DEBUG_LOG = True
@@ -21,24 +22,35 @@ requests_cache.install_cache('cache')
 
 VOCAB_DIM = 100
 VOCAB_SOURCE = '6B'
-GLOVE_FILE = 'data/train_glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
+GLOVE_FILE = 'data/glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
 
 CONFIG = dict(
         title="def2vec",
         description="Translating definitions to word vectors",
         run_name='full_debug_run', # defaults to START_TIME-HOST_NAME
-        run_comment='1', # gets appended to run_name as RUN_NAME-RUN_COMMENT
+        run_comment='weight_init', # gets appended to run_name as RUN_NAME-RUN_COMMENT
         log_dir='logs',
         random_seed=42,
         learning_rate=.0005,
         max_epochs=5,
-        batch_size=16,
+        batch_size=64,
         n_hidden=150,
         print_freq=1,
         write_embed_freq=100,
         weight_decay=0,
-        save_path="./model_weights.torch"
+        save_path="./model_weights.torch",
+        weight_init="xavier",
+        packing=True
 )
+
+def weights_init(m):
+    if CONFIG['weight_init']=='xavier':
+        if type(m) in [nn.Linear]:
+            nn.init.xavier_normal(m.weight.data)
+        elif type(m) in [nn.LSTM, nn.RNN, nn.GRU]:
+            nn.init.xavier_normal(m.weight_hh_l0)
+            nn.init.xavier_normal(m.weight_ih_l0)
+
 
 if __name__ == "__main__":
 
@@ -51,7 +63,9 @@ if __name__ == "__main__":
                          output_size = VOCAB_DIM,
                          hidden_size = CONFIG['n_hidden'],
                          use_cuda = use_gpu,
-                         use_packing = False)
+                         use_packing = CONFIG['packing'])
+    model.apply(weights_init)
+
     data_loader = get_data_loader(GLOVE_FILE,
                                   vocab,
                                   VOCAB_DIM,

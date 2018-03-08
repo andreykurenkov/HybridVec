@@ -17,7 +17,7 @@ class Def2VecModel(nn.Module):
                embed_size=300,
                num_layers=2,
                use_cuda=False,
-               use_packing=False):
+               use_packing=True):
     super(Def2VecModel, self).__init__()
     self.use_packing = use_packing
     self.use_cuda = use_cuda
@@ -28,7 +28,8 @@ class Def2VecModel(nn.Module):
     self.num_layers = num_layers
     self.output_size = output_size
     self.hidden_size = hidden_size
-    self.gru = nn.GRU(embed_size, hidden_size, num_layers, batch_first=True)
+    self.gru = nn.GRU(embed_size, hidden_size, num_layers, 
+                      batch_first=True, dropout = 0.1)
     self.output_layer = nn.Linear(hidden_size, output_size)
 
   def forward(self, inputs):
