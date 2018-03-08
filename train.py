@@ -21,7 +21,8 @@ requests_cache.install_cache('cache')
 
 VOCAB_DIM = 100
 VOCAB_SOURCE = '6B'
-GLOVE_FILE = 'data/glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
+# GLOVE_FILE = 'data/train_glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
+GLOVE_FILE = "data/glove.sample.100d.txt"
 
 CONFIG = dict(
         title="def2vec",
@@ -36,9 +37,12 @@ CONFIG = dict(
         n_hidden=150,
         print_freq=1,
         write_embed_freq=100,
+        weight_decay=0,
+        save_path="./model_weights.torch"
 )
 
 if __name__ == "__main__":
+
     vocab = vocab.GloVe(name=VOCAB_SOURCE, dim=VOCAB_DIM)
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
@@ -50,18 +54,18 @@ if __name__ == "__main__":
                          use_cuda = use_gpu,
                          use_packing = False)
     data_loader = get_data_loader(GLOVE_FILE,
-                                    vocab,
-                                    VOCAB_DIM,
-                                    batch_size = CONFIG['batch_size'],
-                                    num_workers = 8,
-                                    shuffle=True)
+                                  vocab,
+                                  VOCAB_DIM,
+                                  batch_size = CONFIG['batch_size'],
+                                  num_workers = 8,
+                                  shuffle=True)
 
     if use_gpu:
         model = model.cuda()
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(),
                              lr=CONFIG['learning_rate'],
-                             weight_decay=0)
+                             weight_decay=CONFIG['weight_decay'])
 
     if DEBUG_LOG:
             writer,conf = init_experiment(CONFIG)
@@ -133,3 +137,4 @@ if __name__ == "__main__":
     writer.close()
 
     print('Finished Training')
+    torch.save(model.state_dict(), CONFIG['save_path'])
