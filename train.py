@@ -30,7 +30,7 @@ CONFIG = dict(
     random_seed=42,
     learning_rate=.001,
     max_epochs=5,
-    batch_size=24,
+    batch_size=8,
 
     # model config
     n_hidden=150,
@@ -50,7 +50,7 @@ if __name__ == "__main__":
   data_loader = get_data_loader(GLOVE_FILE, 
                                 vocab, 
                                 batch_size = CONFIG['batch_size'],
-                                num_workers = 12)
+                                num_workers = 0)
 
   if use_gpu:
     model = model.cuda()

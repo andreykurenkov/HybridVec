@@ -36,13 +36,17 @@ def get_a_definition(word):
     """
     definitions = get_wordnet_definitions(word)
 
-    if not definitions:
-        definitions = get_wordnik_definitions(word)
 
-    if not definitions:
-        definitions = get_glosbe_definitions(word)
+    try:
+        if not definitions:
+            definitions = get_wordnik_definitions(word)
 
-    if definitions:
-        return str(random.choice(definitions))
+        if not definitions:
+            definitions = get_glosbe_definitions(word)
+
+        if definitions:
+            return str(random.choice(definitions))
+    except:
+        return None
 
     return None
