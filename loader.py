@@ -37,7 +37,7 @@ class DefinitionsDataset(Dataset):
         word, definition, embedding = self.get_idx_info(idx)
         if self.shuffle:
             while definition is None:
-                idx = random.randint(0,len(self.vocab_lines))
+                idx = random.randint(0,len(self.vocab_lines)-1)
                 word, definition, embedding = self.get_idx_info(idx)
         words = [clean_str(word) for word in definition.split()]
         definition = [self.glove.stoi[w] if w in self.glove.stoi else 0 for w in words]
