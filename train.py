@@ -40,7 +40,7 @@ CONFIG = dict(
         weight_decay=0,
         save_path="./model_weights.torch",
         weight_init="xavier",
-        packing=True
+        packing=False
 )
 
 def weights_init(m):
@@ -80,11 +80,9 @@ if __name__ == "__main__":
                              lr=CONFIG['learning_rate'],
                              weight_decay=CONFIG['weight_decay'])
 
+    writer,conf = init_experiment(CONFIG)
     if DEBUG_LOG:
-            writer,conf = init_experiment(CONFIG)
-            monitor_module(model, writer)
-    else:
-            writer = SummaryWriter()
+        monitor_module(model, writer)
 
     total_time = 0
     total_iter = 0

@@ -45,10 +45,10 @@ def get_a_definition(word, filter_repetition = True):
     definitions = get_wordnet_definitions(word)
     try:
         if not definitions:
-            definitions = get_wordnik_definitions(word)
-            
-        if not definitions:
             definitions = get_glosbe_definitions(word)
+
+        #if not definitions:
+        #    definitions = get_wordnik_definitions(word)
             
         if definitions:
             definition = str(random.choice(definitions))
