@@ -92,7 +92,7 @@ if __name__ == "__main__":
     total_time = 0
     total_iter = 0
 
-    EMBEDDING_SIZE = 2000
+    EMBEDDING_SIZE = 7500
     embed_outs = None
     embed_labels = []
 
