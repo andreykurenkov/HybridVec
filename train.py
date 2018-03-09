@@ -145,9 +145,11 @@ if __name__ == "__main__":
 
             total_iter += 1
 
-        if not os.path.exists("epoch_{}".format(epoch)):
-            os.mkdir("epoch_{}".format(epoch))
-        torch.save(model.state_dict(), "epoch_{}".format(epoch) + "/" + CONFIG['save_path'])
+        if not os.path.exists("checkpoints"):
+            os.mkdir("checkpoints")
+        if not os.path.exists("checkpoints/epoch_{}".format(epoch)):
+            os.mkdir("checkpoints/epoch_{}".format(epoch))
+        torch.save(model.state_dict(), "checkpoints/epoch_{}".format(epoch) + "/" + CONFIG['save_path'])
 
     writer.export_scalars_to_json("./all_scalars.json")
     writer.close()
