@@ -23,7 +23,7 @@ requests_cache.install_cache('cache')
 
 VOCAB_DIM = 100
 VOCAB_SOURCE = '6B'
-GLOVE_FILE = 'data/train_glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
+GLOVE_FILE = 'data/sample_glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
 
 CONFIG = dict(
         title="def2vec",
@@ -147,12 +147,11 @@ if __name__ == "__main__":
 
         if not os.path.exists("checkpoints"):
             os.mkdir("checkpoints")
-        if not os.path.exists("checkpoints/epoch_{}".format(epoch)):
-            os.mkdir("checkpoints/epoch_{}".format(epoch))
-        torch.save(model.state_dict(), "checkpoints/epoch_{}".format(epoch) + "/" + CONFIG['save_path'])
+        if not os.path.exists("checkpoints/epoch_{}".format(epoch + 1)):
+            os.mkdir("checkpoints/epoch_{}".format(epoch + 1))
+        torch.save(model.state_dict(), "checkpoints/epoch_{}".format(epoch + 1) + "/" + CONFIG['save_path'])
 
     writer.export_scalars_to_json("./all_scalars.json")
     writer.close()
 
     print('Finished Training')
-    torch.save(model.state_dict(), CONFIG['save_path'])
