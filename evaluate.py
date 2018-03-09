@@ -39,7 +39,7 @@ CONFIG = dict(
         print_freq=1,
         write_embed_freq=100,
         weight_decay=0,
-        save_path="./model_weights.torch"
+        save_path="./checkpoints/epoch_5/model_weights.torch"
 )
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ requests_cache.install_cache('cache')
 
 VOCAB_DIM = 100
 VOCAB_SOURCE = '6B'
-GLOVE_FILE = 'data/sample_glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
+GLOVE_FILE = 'data/train_glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
 
 CONFIG = dict(
         title="def2vec",
