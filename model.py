@@ -47,6 +47,8 @@ class Def2VecModel(nn.Module):
     if self.use_packing:
       gru_outputs, unpacked_len = torch.nn.utils.rnn.pad_packed_sequence(
                                         gru_outputs, batch_first=True)
+    import pdb
+    pdb.set_trace()
     logits = self.attn(gru_outputs.contiguous().view(-1, 2 * self.hidden_size))
     softmax = self.attn_softmax(logits)
     mean = torch.sum(gru_outputs.view(-1, 2 * self.hidden_size) * logits, dim=0)
