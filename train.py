@@ -40,6 +40,7 @@ CONFIG = dict(
         write_embed_freq=100,
         weight_decay=0,
         save_path="model_weights.torch",
+        load_path=None,
         weight_init="xavier",
         packing=False
 )
@@ -65,7 +66,10 @@ if __name__ == "__main__":
                          hidden_size = CONFIG['n_hidden'],
                          use_cuda = use_gpu,
                          use_packing = CONFIG['packing'])
-    model.apply(weights_init)
+    if CONFIG["load_path"] is None:
+        model.apply(weights_init)
+    else:
+        model.load_state_dict(torch.load(CONFIG["load_path"]))
 
     data_loader = get_data_loader(GLOVE_FILE,
                                   vocab,
