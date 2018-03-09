@@ -47,10 +47,10 @@ class Def2VecModel(nn.Module):
     if self.use_packing:
       gru_outputs, unpacked_len = torch.nn.utils.rnn.pad_packed_sequence(
                                         gru_outputs, batch_first=True)
+    import pdb
+    pdb.set_trace()
     logits = self.attn(gru_outputs.view(-1, 2 * self.hidden_size))
     softmax = self.attn_softmax(logits, dim=1)
     mean = torch.sum(gru_outputs.view(-1, 2 * self.hidden_size) * logits, dim=2)
-    import pdb
-    pdb.set_trace()
     our_embedding = self.output_layer(mean)
     return our_embedding
