@@ -17,12 +17,12 @@ from pytorch_monitor import monitor_module, init_experiment
 import torch.nn.init as init
 import requests_cache
 
-DEBUG_LOG = True
+DEBUG_LOG = False
 requests_cache.install_cache('cache')
 
 VOCAB_DIM = 100
 VOCAB_SOURCE = '6B'
-GLOVE_FILE = 'data/glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
+GLOVE_FILE = 'data/sample_glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
 
 CONFIG = dict(
         title="def2vec",
@@ -38,7 +38,7 @@ CONFIG = dict(
         print_freq=1,
         write_embed_freq=100,
         weight_decay=0,
-        save_path="./model_weights.torch",
+        save_path="model_weights.torch",
         weight_init="xavier",
         packing=False
 )
@@ -143,6 +143,9 @@ if __name__ == "__main__":
                                      global_step=total_iter)
 
             total_iter += 1
+
+        os.mkdir("epoch_{}".format(epoch))
+        torch.save(model.state_dict(), "epoch_{}".format(epoch) + "/" + CONFIG['save_path'])
 
     writer.export_scalars_to_json("./all_scalars.json")
     writer.close()
