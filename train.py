@@ -18,7 +18,7 @@ from pytorch_monitor import monitor_module, init_experiment
 import torch.nn.init as init
 import requests_cache
 
-DEBUG_LOG = False
+DEBUG_LOG = True
 requests_cache.install_cache('cache')
 
 VOCAB_DIM = 100
