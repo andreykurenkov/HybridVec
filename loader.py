@@ -39,7 +39,7 @@ class DefinitionsDataset(Dataset):
             while definition is None:
                 idx = random.randint(0,len(self.vocab_lines)-1)
                 word, definition, embedding = self.get_idx_info(idx)
-        words = [clean_str(word) for word in definition.split()]
+        words = [clean_str(w) for w in definition.split()]
         definition = [self.glove.stoi[w] if w in self.glove.stoi else 0 for w in words]
         return (word, np.array(definition).astype(np.float32), embedding.astype(np.float32))
 
@@ -85,3 +85,8 @@ def get_data_loader(vocab_file, vocab, embedding_size, batch_size=8, num_workers
                       num_workers=num_workers,
                       collate_fn=collate_fn,
                       shuffle=shuffle)
+
+def get_on_the_fly_input(definition, glove):
+    words = [clean_str(word) for word in definition.split()]
+    definition = [glove.stoi[w] if w in glove.stoi else 0 for w in words]
+    return np.array(definition).astype(np.float32)

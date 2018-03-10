@@ -1,6 +1,7 @@
 from __future__ import print_function
 import tqdm
 import sys
+import torch.nn.functional as F
 import collections
 import traceback
 import torch
@@ -12,7 +13,7 @@ from time import time
 from model import Def2VecModel
 from torch.autograd import Variable
 import torchtext.vocab as vocab
-from loader import get_data_loader, DefinitionsDataset
+from loader import get_data_loader, get_on_the_fly_input, DefinitionsDataset
 from tensorboardX import SummaryWriter
 from pytorch_monitor import monitor_module, init_experiment
 import requests_cache
@@ -39,8 +40,18 @@ CONFIG = dict(
         print_freq=1,
         write_embed_freq=100,
         weight_decay=0,
-        save_path="./checkpoints/epoch_5/model_weights.torch"
+        save_path="./checkpoints/epoch_1/model_weights.torch"
 )
+
+def get_word(word):
+    return vocab.vectors[vocab.stoi[word]]
+
+def closest(vec, n=10):
+    """
+    Find the closest words for a given vector
+    """
+    all_dists = [(w, torch.dist(vec, get_word(w))) for w in vocab.itos]
+    return sorted(all_dists, key=lambda t: t[1])[:n]
 
 if __name__ == "__main__":
 
@@ -84,3 +95,25 @@ if __name__ == "__main__":
         n_batches += 1
 
     print("L2 loss:", running_loss / n_batches)
+
+    while True:
+
+        print("== Give a definition.")
+        definition = raw_input()
+
+        inputs = torch.LongTensor(get_on_the_fly_input(definition, vocab))
+        inputs = inputs.unsqueeze(0)
+        if use_gpu:
+            inputs = inputs.cuda()
+        out_embedding = model(inputs).squeeze().data
+        if use_gpu:
+            out_embedding = out_embedding.cpu()
+
+        # print("Closest words:")
+        # print(closest(out_embedding))
+
+        print("== Give a word.")
+        actual_word = raw_input()
+        print("Cosine similarity between embedding and GloVe word:",
+              F.cosine_similarity(out_embedding.unsqueeze(0), get_word(actual_word).unsqueeze(0)).numpy())
+
