@@ -192,11 +192,11 @@ if __name__ == "__main__":
 
             total_iter += 1
 
-        if not os.path.exists("checkpoints/{}".format(CONFIG['run_name'])):
-            os.mkdir("checkpoints/{}".format(CONFIG['run_name']))
-        if not os.path.exists("checkpoints/{}/epoch_{}".format(CONFIG['run_name'], epoch + 1)):
-            os.mkdir("checkpoints/{}/epoch_{}".format(CONFIG['run_name'], epoch + 1))
-        torch.save(model.state_dict(), "checkpoints/{}/epoch_{}".format(CONFIG['run_name'], epoch + 1) + "/" + CONFIG['save_path'])
+        if not os.path.exists("checkpoints/{}".format(CONFIG['run_name'] + CONFIG['run_comment'])):
+            os.mkdir("checkpoints/{}".format(CONFIG['run_name'] + CONFIG['run_comment']))
+        if not os.path.exists("checkpoints/{}/epoch_{}".format(CONFIG['run_name'] + CONFIG['run_comment'], epoch + 1)):
+            os.mkdir("checkpoints/{}/epoch_{}".format(CONFIG['run_name'] + CONFIG['run_comment'], epoch + 1))
+        torch.save(model.state_dict(), "checkpoints/{}/epoch_{}".format(CONFIG['run_name'] + CONFIG['run_comment'], epoch + 1) + "/" + CONFIG['save_path'])
 
     writer.export_scalars_to_json("./all_scalars.json")
     writer.close()
