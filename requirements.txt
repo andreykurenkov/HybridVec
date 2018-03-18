@@ -10,7 +10,6 @@ funcsigs==1.0.2
 futures==3.2.0
 gast==0.2.0
 grpcio==1.10.0
-gyp==0.1
 html5lib==0.9999999
 idna==2.6
 IPy==0.83
@@ -30,8 +29,8 @@ Pyste==0.9.10
 python-apt==1.1.0b1
 pytorch-monitor==0.6
 PyYAML==3.12
-requests==2.18.4
-requests-cache==0.4.13
+pyzmq==17.0.0
+requests==2.13.0
 scikit-learn==0.19.1
 scipy==1.0.0
 sh==1.12.14

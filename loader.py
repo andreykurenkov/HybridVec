@@ -1,23 +1,23 @@
 import numpy as np
 import traceback
-import string
 import random
 import torch
-from definitions import get_a_definition
+from definitions import get_a_definition, get_definitions_concat, clean_str
 from torch.utils.data import Dataset, DataLoader
 
-
-PUNC = set(string.punctuation)
-def clean_str(string):
-    return "".join([c for c in string.lower() if c not in PUNC])
+INPUT_METHOD_ALL_CONCAT = "concat_defs"
+INPUT_METHOD_ONE = "random_def"
+INPUT_METHOD_ONE_CORRUPT = "random_def_concat"
+INPUT_METHOD_RANDOM = "random_words"
 
 class DefinitionsDataset(Dataset):
 
-    def __init__(self, vocab_file, glove, shuffle, embedding_size):
+    def __init__(self, vocab_file, glove, input_method, shuffle, embedding_size):
         with open(vocab_file, "r") as f:
             self.vocab_lines = f.readlines()
         self.glove = glove
         self.embedding_size = embedding_size
+        self.input_method = input_method
         self.shuffle = shuffle
         if shuffle:
             np.random.shuffle(self.vocab_lines)
@@ -29,7 +29,10 @@ class DefinitionsDataset(Dataset):
         line = self.vocab_lines[idx]
         split_line = line.split()
         word = split_line[0]
-        definition = get_a_definition(word)
+        if self.input_method == INPUT_METHOD_ONE:
+		definition = get_a_definition(word)
+        elif self.input_method == INPUT_METHOD_ALL_CONCAT:
+		definition = get_definitions_concat(word)
         embedding = np.array([float(val) for val in split_line[1:]])
         return word, definition, embedding
 
@@ -66,7 +69,7 @@ def collate_fn(data):
         return padded_seqs, lengths
 
     # sort a list by sequence length (descending order) to use pack_padded_sequence
-    data.sort(key=lambda x: len(x[0]), reverse=True)
+    data.sort(key=lambda x: len(x[1]), reverse=True)
 
     # seperate source and target sequences
     word, src_seqs, trg_seqs = zip(*data)
@@ -78,8 +81,8 @@ def collate_fn(data):
     return word, src_seqs, src_lengths, trg_seqs
 
 
-def get_data_loader(vocab_file, vocab, embedding_size, batch_size=8, num_workers=1, shuffle=False):
-    dataset = DefinitionsDataset(vocab_file, vocab, shuffle, embedding_size)
+def get_data_loader(vocab_file, vocab, input_method, embedding_size, batch_size=8, num_workers=1, shuffle=False):
+    dataset = DefinitionsDataset(vocab_file, vocab, input_method, shuffle, embedding_size)
     return DataLoader(dataset,
                       batch_size=batch_size,
                       num_workers=num_workers,

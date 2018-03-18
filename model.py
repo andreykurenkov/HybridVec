@@ -4,8 +4,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torchtext.vocab as vocab
-import numpy as np
 from torch.autograd import Variable
+import numpy as np
 
 
 class Def2VecModel(nn.Module):
@@ -19,9 +19,10 @@ class Def2VecModel(nn.Module):
                dropout=0.0,
                use_bidirection=True,
                use_attention=True,
-               use_gru=True,
+               cell_type='GRU',
                use_cuda=True,
-               use_packing=False):
+               use_packing=False,
+               max_length=784):
     super(Def2VecModel, self).__init__()
     self.use_packing = use_packing
     self.use_cuda = use_cuda
@@ -34,10 +35,28 @@ class Def2VecModel(nn.Module):
     self.hidden_size = hidden_size
     self.use_attention = use_attention
     self.use_bidirection = use_bidirection
-    self.use_gru = use_gru
-    if use_gru:
-        self.gru = nn.GRU(embed_size, hidden_size, num_layers, batch_first=True,
-                          dropout=dropout, bidirectional=use_bidirection)
+    self.cell_type = cell_type
+    if cell_type == 'GRU':
+        self.cell = nn.GRU(embed_size, 
+                           hidden_size, 
+                           num_layers, 
+                           batch_first=True,
+                           dropout=dropout, 
+                           bidirectional=use_bidirection)
+    elif cell_type == 'LSTM':
+        self.cell = nn.LSTM(embed_size, 
+                           hidden_size, 
+                           num_layers, 
+                           batch_first=True,
+                           dropout=dropout, 
+                           bidirectional=use_bidirection)
+    elif cell_type == 'RNN':
+        self.cell = nn.RNN(embed_size, 
+                           hidden_size, 
+                           num_layers, 
+                           batch_first=True,
+                           dropout=dropout, 
+                           bidirectional=use_bidirection)
     else:
         self.baseline = nn.Linear(embed_size, hidden_size)
     if use_attention:
@@ -55,18 +74,18 @@ class Def2VecModel(nn.Module):
                               batch_size, self.hidden_size))
     if self.use_cuda:
       h0 = h0.cuda()
-    if self.use_gru:
-        gru_outputs, _ = self.gru(embed, h0)
+    if self.cell_type:
+        cell_outputs, _ = self.cell(embed, h0)
     else:
-        gru_outputs = self.baseline(embed)
+        cell_outputs = self.baseline(embed)
     if self.use_packing:
-      gru_outputs, unpacked_len = torch.nn.utils.rnn.pad_packed_sequence(
-                                        gru_outputs, batch_first=True)
+      cell_outputs, unpacked_len = torch.nn.utils.rnn.pad_packed_sequence(
+                                        cell_outputs, batch_first=True)
     if self.use_attention:
-        logits = self.attn(gru_outputs)
+        logits = self.attn(cell_outputs)
         softmax = self.attn_softmax(logits)
-        mean = torch.sum(softmax * gru_outputs, dim=1)
+        mean = torch.sum(softmax * cell_outputs, dim=1)
     else:
-        mean = torch.mean(gru_outputs, dim=1)
+        mean = torch.mean(cell_outputs, dim=1)
     our_embedding = self.output_layer(mean)
     return our_embedding

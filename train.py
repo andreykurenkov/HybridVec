@@ -12,50 +12,54 @@ from time import time
 from model import Def2VecModel
 from torch.autograd import Variable
 import torchtext.vocab as vocab
-from loader import get_data_loader, DefinitionsDataset
 from tensorboardX import SummaryWriter
 from pytorch_monitor import monitor_module, init_experiment
+from loader import *
 import torch.nn.init as init
-import requests_cache
 from tqdm import tqdm
 
-
-DEBUG_LOG = True
-requests_cache.install_cache('cache')
-
-VOCAB_SOURCE = '6B'
-VOCAB_DIM = 100
-TRAIN_FILE = 'data/train_glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
-VAL_FILE = 'data/val_glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
+DEBUG_LOG = False
 
 CONFIG = dict(
-    # logging configuration
+    # meta data
     title="def2vec",
     description="Translating definitions to word vectors",
-    run_name='full_model',
-    run_comment='weight_init',
+    run_name='full_run_big_batch', # defaults to START_TIME-HOST_NAME
+    run_comment='def_concat', # gets appended to run_name as RUN_NAME-RUN_COMMENT
     log_dir='logs',
+    vocab_dim = 100,
+    vocab_source = '6B',
+    load_path = None,
+    # hyperparams
     random_seed=42,
-    print_freq=1,
-    eval_freq=100,
-    write_embed_freq=100,
-    # training parameters
-    learning_rate=0.0005,
+    learning_rate=.0001,
     max_epochs=5,
-    batch_size=64,
-    save_path="model_weights.torch",
-    load_path=None,
+    batch_size=128,
+    n_hidden=150,
+    # logging params
+    print_freq=1,
+    write_embed_freq=100,
+    eval_freq = 1000,
+    save_path="./model_weights.torch",
+    embedding_log_size = 10000,
+    # data loading params
+    num_workers = 8,
+    packing=True,
+    shuffle=True,
     # model configuration [for ablation/hyperparam experiments]
     weight_init="xavier",
+    input_method=INPUT_METHOD_ALL_CONCAT,
     use_bidirection=True,
-    use_attention=True,
-    use_gru=True,
+    use_attention=False,
+    cell_type='GRU',
+    #use_batchnorm=True,
     hidden_size=150,
     embed_size=100,
-    dropout=0.0,
+    dropout=0.1,
     weight_decay=0.0,
-    packing=False
 )
+TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(CONFIG['vocab_source'],CONFIG['vocab_dim'])
+VAL_FILE = 'data/glove/val_glove.%s.%sd.txt'%(CONFIG['vocab_source'],CONFIG['vocab_dim'])
 
 def weights_init(m):
     """
@@ -71,39 +75,43 @@ def weights_init(m):
 
 if __name__ == "__main__":
 
-    vocab = vocab.GloVe(name=VOCAB_SOURCE, dim=VOCAB_DIM)
+    vocab = vocab.GloVe(name=CONFIG['vocab_source'], dim=CONFIG['vocab_dim'])
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
 
     model = Def2VecModel(vocab,
-                         embed_size = VOCAB_DIM,
-                         output_size = VOCAB_DIM,
+                         embed_size = CONFIG['vocab_dim'],
+                         output_size = CONFIG['vocab_dim'],
                          hidden_size = CONFIG['hidden_size'],
                          use_packing = CONFIG['packing'],
                          use_bidirection = CONFIG['use_bidirection'],
                          use_attention = CONFIG['use_attention'],
-                         use_gru = CONFIG['use_gru'],
+                         cell_type = CONFIG['cell_type'],
                          use_cuda = use_gpu)
 
     if CONFIG["load_path"] is None:
         model.apply(weights_init)
     else:
         model.load_state_dict(torch.load(CONFIG["load_path"]))
+    model.apply(weights_init)
+
     if use_gpu:
         model = model.cuda()
 
     train_loader = get_data_loader(TRAIN_FILE,
                                    vocab,
-                                   VOCAB_DIM,
+                                   CONFIG['input_method'],
+                                   CONFIG['vocab_dim'],
                                    batch_size = CONFIG['batch_size'],
-                                   num_workers = 8,
-                                   shuffle = True)
+                                   num_workers = CONFIG['num_workers'],
+                                   shuffle=CONFIG['shuffle'])
     val_loader = get_data_loader(VAL_FILE,
                                    vocab,
-                                   VOCAB_DIM,
+                                   CONFIG['input_method'],
+                                   CONFIG['vocab_dim'],
                                    batch_size = CONFIG['batch_size'],
-                                   num_workers = 8,
-                                   shuffle = True)
+                                   num_workers = CONFIG['num_workers'],
+                                   shuffle=CONFIG['shuffle'])
 
 
     criterion = nn.MSELoss()
@@ -118,7 +126,6 @@ if __name__ == "__main__":
     total_time = 0
     total_iter = 0
 
-    EMBEDDING_SIZE = 7500
     embed_outs = None
     embed_labels = []
 
@@ -152,8 +159,8 @@ if __name__ == "__main__":
                 embed_outs = torch.cat([embed_outs, outputs.data])
                 embed_labels += words
                 num_outs = embed_outs.shape[0]
-                if num_outs > EMBEDDING_SIZE:
-                    diff = num_outs - EMBEDDING_SIZE
+                if num_outs > CONFIG['embedding_log_size']:
+                    diff = num_outs - CONFIG['embedding_log_size']
                     embed_outs = embed_outs[diff:]
                     embed_labels = embed_labels[diff:]
 
