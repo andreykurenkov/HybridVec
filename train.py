@@ -24,7 +24,7 @@ CONFIG = dict(
     # meta data
     title="def2vec",
     description="Translating definitions to word vectors",
-    run_name='full_run_big_batch', # defaults to START_TIME-HOST_NAME
+    run_name='full_run_big_hidden', # defaults to START_TIME-HOST_NAME
     run_comment='def_concat', # gets appended to run_name as RUN_NAME-RUN_COMMENT
     log_dir='logs',
     vocab_dim = 100,
@@ -33,9 +33,9 @@ CONFIG = dict(
     # hyperparams
     random_seed=42,
     learning_rate=.0001,
-    max_epochs=5,
+    max_epochs=13,
     batch_size=128,
-    n_hidden=150,
+    n_hidden=250,
     # logging params
     print_freq=1,
     write_embed_freq=100,

@@ -2,6 +2,7 @@ import numpy as np
 import traceback
 import random
 import torch
+import time
 from tqdm import tqdm
 from definitions import *
 from torch.utils.data import Dataset, DataLoader
@@ -95,23 +96,61 @@ def get_on_the_fly_input(definition, glove):
     definition = [glove.stoi[w] if w in glove.stoi else 0 for w in words]
     return np.array(definition).astype(np.float32)
 
-def fill_cache(vocab_file, source='wordnik'):
+def fill_cache(vocab_file, 
+               source='wordnik', 
+               filter_source=None, 
+               sleep_time=0,
+               print_defs=True):
+    """
+    A function to call a particular definition source for all words in a given
+    source dataset. 
+
+    Args:
+        vocab_file: The GloVe formatted file to iterate over words for
+        source: The definition source to cache
+                Can be wordnik, glosbe, or wiki
+        filter_source: A definition source to check against before 
+                     querying source. Eg if one is faster to 
+                     access that another, this will limit requests
+                     to specified source to just those not defined
+                     with the filter_with source.
+        sleep_time: amount of time to sleep between calls, 
+                    in order not to trigger rate limits
+        print_defs: whether to print defs
+    """
     with open(vocab_file, "r") as f:
         lines = f.readlines()
     pbar = tqdm(lines)
     no_def_count = 0
+    filtered_count = 0
     no_def_words = []
     for line in pbar:
         word = line.split()[0]
         no_def_words.append(word)
         pbar.set_description("Processing %s" % word)
-        if source == 'wordnik':
+        if filter_source == 'wordnik':
             defs = get_wordnik_definitions(word)
-        elif source == 'glosbe':
-            defs = get_glosbe_definitions(word)
-        elif source == 'wiki':
-            defs = get_wiki_summary(word)
+        if filter_source is not None:
+            if defs:
+                filtered_count+=1
+                continue
+        defs = None
+        while defs is None:
+            if source == 'wordnik':
+                defs = get_wordnik_definitions(word)
+            elif source == 'glosbe':
+                defs = get_glosbe_definitions(word)
+            elif source == 'wiki':
+                defs = get_wiki_summary(word)
+            if defs is None:
+                #hit rate limit, sleep it off
+                time.sleep(100*sleep_time)
+        if print_defs:
+            print(defs)
         if not defs:
             no_def_count+=1
+        if sleep_time:
+            time.sleep(sleep_time)
     print(no_def_words)
+    print('Total words without filtered %d'%filtered_count)
     print('Total words without def %d'%no_def_count)

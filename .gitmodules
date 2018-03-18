@@ -4,3 +4,6 @@
 [submodule "libs/pytorch-monitor"]
 	path = libs/pytorch-monitor
 	url = https://github.com/andreykurenkov/pytorch-monitor.git
+[submodule "libs/vocabulary"]
+	path = libs/vocabulary
+	url = https://github.com/andreykurenkov/vocabulary.git

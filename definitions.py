@@ -22,6 +22,7 @@ stemmer = SnowballStemmer("english")
 fs_cache = pyfscache.FSCache('data/cache/')
 wikipedia.set_rate_limiting(True)
 
+DEBUG = True
 PUNC = set(string.punctuation)
 def clean_str(string):
     """
@@ -36,12 +37,11 @@ def clean_str(string):
     no_html = re.sub('<[^<]+?>', '', no_punc)
     return no_html
 
-DEBUG = False
 
 @fs_cache 
-def get_wiki_summary(word):
+def get_wiki_summary(word, sentences = 1):
     try:
-        return wikipedia.summary(word, sentences=1)
+        return wikipedia.summary(word, sentences=sentences).strip()
     except:#ignore 404
         if DEBUG:
             traceback.print_exc()
@@ -51,9 +51,11 @@ def get_wiki_summary(word):
 def get_wordnik_definitions(word):
     try: 
         defns = wordApi.getDefinitions(word)
-    except:#ignore 404
+    except Exception as e:#ignore 404
         if DEBUG:
             traceback.print_exc()
+        if '401' in str(e):
+            return None
         return []
     if defns is None:
         return []
