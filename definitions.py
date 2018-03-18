@@ -7,6 +7,7 @@ import pyfscache
 from nltk.corpus import wordnet
 from nltk.stem.snowball import SnowballStemmer
 from vocabulary.vocabulary import Vocabulary as vb
+import wikipedia
 from wordnik import swagger, WordApi
 
 reload(sys)
@@ -19,17 +20,41 @@ wordApi = WordApi.WordApi(client)
 stemmer = SnowballStemmer("english")
 
 fs_cache = pyfscache.FSCache('data/cache/')
+wikipedia.set_rate_limiting(True)
 
 PUNC = set(string.punctuation)
 def clean_str(string):
+    """
+    Cleans a str by making it all lower case, removing punctuation, and removing any html
+
+    Args:
+        string: the str to clean
+    Returns:
+        the cleaned string
+    """
     no_punc = "".join([c if c not in PUNC else " " for c in string.lower()])
     no_html = re.sub('<[^<]+?>', '', no_punc)
     return no_html
 
+DEBUG = False
+
+@fs_cache 
+def get_wiki_summary(word):
+    try:
+        return wikipedia.summary(word, sentences=1)
+    except:#ignore 404
+        if DEBUG:
+            traceback.print_exc()
+        return []
 
 @fs_cache
 def get_wordnik_definitions(word):
-    defns = wordApi.getDefinitions(word)
+    try: 
+        defns = wordApi.getDefinitions(word)
+    except:#ignore 404
+        if DEBUG:
+            traceback.print_exc()
+        return []
     if defns is None:
         return []
     return [d.text for d in defns]

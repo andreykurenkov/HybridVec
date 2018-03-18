@@ -2,7 +2,8 @@ import numpy as np
 import traceback
 import random
 import torch
-from definitions import get_a_definition, get_definitions_concat, clean_str
+from tqdm import tqdm
+from definitions import *
 from torch.utils.data import Dataset, DataLoader
 
 INPUT_METHOD_ALL_CONCAT = "concat_defs"
@@ -93,3 +94,24 @@ def get_on_the_fly_input(definition, glove):
     words = [clean_str(word) for word in definition.split()]
     definition = [glove.stoi[w] if w in glove.stoi else 0 for w in words]
     return np.array(definition).astype(np.float32)
+
+def fill_cache(vocab_file, source='wordnik'):
+    with open(vocab_file, "r") as f:
+        lines = f.readlines()
+    pbar = tqdm(lines)
+    no_def_count = 0
+    no_def_words = []
+    for line in pbar:
+        word = line.split()[0]
+        no_def_words.append(word)
+        pbar.set_description("Processing %s" % word)
+        if source == 'wordnik':
+            defs = get_wordnik_definitions(word)
+        elif source == 'glosbe':
+            defs = get_glosbe_definitions(word)
+        elif source == 'wiki':
+            defs = get_wiki_summary(word)
+        if not defs:
+            no_def_count+=1
+    print(no_def_words)
+    print('Total words without def %d'%no_def_count)
