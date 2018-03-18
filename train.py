@@ -11,37 +11,39 @@ from time import time
 from model import Def2VecModel
 from torch.autograd import Variable
 import torchtext.vocab as vocab
-from loader import get_data_loader, DefinitionsDataset
 from tensorboardX import SummaryWriter
 from pytorch_monitor import monitor_module, init_experiment
+from loader import *
 import torch.nn.init as init
-import requests_cache
 
-DEBUG_LOG = True
-requests_cache.install_cache('cache')
-
-VOCAB_DIM = 100
-VOCAB_SOURCE = '6B'
-GLOVE_FILE = 'data/glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
+DEBUG_LOG = False
 
 CONFIG = dict(
         title="def2vec",
         description="Translating definitions to word vectors",
-        run_name='full_debug_run', # defaults to START_TIME-HOST_NAME
-        run_comment='weight_init', # gets appended to run_name as RUN_NAME-RUN_COMMENT
+        run_name='full_run_big_batch', # defaults to START_TIME-HOST_NAME
+        run_comment='dgx', # gets appended to run_name as RUN_NAME-RUN_COMMENT
         log_dir='logs',
         random_seed=42,
-        learning_rate=.0005,
+        learning_rate=.0001,
         max_epochs=5,
-        batch_size=64,
+        batch_size=128,
         n_hidden=150,
         print_freq=1,
         write_embed_freq=100,
         weight_decay=0,
         save_path="./model_weights.torch",
         weight_init="xavier",
-        packing=False
+        input_method=INPUT_METHOD_ALL_CONCAT,
+	vocab_dim = 100,
+	vocab_source = '6B',
+	embedding_size = 10000,
+	num_workers = 8,
+        shuffle=True,
+        packing=True
 )
+GLOVE_FILE = 'data/glove/glove.%s.%sd.txt'%(CONFIG['vocab_source'],
+                                            CONFIG['vocab_dim'])
 
 def weights_init(m):
     if CONFIG['weight_init']=='xavier':
@@ -54,13 +56,13 @@ def weights_init(m):
 
 if __name__ == "__main__":
 
-    vocab = vocab.GloVe(name=VOCAB_SOURCE, dim=VOCAB_DIM)
+    vocab = vocab.GloVe(name=CONFIG['vocab_source'], dim=CONFIG['vocab_dim'])
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
 
     model = Def2VecModel(vocab,
-                         embed_size = VOCAB_DIM,
-                         output_size = VOCAB_DIM,
+                         embed_size = CONFIG['vocab_dim'],
+                         output_size = CONFIG['vocab_dim'],
                          hidden_size = CONFIG['n_hidden'],
                          use_cuda = use_gpu,
                          use_packing = CONFIG['packing'])
@@ -68,10 +70,11 @@ if __name__ == "__main__":
 
     data_loader = get_data_loader(GLOVE_FILE,
                                   vocab,
-                                  VOCAB_DIM,
+                                  CONFIG['input_method'],
+                                  CONFIG['vocab_dim'],
                                   batch_size = CONFIG['batch_size'],
-                                  num_workers = 8,
-                                  shuffle=True)
+                                  num_workers = CONFIG['num_workers'],
+                                  shuffle=CONFIG['shuffle'])
 
     if use_gpu:
         model = model.cuda()
@@ -87,7 +90,6 @@ if __name__ == "__main__":
     total_time = 0
     total_iter = 0
 
-    EMBEDDING_SIZE = 2000
     embed_outs = None
     embed_labels = []
 
@@ -121,8 +123,8 @@ if __name__ == "__main__":
                 embed_outs = torch.cat([embed_outs, outputs.data])
                 embed_labels += words
                 num_outs = embed_outs.shape[0]
-                if num_outs > EMBEDDING_SIZE:
-                    diff = num_outs - EMBEDDING_SIZE
+                if num_outs > CONFIG['embedding_size']:
+                    diff = num_outs - CONFIG['embedding_size']
                     embed_outs = embed_outs[diff:]
                     embed_labels = embed_labels[diff:]
 

@@ -1,0 +1,6 @@
+[submodule "libs/OpenNMT-py"]
+	path = libs/OpenNMT-py
+	url = https://github.com/andreykurenkov/OpenNMT-py.git
+[submodule "libs/pytorch-monitor"]
+	path = libs/pytorch-monitor
+	url = https://github.com/andreykurenkov/pytorch-monitor.git
