@@ -17,36 +17,51 @@ from tensorboardX import SummaryWriter
 from pytorch_monitor import monitor_module, init_experiment
 import torch.nn.init as init
 import requests_cache
+from tqdm import tqdm
+
 
 DEBUG_LOG = True
 requests_cache.install_cache('cache')
 
-VOCAB_DIM = 100
 VOCAB_SOURCE = '6B'
-GLOVE_FILE = 'data/train_glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
+VOCAB_DIM = 100
+TRAIN_FILE = 'data/train_glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
+VAL_FILE = 'data/val_glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
 
 CONFIG = dict(
-        title="def2vec",
-        description="Translating definitions to word vectors",
-        run_name='full_debug_run', # defaults to START_TIME-HOST_NAME
-        run_comment='weight_init', # gets appended to run_name as RUN_NAME-RUN_COMMENT
-        log_dir='logs',
-        random_seed=42,
-        learning_rate=.0005,
-        max_epochs=5,
-        batch_size=64,
-        n_hidden=150,
-        print_freq=1,
-        write_embed_freq=100,
-        weight_decay=0,
-        save_path="model_weights.torch",
-        load_path=None,
-        weight_init="xavier",
-        packing=False
+    # logging configuration
+    title="def2vec",
+    description="Translating definitions to word vectors",
+    run_name='full_model',
+    run_comment='weight_init',
+    log_dir='logs',
+    random_seed=42,
+    print_freq=1,
+    eval_freq=100,
+    write_embed_freq=100,
+    # training parameters
+    learning_rate=0.0005,
+    max_epochs=5,
+    batch_size=64,
+    save_path="model_weights.torch",
+    load_path=None,
+    # model configuration [for ablation/hyperparam experiments]
+    weight_init="xavier",
+    use_bidirection=True,
+    use_attention=True,
+    use_gru=True,
+    hidden_size=150,
+    embed_size=100,
+    dropout=0.0,
+    weight_decay=0.0,
+    packing=False
 )
 
 def weights_init(m):
-    if CONFIG['weight_init']=='xavier':
+    """
+    Initialize according to Xavier initialization or default initialization.
+    """
+    if CONFIG['weight_init'] == 'xavier':
         if type(m) in [nn.Linear]:
             nn.init.xavier_normal(m.weight.data)
         elif type(m) in [nn.LSTM, nn.RNN, nn.GRU]:
@@ -63,29 +78,40 @@ if __name__ == "__main__":
     model = Def2VecModel(vocab,
                          embed_size = VOCAB_DIM,
                          output_size = VOCAB_DIM,
-                         hidden_size = CONFIG['n_hidden'],
-                         use_cuda = use_gpu,
-                         use_packing = CONFIG['packing'])
+                         hidden_size = CONFIG['hidden_size'],
+                         use_packing = CONFIG['packing'],
+                         use_bidirection = CONFIG['use_bidirection'],
+                         use_attention = CONFIG['use_attention'],
+                         use_gru = CONFIG['use_gru'],
+                         use_cuda = use_gpu)
+
     if CONFIG["load_path"] is None:
         model.apply(weights_init)
     else:
         model.load_state_dict(torch.load(CONFIG["load_path"]))
-
-    data_loader = get_data_loader(GLOVE_FILE,
-                                  vocab,
-                                  VOCAB_DIM,
-                                  batch_size = CONFIG['batch_size'],
-                                  num_workers = 8,
-                                  shuffle=True)
-
     if use_gpu:
         model = model.cuda()
+
+    train_loader = get_data_loader(TRAIN_FILE,
+                                   vocab,
+                                   VOCAB_DIM,
+                                   batch_size = CONFIG['batch_size'],
+                                   num_workers = 8,
+                                   shuffle = True)
+    val_loader = get_data_loader(VAL_FILE,
+                                   vocab,
+                                   VOCAB_DIM,
+                                   batch_size = CONFIG['batch_size'],
+                                   num_workers = 8,
+                                   shuffle = True)
+
+
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(),
-                             lr=CONFIG['learning_rate'],
-                             weight_decay=CONFIG['weight_decay'])
+                           lr=CONFIG['learning_rate'],
+                           weight_decay=CONFIG['weight_decay'])
 
-    writer,conf = init_experiment(CONFIG)
+    writer, conf = init_experiment(CONFIG)
     if DEBUG_LOG:
         monitor_module(model, writer)
 
@@ -102,7 +128,7 @@ if __name__ == "__main__":
         start = time()
         print("Epoch", epoch)
 
-        for i, data in enumerate(data_loader, 0):
+        for i, data in enumerate(train_loader, 0):
             words, inputs, lengths, labels = data
             labels = Variable(labels)
 
@@ -137,23 +163,40 @@ if __name__ == "__main__":
                 total_time+=diff
                 print('Epoch: %d, batch: %d, loss: %.4f , time/iter: %.2fs, total time: %.2fs' %
                              (epoch + 1, i + 1,
-                                running_loss / CONFIG['print_freq'],
-                                diff/CONFIG['print_freq'],
-                                total_time))
+                              running_loss / CONFIG['print_freq'],
+                              diff/CONFIG['print_freq'],
+                              total_time))
                 start = end
                 running_loss = 0.0
+
             if i % CONFIG['write_embed_freq'] == (CONFIG['write_embed_freq']-1):
                 writer.add_embedding(embed_outs,
                                      metadata=embed_labels,
                                      global_step=total_iter)
 
+            if i % CONFIG['eval_freq'] == (CONFIG['eval_freq'] - 1):
+
+                val_loss = 0.0
+                for data in tqdm(val_loader, total=len(val_loader)):
+                    words, inputs, lengths, labels = data
+                    labels = Variable(labels)
+                    if use_gpu:
+                        inputs = inputs.cuda()
+                        labels = labels.cuda()
+                    outputs = model(inputs, lengths)
+                    loss = criterion(outputs, labels)
+                    val_loss += loss.data[0]
+                writer.add_scalar('val_loss', val_loss / len(val_loader), total_iter)
+                print('Epoch: %d, batch: %d, val loss: %.4f' %
+                             (epoch + 1, i + 1, val_loss / len(val_loader)))
+
             total_iter += 1
 
-        if not os.path.exists("checkpoints"):
-            os.mkdir("checkpoints")
-        if not os.path.exists("checkpoints/epoch_{}".format(epoch + 1)):
-            os.mkdir("checkpoints/epoch_{}".format(epoch + 1))
-        torch.save(model.state_dict(), "checkpoints/epoch_{}".format(epoch + 1) + "/" + CONFIG['save_path'])
+        if not os.path.exists("checkpoints/{}".format(CONFIG['run_name'])):
+            os.mkdir("checkpoints/{}".format(CONFIG['run_name']))
+        if not os.path.exists("checkpoints/{}/epoch_{}".format(CONFIG['run_name'], epoch + 1)):
+            os.mkdir("checkpoints/{}/epoch_{}".format(CONFIG['run_name'], epoch + 1))
+        torch.save(model.state_dict(), "checkpoints/{}/epoch_{}".format(CONFIG['run_name'], epoch + 1) + "/" + CONFIG['save_path'])
 
     writer.export_scalars_to_json("./all_scalars.json")
     writer.close()
