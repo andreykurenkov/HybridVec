@@ -8,7 +8,6 @@ import torch.optim as optim
 import torch.nn as nn
 import numpy as np
 from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
-from time import time
 from model import Def2VecModel
 from torch.autograd import Variable
 import torchtext.vocab as vocab
@@ -17,6 +16,7 @@ from pytorch_monitor import monitor_module, init_experiment
 from loader import *
 import torch.nn.init as init
 from tqdm import tqdm
+from time import time
 
 DEBUG_LOG = False
 
