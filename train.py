@@ -33,7 +33,7 @@ CONFIG = dict(
     # hyperparams
     random_seed=42,
     learning_rate=.0001,
-    max_epochs=13,
+    max_epochs=15,
     batch_size=128,
     n_hidden=250,
     # logging params

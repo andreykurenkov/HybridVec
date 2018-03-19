@@ -22,7 +22,7 @@ stemmer = SnowballStemmer("english")
 fs_cache = pyfscache.FSCache('data/cache/')
 wikipedia.set_rate_limiting(True)
 
-DEBUG = True
+DEBUG = False
 PUNC = set(string.punctuation)
 def clean_str(string):
     """
