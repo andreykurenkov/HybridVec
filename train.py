@@ -24,8 +24,8 @@ CONFIG = dict(
     # meta data
     title="def2vec",
     description="Translating definitions to word vectors",
-    run_name='full_run_big_hidden', # defaults to START_TIME-HOST_NAME
-    run_comment='def_concat', # gets appended to run_name as RUN_NAME-RUN_COMMENT
+    run_name='full', # defaults to START_TIME-HOST_NAME
+    run_comment='vanilla', # gets appended to run_name as RUN_NAME-RUN_COMMENT
     log_dir='logs',
     vocab_dim = 100,
     vocab_source = '6B',
@@ -33,7 +33,7 @@ CONFIG = dict(
     # hyperparams
     random_seed=42,
     learning_rate=.0001,
-    max_epochs=13,
+    max_epochs=15,
     batch_size=128,
     n_hidden=250,
     # logging params
@@ -48,9 +48,9 @@ CONFIG = dict(
     shuffle=True,
     # model configuration [for ablation/hyperparam experiments]
     weight_init="xavier",
-    input_method=INPUT_METHOD_ALL_CONCAT,
+    input_method=INPUT_METHOD_ONE,
     use_bidirection=True,
-    use_attention=False,
+    use_attention=True,
     cell_type='GRU',
     #use_batchnorm=True,
     hidden_size=150,

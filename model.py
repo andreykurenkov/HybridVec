@@ -27,8 +27,9 @@ class Def2VecModel(nn.Module):
     self.use_packing = use_packing
     self.use_cuda = use_cuda
     self.vocab_size = len(vocab.stoi)
-    self.embeddings = nn.Embedding(self.vocab_size, embed_size, padding_idx=0)
-    self.embeddings.weight.data.copy_(vocab.vectors)
+    self.embeddings = nn.Embedding(self.vocab_size + 1, embed_size, padding_idx=0)
+    self.embeddings.weight.data[1:,:].copy_(vocab.vectors)
+    self.embeddings.weight.data[0:,:] = 0
     self.embed_size = embed_size
     self.num_layers = num_layers
     self.output_size = output_size
@@ -37,25 +38,25 @@ class Def2VecModel(nn.Module):
     self.use_bidirection = use_bidirection
     self.cell_type = cell_type
     if cell_type == 'GRU':
-        self.cell = nn.GRU(embed_size, 
-                           hidden_size, 
-                           num_layers, 
+        self.cell = nn.GRU(embed_size,
+                           hidden_size,
+                           num_layers,
                            batch_first=True,
-                           dropout=dropout, 
+                           dropout=dropout,
                            bidirectional=use_bidirection)
     elif cell_type == 'LSTM':
-        self.cell = nn.LSTM(embed_size, 
-                           hidden_size, 
-                           num_layers, 
+        self.cell = nn.LSTM(embed_size,
+                           hidden_size,
+                           num_layers,
                            batch_first=True,
-                           dropout=dropout, 
+                           dropout=dropout,
                            bidirectional=use_bidirection)
     elif cell_type == 'RNN':
-        self.cell = nn.RNN(embed_size, 
-                           hidden_size, 
-                           num_layers, 
+        self.cell = nn.RNN(embed_size,
+                           hidden_size,
+                           num_layers,
                            batch_first=True,
-                           dropout=dropout, 
+                           dropout=dropout,
                            bidirectional=use_bidirection)
     else:
         self.baseline = nn.Linear(embed_size, hidden_size)
@@ -64,7 +65,7 @@ class Def2VecModel(nn.Module):
         self.attn_softmax = nn.Softmax(dim=1)
     self.output_layer = nn.Linear((2 if use_bidirection else 1) * hidden_size, output_size)
 
-  def forward(self, inputs, lengths = None):
+  def forward(self, inputs, lengths = None, return_attn = False):
     inputs = Variable(inputs)
     batch_size, input_size = inputs.shape
     embed = self.embeddings(inputs.view(-1, input_size)).view(batch_size, input_size, -1)
@@ -88,4 +89,7 @@ class Def2VecModel(nn.Module):
     else:
         mean = torch.mean(cell_outputs, dim=1)
     our_embedding = self.output_layer(mean)
-    return our_embedding
+    if return_attn:
+        return our_embedding, softmax
+    else:
+        return our_embedding

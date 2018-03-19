@@ -49,7 +49,7 @@ CONFIG = dict(
     shuffle=True,
     # model configuration [for ablation/hyperparam experiments]
     weight_init="xavier",
-    input_method=INPUT_METHOD_ALL_CONCAT,
+    input_method=INPUT_METHOD_ONE,
     use_bidirection=True,
     use_attention=True,
     cell_type='GRU',
@@ -103,6 +103,8 @@ if __name__ == "__main__":
     running_loss = 0.0
     n_batches = 0
     out_embeddings = {}
+    out_attns = {}
+    out_defns = {}
 
     for i, data in tqdm(enumerate(test_loader, 0), total=len(test_loader)):
         words, inputs, lengths, labels = data
@@ -112,14 +114,21 @@ if __name__ == "__main__":
             inputs = inputs.cuda()
             labels = labels.cuda()
 
-        outputs = model(inputs)
+        outputs, attns = model(inputs, return_attn=True)
         loss = criterion(outputs, labels)
 
         running_loss += loss.data[0]
         n_batches += 1
 
-        for word, embed in zip(words, outputs.data.cpu()):
+        for word, embed, attn, inp in zip(words,
+                                          outputs.data.cpu(),
+                                          attns.data.cpu().squeeze(2),
+                                          inputs.cpu()):
             out_embeddings[word] = embed.numpy()
+            out_attns[word] = attn.numpy()
+            out_defns[word] = " ".join([vocab.itos[i - 1] for i in inp])
 
     print("L2 loss:", running_loss / n_batches)
     np.save("eval/out_embeddings.npy", out_embeddings)
+    np.save("eval/out_attns.npy", out_attns)
+    np.save("eval/out_defns.npy", out_defns)
