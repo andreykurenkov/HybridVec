@@ -24,7 +24,7 @@ CONFIG = dict(
     # meta data
     title="def2vec",
     description="Translating definitions to word vectors",
-    run_name='full_run_big_hidden', # defaults to START_TIME-HOST_NAME
+    run_name='full_run_big_hidden_attention', # defaults to START_TIME-HOST_NAME
     run_comment='def_concat', # gets appended to run_name as RUN_NAME-RUN_COMMENT
     log_dir='logs',
     vocab_dim = 100,
@@ -40,7 +40,7 @@ CONFIG = dict(
     print_freq=1,
     write_embed_freq=100,
     eval_freq = 1000,
-    save_path="./model_weights.torch",
+    save_path="./data/checkpoints/model_weights.torch",
     embedding_log_size = 10000,
     # data loading params
     num_workers = 8,
@@ -50,7 +50,7 @@ CONFIG = dict(
     weight_init="xavier",
     input_method=INPUT_METHOD_ALL_CONCAT,
     use_bidirection=True,
-    use_attention=False,
+    use_attention=True,
     cell_type='GRU',
     #use_batchnorm=True,
     hidden_size=150,

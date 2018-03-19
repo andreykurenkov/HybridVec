@@ -1,0 +1,17 @@
+python train.py -save_model data/nmt/model \
+  -batch_size 64 \
+  -layers 2 \
+  -fix_word_vecs_enc \
+  -optim adam \
+  -learning_rate 0.001 \
+  -encoder_type brnn \
+  -rnn_size 200 \
+  -word_vec_size 100 \
+  -pre_word_vecs_enc "data/nmt/embeddings/$2.enc.pt" \
+  -pre_word_vecs_dec "data/nmt/embeddings/$2.dec.pt" \
+  -exp $1 \
+  -tensorboard \
+  -tensorboard_log_dir data/nmt/logs/$1 \
+  -save_model data/nmt/models/$1 \
+  -guid $3 \
+  -data data/nmt/processed/processed

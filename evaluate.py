@@ -13,14 +13,11 @@ from time import time
 from model import Def2VecModel
 from torch.autograd import Variable
 import torchtext.vocab as vocab
-from loader import get_data_loader, get_on_the_fly_input, DefinitionsDataset
 from tensorboardX import SummaryWriter
 from pytorch_monitor import monitor_module, init_experiment
-import requests_cache
-
+from loader import *
 
 DEBUG_LOG = True
-requests_cache.install_cache('cache')
 
 VOCAB_DIM = 100
 VOCAB_SOURCE = '6B'
@@ -40,7 +37,7 @@ CONFIG = dict(
         print_freq=1,
         write_embed_freq=100,
         weight_decay=0,
-        save_path="./checkpoints/epoch_1/model_weights.torch"
+        save_path="./data/checkpoints/full_run_big_batch-def_concatdef_concat/epoch_5/model_weights.torch"
 )
 
 def get_word(word):
@@ -68,6 +65,7 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(CONFIG['save_path']))
     data_loader = get_data_loader(GLOVE_FILE,
                                   vocab,
+                                  INPUT_METHOD_ALL_CONCAT,
                                   VOCAB_DIM,
                                   batch_size = CONFIG['batch_size'],
                                   num_workers = 8,
