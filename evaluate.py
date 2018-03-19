@@ -123,25 +123,3 @@ if __name__ == "__main__":
 
     print("L2 loss:", running_loss / n_batches)
     np.save("eval/out_embeddings.npy", out_embeddings)
-
-    while True:
-
-        print("== Give a definition.")
-        definition = raw_input()
-
-        inputs = torch.LongTensor(get_on_the_fly_input(definition, vocab))
-        inputs = inputs.unsqueeze(0)
-        if use_gpu:
-            inputs = inputs.cuda()
-        out_embedding = model(inputs).squeeze().data
-        if use_gpu:
-            out_embedding = out_embedding.cpu()
-
-        print("Closest words:")
-        print(closest(out_embedding))
-
-        print("== Give a word.")
-        actual_word = raw_input()
-        print("Cosine similarity between embedding and GloVe word:",
-              F.cosine_similarity(out_embedding.unsqueeze(0), get_word(actual_word).unsqueeze(0)).numpy())
-
