@@ -24,9 +24,9 @@ CONFIG = dict(
     # meta data
     title="def2vec",
     description="Translating definitions to word vectors",
-    run_name='full_run_big_hidden_attention', # defaults to START_TIME-HOST_NAME
+    run_name='full_run_big', 
     run_comment='def_concat', # gets appended to run_name as RUN_NAME-RUN_COMMENT
-    log_dir='logs',
+    log_dir='outputs/def2vec/logs',
     vocab_dim = 100,
     vocab_source = '6B',
     load_path = None,
@@ -34,13 +34,13 @@ CONFIG = dict(
     random_seed=42,
     learning_rate=.0001,
     max_epochs=15,
-    batch_size=128,
+    batch_size=64,
     n_hidden=250,
     # logging params
     print_freq=1,
     write_embed_freq=100,
     eval_freq = 1000,
-    save_path="./data/checkpoints/model_weights.torch",
+    save_path="model_weights.torch",
     embedding_log_size = 10000,
     # data loading params
     num_workers = 8,
@@ -198,12 +198,14 @@ if __name__ == "__main__":
                              (epoch + 1, i + 1, val_loss / len(val_loader)))
 
             total_iter += 1
-
-        if not os.path.exists("checkpoints/{}".format(CONFIG['run_name'] + CONFIG['run_comment'])):
-            os.mkdir("checkpoints/{}".format(CONFIG['run_name'] + CONFIG['run_comment']))
-        if not os.path.exists("checkpoints/{}/epoch_{}".format(CONFIG['run_name'] + CONFIG['run_comment'], epoch + 1)):
-            os.mkdir("checkpoints/{}/epoch_{}".format(CONFIG['run_name'] + CONFIG['run_comment'], epoch + 1))
-        torch.save(model.state_dict(), "checkpoints/{}/epoch_{}".format(CONFIG['run_name'] + CONFIG['run_comment'], epoch + 1) + "/" + CONFIG['save_path'])
+        name = CONFIG['run_name'] + '-' + CONFIG['run_comment']
+        out_dir = "outputs/def2vec/checkpoints/{}".format(name)
+        if not os.path.exists(out_dir):
+            os.mkdirs(out_dir)
+        out_path = "outputs/def2vec/checkpoints/{}/epoch_{}".format(name, epoch + 1)
+        if not os.path.exists(out_path):
+            os.mkdir(out_path)
+        torch.save(model.state_dict(), out_path + "/" + CONFIG['save_path'])
 
     writer.export_scalars_to_json("./all_scalars.json")
     writer.close()

@@ -1,5 +1,4 @@
 from __future__ import print_function
-import tqdm
 import collections
 import torch
 import torch.optim as optim
@@ -8,6 +7,7 @@ import numpy as np
 import torchtext.vocab as vocab
 import argparse
 import shutil
+from tqdm import tqdm
 from model import Def2VecModel
 from torch.autograd import Variable
 from loader import *
@@ -24,7 +24,7 @@ CONFIG = dict(
         print_freq=1,
         write_embed_freq=100,
         weight_decay=0,
-        save_path="./data/checkpoints/full_run_big_batch-def_concatdef_concat/epoch_5/model_weights.torch"
+        save_path="checkpoints/model_weights.torch"
 )
 
 def get_word(word):
@@ -32,13 +32,15 @@ def get_word(word):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process nmt.')
-    parser.add_argument('held_out', type=int, 
-                        help='How many k are held out.')
+    parser.add_argument('glove_provided', type=str, 
+                        help='Source glove file.')
+    parser.add_argument('glove_held_out', type=str, 
+                        help='Source held out glove file.')
+    parser.add_argument('glove_out_file', type=str, 
+                        help='File to write to.')
     args = parser.parse_args()
 
-    provided_file = 'data/nmt/glove/glove_%dk_provided.txt'%(args.held_out)
-    held_out_file = 'data/nmt/glove/glove_%dk_held_out.txt'%(args.held_out)
-    output_file = 'data/nmt/glove/glove_%dk_combined.txt'%(args.held_out)
+    GLOVE_TOTAL_K = 400
 
     VOCAB_DIM = 100
     VOCAB_SOURCE = '6B'
@@ -51,22 +53,22 @@ if __name__ == "__main__":
                          output_size = VOCAB_DIM,
                          hidden_size = CONFIG['n_hidden'],
                          use_cuda = use_gpu,
-                         use_packing = False)
+                         use_packing = True)
     model.load_state_dict(torch.load(CONFIG['save_path']))
-    data_loader = get_data_loader(held_out_file,
+    data_loader = get_data_loader(args.glove_held_out,
                                   vocab,
-                                  INPUT_METHOD_ALL_CONCAT,
+                                  INPUT_METHOD_ONE,
                                   VOCAB_DIM,
                                   batch_size = CONFIG['batch_size'],
                                   num_workers = 8,
-                                  shuffle=True)
+                                  shuffle=False)
 
     if use_gpu:
         model = model.cuda()
 
-    shutil.copyfile(provided_file,output_file)
-    with open(output_file,'a') as output:
-        for i, data in tqdm.tqdm(enumerate(data_loader, 0), total=len(data_loader)):
+    shutil.copyfile(args.glove_provided,args.glove_out_file)
+    with open(args.glove_out_file,'a') as output:
+        for i, data in tqdm(enumerate(data_loader, 0), total=len(data_loader)):
             words, inputs, lengths, labels = data
             labels = Variable(labels)
 
@@ -74,7 +76,7 @@ if __name__ == "__main__":
                 inputs = inputs.cuda()
                 labels = labels.cuda()
 
-            outputs = model(inputs)
+            outputs = model(inputs, lengths).cpu().data.numpy()
             for i,word in enumerate(words):
                 vec_str = " ".join([str(x) for x in outputs[i]])
                 output.write('%s %s\n'%(words[i],vec_str))

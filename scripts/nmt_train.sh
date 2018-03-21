@@ -1,0 +1,17 @@
+python libs/OpenNMT-py/train.py -save_model data/nmt/model \
+  -batch_size 64 \
+  -fix_word_vecs_enc \
+  -layers 2 \
+  -optim adam \
+  -learning_rate 0.001 \
+  -encoder_type brnn \
+  -rnn_size 200 \
+  -word_vec_size 100 \
+  -epochs 20 \
+  -pre_word_vecs_enc "data/nmt/embeddings/$2.enc.pt" \
+  -exp $1 \
+  -tensorboard \
+  -tensorboard_log_dir outputs/nmt/logs/$5-$2-$4 \
+  -save_model outputs/nmt/models/$5-$2-$4 \
+  -gpuid $3 \
+  -data data/nmt/processed/$5

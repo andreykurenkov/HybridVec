@@ -33,6 +33,8 @@ def clean_str(string):
     Returns:
         the cleaned string
     """
+    if string=='<unk>':
+        return string
     no_punc = "".join([c if c not in PUNC else " " for c in string.lower()])
     no_html = re.sub('<[^<]+?>', '', no_punc)
     return no_html
@@ -90,11 +92,11 @@ def get_a_definition(word, filter_repetition = False):
     definition = None
     definitions = get_wordnet_definitions(word)
     try:
-        if not definitions:
-            definitions = get_glosbe_definitions(word)
+        #if not definitions:
+        #    definitions = get_glosbe_definitions(word)
 
-        if not definitions:
-            definitions = get_wordnik_definitions(word)
+        #if not definitions:
+        #    definitions = get_wordnik_definitions(word)
             
         if definitions:
             definition = str(random.choice(definitions))

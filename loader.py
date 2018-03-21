@@ -44,6 +44,8 @@ class DefinitionsDataset(Dataset):
             while definition is None:
                 idx = random.randint(0,len(self.vocab_lines)-1)
                 word, definition, embedding = self.get_idx_info(idx)
+        elif definition is None:
+            definition = '<unk>'
         words = [clean_str(w) for w in definition.split()]
         definition = [self.glove.stoi[w] + 1 if w in self.glove.stoi else 0 for w in words]
         return (word, np.array(definition).astype(np.float32), embedding.astype(np.float32))
