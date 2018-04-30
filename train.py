@@ -54,10 +54,10 @@ if __name__ == "__main__":
                          cell_type = config.cell_type,
                          use_cuda = use_gpu)
 
-    if CONFIG["load_path"] is None:
+    if config.load_path is None:
         model.apply(weights_init)
     else:
-        model.load_state_dict(torch.load(CONFIG["load_path"]))
+        model.load_state_dict(torch.load(config.load_path))
     model.apply(weights_init)
 
     if use_gpu:
@@ -84,7 +84,7 @@ if __name__ == "__main__":
                            lr=config.learning_rate,
                            weight_decay=config.weight_decay)
 
-    writer, conf = init_experiment(CONFIG)
+    writer, conf = init_experiment(config.__dict__) #pytorch-monitor needs a dict
     if DEBUG_LOG:
         monitor_module(model, writer)
 
