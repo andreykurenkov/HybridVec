@@ -28,7 +28,7 @@ class base_config(object):
     shuffle=True
     # model configuration [for ablation/hyperparam experiments]
     weight_init="xavier"
-   # input_method=INPUT_METHOD_ALL_CONCAT
+    input_method=INPUT_METHOD_ALL_CONCAT
     use_bidirection=True
     use_attention=True
     cell_type='GRU'
@@ -38,10 +38,13 @@ class base_config(object):
     dropout=0.1
     weight_decay=0.0
 
-class train_config():
+
+def train_config():
     return base_config()
 
-class eval_config():
+
+
+def eval_config():
     e = base_config()
     e.run_name='ablate_attn', # defaults to START_TIME-HOST_NAME
     e.run_comment='vanilla',
@@ -50,5 +53,4 @@ class eval_config():
     e.save_path="./checkpoints/full_run-vanillavanilla/epoch_5/model_weights.torch"
     e.packing = False
     e.input_method=INPUT_METHOD_ONE
-
     return e

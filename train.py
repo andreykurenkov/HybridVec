@@ -21,7 +21,7 @@ from config import train_config
 
 DEBUG_LOG = False
 
-config = train_config(title = "test")
+config = train_config()
 
 TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
 VAL_FILE = 'data/glove/val_glove.%s.%sd.txt'%(config.vocab_source, config.vocab_dim)
