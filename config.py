@@ -1,4 +1,7 @@
-class Config(object):
+from loader import *
+
+
+class base_config(object):
     title="def2vec",
     description="Translating definitions to word vectors"
     run_name='full_run_big'
@@ -34,3 +37,18 @@ class Config(object):
     embed_size=100
     dropout=0.1
     weight_decay=0.0
+
+class train_config():
+    return base_config()
+
+class eval_config():
+    e = base_config()
+    e.run_name='ablate_attn', # defaults to START_TIME-HOST_NAME
+    e.run_comment='vanilla',
+    e.log_dir='logs'
+    e.batch_size = 16
+    e.save_path="./checkpoints/full_run-vanillavanilla/epoch_5/model_weights.torch"
+    e.packing = False
+    e.input_method=INPUT_METHOD_ONE
+
+    return e

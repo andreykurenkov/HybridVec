@@ -16,51 +16,13 @@ import torchtext.vocab as vocab
 from tensorboardX import SummaryWriter
 from pytorch_monitor import monitor_module, init_experiment
 from loader import *
-from config import Config
+from config import eval_config
 
 DEBUG_LOG = False
-
-# CONFIG = dict(
-#     # meta data
-#     title="def2vec",
-#     description="Translating definitions to word vectors",
-#     run_name='ablate_attn', # defaults to START_TIME-HOST_NAME
-#     run_comment='vanilla', # gets appended to run_name as RUN_NAME-RUN_COMMENT
-#     log_dir='logs',
-#     vocab_dim = 100,
-#     vocab_source = '6B',
-#     load_path = None,
-#     # hyperparams
-#     random_seed=42,
-#     learning_rate=.0001,
-#     max_epochs=15,
-#     batch_size=16,
-#     n_hidden=250,
-#     # logging params
-#     print_freq=1,
-#     write_embed_freq=100,
-#     eval_freq = 1000,
-#     save_path="./checkpoints/full_run-vanillavanilla/epoch_5/model_weights.torch",
-#     embedding_log_size = 10000,
-#     # data loading params
-#     num_workers = 8,
-#     packing=False,
-#     shuffle=True,
-#     # model configuration [for ablation/hyperparam experiments]
-#     weight_init="xavier",
-#     input_method=INPUT_METHOD_ONE,
-#     use_bidirection=True,
-#     use_attention=True,
-#     cell_type='GRU',
-#     hidden_size=150,
-#     embed_size=100,
-#     dropout=0.1,
-#     weight_decay=0.0,
-# )
-config = Config()
+config = eval_config()
 
 
-TEST_FILE = 'data/glove/test_glove.%s.%sd.txt'%(CONFIG['vocab_source'],CONFIG['vocab_dim'])
+TEST_FILE = 'data/glove/test_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
 
 
 def get_word(word):
@@ -75,26 +37,26 @@ def closest(vec, n=10):
 
 if __name__ == "__main__":
 
-    vocab = vocab.GloVe(name=CONFIG['vocab_source'], dim=CONFIG['vocab_dim'])
+    vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
 
     model = Def2VecModel(vocab,
-                         embed_size = CONFIG['vocab_dim'],
-                         output_size = CONFIG['vocab_dim'],
-                         hidden_size = CONFIG['hidden_size'],
-                         use_packing = CONFIG['packing'],
-                         use_bidirection = CONFIG['use_bidirection'],
-                         use_attention = CONFIG['use_attention'],
-                         cell_type = CONFIG['cell_type'],
+                         embed_size = config.vocab_dim,
+                         output_size = config.vocab_dim,
+                         hidden_size = config.hidden_size,
+                         use_packing = config.packing,
+                         use_bidirection = config.use_bidirection,
+                         use_attention = config.use_attention,
+                         cell_type = config.cell_type,
                          use_cuda = use_gpu)
-    model.load_state_dict(torch.load(CONFIG['save_path']))
+    model.load_state_dict(torch.load(config.save_path))
     test_loader = get_data_loader(TEST_FILE,
                                    vocab,
-                                   CONFIG['__method'],
-                                   CONFIG['vocab_dim'],
-                                   batch_size = CONFIG['batch_size'],
-                                   num_workers = CONFIG['num_workers'],
+                                   config.__method,
+                                   config.vocab_dim,
+                                   batch_size = config.batch_size,
+                                   num_workers = config.num_workers,
                                    shuffle=False)
 
     if use_gpu:

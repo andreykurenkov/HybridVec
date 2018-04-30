@@ -1,31 +1,27 @@
 from __future__ import print_function
 import sys
 import os
-# import collections
-# import traceback
-# import torch
-# import torch.optim as optim
-# import torch.nn as nn
-# import numpy as np
-# from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
-# from model import Def2VecModel
-# from torch.autograd import Variable
-# import torchtext.vocab as vocab
-# from tensorboardX import SummaryWriter
-# from pytorch_monitor import monitor_module, init_experiment
-# from loader import *
-# import torch.nn.init as init
-# from tqdm import tqdm
+import collections
+import traceback
+import torch
+import torch.optim as optim
+import torch.nn as nn
+import numpy as np
+from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
+from model import Def2VecModel
+from torch.autograd import Variable
+import torchtext.vocab as vocab
+from tensorboardX import SummaryWriter
+from pytorch_monitor import monitor_module, init_experiment
+from loader import *
+import torch.nn.init as init
+from tqdm import tqdm
 from time import time
-from config import Config
+from config import train_config
 
 DEBUG_LOG = False
 
-config = Config(title = "test")
-print (config.title)
-
-
-
+config = train_config(title = "test")
 
 TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
 VAL_FILE = 'data/glove/val_glove.%s.%sd.txt'%(config.vocab_source, config.vocab_dim)
