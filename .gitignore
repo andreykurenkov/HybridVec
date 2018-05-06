@@ -4,3 +4,4 @@ runs/
 .vector_cache/
 .DS_Store
 libs/
+outputs/
