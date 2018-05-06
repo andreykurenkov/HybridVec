@@ -12,12 +12,16 @@ from model import Def2VecModel
 from torch.autograd import Variable
 import torchtext.vocab as vocab
 from tensorboardX import SummaryWriter
-from pytorch_monitor import monitor_module, init_experiment
 from loader import *
 import torch.nn.init as init
 from tqdm import tqdm
 from time import time
 from config import train_config
+
+#get the local version of pytorch monitor
+sys.path.insert(0, "/Users/rohunsaxena/Documents/def2vec/libs/pytorch-monitor")
+from pytorch_monitor import monitor_module, init_experiment
+
 
 DEBUG_LOG = False
 
