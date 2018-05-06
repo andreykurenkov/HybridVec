@@ -85,6 +85,8 @@ if __name__ == "__main__":
                            lr=config.learning_rate,
                            weight_decay=config.weight_decay)
 
+
+
     writer, conf = init_experiment(config.__dict__) #pytorch-monitor needs a dict
     if DEBUG_LOG:
         monitor_module(model, writer)

@@ -2,41 +2,42 @@ from loader import *
 
 
 class base_config(object):
-    title="def2vec",
-    description="Translating definitions to word vectors"
-    run_name='full_run_big'
-    run_comment='def_concat' # gets appended to run_name as RUN_NAME-RUN_COMMENT
-    log_dir='outputs/def2vec/logs'
-    vocab_dim = 100
-    vocab_source = '6B'
-    load_path = None
-    # hyperparams
-    random_seed=42
-    learning_rate=.0001
-    max_epochs=15
-    batch_size=64
-    n_hidden=250
-    # logging params
-    print_freq=1
-    write_embed_freq=100
-    eval_freq = 1000
-    save_path="model_weights.torch"
-    embedding_log_size = 10000
-    # data loading params
-    num_workers = 8
-    packing=True
-    shuffle=True
-    # model configuration [for ablation/hyperparam experiments]
-    weight_init="xavier"
-    input_method=INPUT_METHOD_ALL_CONCAT
-    use_bidirection=True
-    use_attention=True
-    cell_type='GRU'
-    #use_batchnorm=True,
-    hidden_size=150
-    embed_size=100
-    dropout=0.1
-    weight_decay=0.0
+    def __init__ (self):
+        self.title="def2vec"
+        self.description="Translating definitions to word vectors"
+        self.run_name='full_run_big'
+        self.run_comment='def_concat' # gets appended to run_name as RUN_NAME-RUN_COMMENT
+        self.log_dir='outputs/def2vec/logs'
+        self.vocab_dim = 100
+        self.vocab_source = '6B'
+        self.load_path = None
+        # hyperparams
+        self.random_seed=42
+        self.learning_rate=.0001
+        self.max_epochs=15
+        self.batch_size=64
+        self.n_hidden=250
+        # logging params
+        self.print_freq=1
+        self.write_embed_freq=100
+        self.eval_freq = 1000
+        self.save_path="model_weights.torch"
+        self.embedding_log_size = 10000
+        # data loading params
+        self.num_workers = 8
+        self.packing=True
+        self.shuffle=True
+        # model configuration [for ablation/hyperparam experiments]
+        self.weight_init="xavier"
+        self.input_method=INPUT_METHOD_ALL_CONCAT
+        self.use_bidirection=True
+        self.use_attention=True
+        self.cell_type='GRU'
+        #use_batchnorm=True,
+        self.hidden_size=150
+        self.embed_size=100
+        self.dropout=0.1
+        self.weight_decay=0.0
 
 
 def train_config():

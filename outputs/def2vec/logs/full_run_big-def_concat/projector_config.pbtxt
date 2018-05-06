@@ -1,0 +1,15 @@
+embeddings {
+tensor_name: "default:00099"
+tensor_path: "00099/default/tensors.tsv"
+metadata_path: "00099/default/metadata.tsv"
+}
+embeddings {
+tensor_name: "default:00199"
+tensor_path: "00199/default/tensors.tsv"
+metadata_path: "00199/default/metadata.tsv"
+}
+embeddings {
+tensor_name: "default:00299"
+tensor_path: "00299/default/tensors.tsv"
+metadata_path: "00299/default/metadata.tsv"
+}
