@@ -17,9 +17,23 @@ from tensorboardX import SummaryWriter
 from pytorch_monitor import monitor_module, init_experiment
 from loader import *
 from config import eval_config
+import json
 
 DEBUG_LOG = False
-config = eval_config()
+
+
+#load in the right config file from desired model to evaluate
+
+run_name = raw_input("run_name of model to eval: ")
+run_comment = raw_input("run_comment of model to eval: ")
+epoch = raw_input("epoch of model to eval: ")
+
+name = run_name + '-' + run_comment
+path = "outputs/def2vec/logs/{}/config.json".format(name)
+config = None
+with open(path) as f:
+    config = dict(json.load(f))
+    config = eval_config(config, run_name, run_comment, epoch)
 
 
 TEST_FILE = 'data/glove/test_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
@@ -50,6 +64,7 @@ if __name__ == "__main__":
                          use_attention = config.use_attention,
                          cell_type = config.cell_type,
                          use_cuda = use_gpu)
+
     model.load_state_dict(torch.load(config.save_path))
     test_loader = get_data_loader(TEST_FILE,
                                    vocab,

@@ -40,18 +40,25 @@ class base_config(object):
         self.weight_decay=0.0
 
 
+
 def train_config():
     return base_config()
 
 
 
-def eval_config():
+def eval_config(d, run_name, run_comment, epoch):
     e = base_config()
-    e.run_name='ablate_attn', # defaults to START_TIME-HOST_NAME
-    e.run_comment='vanilla',
+    #update base
+    for k in d:
+        setattr(e, k, d[k])
+
+    e.run_name=run_name, 
+    e.run_comment=run_comment,
     e.log_dir='logs'
     e.batch_size = 16
-    e.save_path="./checkpoints/full_run-vanillavanilla/epoch_5/model_weights.torch"
+    name = run_name + '-' + run_comment
+    e.save_path="outputs/def2vec/checkpoints/{}/epoch_{}/model_weights.torch".format(name, epoch)
+    print ("Evaluation model will be saved at {}".format(e.save_path))
     e.packing = False
     e.input_method=INPUT_METHOD_ONE
     return e
