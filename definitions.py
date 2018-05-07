@@ -9,13 +9,6 @@ from nltk.stem.snowball import SnowballStemmer
 import wikipedia
 from wordnik import swagger, WordApi
 
-# import os
-# print os.sys.path
-# sys.path.insert(0, "/Users/rohunsaxena/Documents/def2vec/libs/")
-
-# print os.sys.path
-#from vocabulary.vocabulary import Vocabulary as vb
-
 
 reload(sys)
 sys.setdefaultencoding('utf8')
