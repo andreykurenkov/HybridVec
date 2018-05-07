@@ -10,7 +10,6 @@ import wikipedia
 from wordnik import swagger, WordApi
 from vocabulary.vocabulary import Vocabulary as vb
 
-
 reload(sys)
 sys.setdefaultencoding('utf8')
 
