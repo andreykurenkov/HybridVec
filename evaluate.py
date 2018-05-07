@@ -18,26 +18,34 @@ from pytorch_monitor import monitor_module, init_experiment
 from loader import *
 from config import eval_config
 import json
+import argparse
 
 DEBUG_LOG = False
 
 
-#load in the right config file from desired model to evaluate
-
-run_name = raw_input("run_name of model to eval: ")
-run_comment = raw_input("run_comment of model to eval: ")
-epoch = raw_input("epoch of model to eval: ")
-
-name = run_name + '-' + run_comment
-path = "outputs/def2vec/logs/{}/config.json".format(name)
-config = None
-with open(path) as f:
-    config = dict(json.load(f))
-    config = eval_config(config, run_name, run_comment, epoch)
-
-
-TEST_FILE = 'data/glove/test_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
-
+def get_args():
+    """
+    Gets the run_name, run_comment, and epoch of the model being evaluated
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("run_name")
+    parser.add_argument("run_comment")
+    parser.add_argument("epoch")
+    parser.add_argument("--verbose", default=True)
+    args = parser.parse_args()
+    return (args.run_name, args.run_comment, args.epoch, args.verbose)
+def load_config():
+    """
+    Load in the right config file from desired model to evaluate
+    """
+    run_name, run_comment, epoch, verbose = get_args()
+    name = run_name + '-' + run_comment
+    path = "outputs/def2vec/logs/{}/config.json".format(name)
+    config = None
+    with open(path) as f:
+        config = dict(json.load(f))
+        config = eval_config(config, run_name, run_comment, epoch, verbose)
+    return config
 
 def get_word(word):
     return vocab.vectors[vocab.stoi[word]]
@@ -50,7 +58,8 @@ def closest(vec, n=10):
     return sorted(all_dists, key=lambda t: t[1])[:n]
 
 if __name__ == "__main__":
-
+    config = load_config()
+    TEST_FILE = 'data/glove/test_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
     vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
@@ -68,7 +77,7 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(config.save_path))
     test_loader = get_data_loader(TEST_FILE,
                                    vocab,
-                                   config.__method,
+                                   config.method,
                                    config.vocab_dim,
                                    batch_size = config.batch_size,
                                    num_workers = config.num_workers,

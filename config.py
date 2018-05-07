@@ -39,14 +39,11 @@ class base_config(object):
         self.dropout=0.1
         self.weight_decay=0.0
 
-
-
 def train_config():
     return base_config()
 
-
-
-def eval_config(d, run_name, run_comment, epoch):
+#creates a config based on a dictionary config loaded in from the model being evaluated
+def eval_config(d, run_name, run_comment, epoch, verbose):
     e = base_config()
     #update base
     for k in d:
@@ -58,7 +55,10 @@ def eval_config(d, run_name, run_comment, epoch):
     e.batch_size = 16
     name = run_name + '-' + run_comment
     e.save_path="outputs/def2vec/checkpoints/{}/epoch_{}/model_weights.torch".format(name, epoch)
-    print ("Evaluation model will be saved at {}".format(e.save_path))
     e.packing = False
     e.input_method=INPUT_METHOD_ONE
+
+    if verbose:
+            print ("Evaluation model will be saved at {}".format(e.save_path))
+
     return e

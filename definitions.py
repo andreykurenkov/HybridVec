@@ -8,6 +8,7 @@ from nltk.corpus import wordnet
 from nltk.stem.snowball import SnowballStemmer
 import wikipedia
 from wordnik import swagger, WordApi
+from vocabulary.vocabulary import Vocabulary as vb
 
 
 reload(sys)
