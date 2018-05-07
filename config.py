@@ -30,7 +30,7 @@ class base_config(object):
         # model configuration [for ablation/hyperparam experiments]
         self.weight_init="xavier"
         self.input_method=INPUT_METHOD_ALL_CONCAT
-        self.use_bidirection=True
+        self.use_bidirection=False
         self.use_attention=True
         self.cell_type='GRU'
         #use_batchnorm=True,

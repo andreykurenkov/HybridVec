@@ -3,9 +3,31 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import torchtext.vocab as vocab
+#import torchtext.vocab as vocab
 from torch.autograd import Variable
 import numpy as np
+
+
+class Seq2SeqModel(nn.Module):
+    def __init__(self, encoder, decoder, decode_function=F.log_softmax):
+        super(Seq2SeqModel, self).__init__()
+        self.encoder = encoder
+        self.decoder = decoder
+        self.decode_function = decode_function
+
+    def flatten_parameters(self):
+        self.encoder.rnn.flatten_parameters()
+        self.decoder.rnn.flatten_parameters()
+
+    def forward(self, input_variable, input_lengths=None, target_variable=None,
+                teacher_forcing_ratio=0):
+        encoder_outputs, encoder_hidden = self.encoder(input_variable, input_lengths)
+        result = self.decoder(inputs=target_variable,
+                              encoder_hidden=encoder_hidden,
+                              encoder_outputs=encoder_outputs,
+                              function=self.decode_function,
+                              teacher_forcing_ratio=teacher_forcing_ratio)
+        return result
 
 
 class Def2VecModel(nn.Module):
