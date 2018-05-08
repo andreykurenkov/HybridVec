@@ -80,7 +80,7 @@ if __name__ == "__main__":
                                    shuffle=config.shuffle)
 
 
-    criterion = nn.MSELoss()
+    criterion = nn.MultiLabelSoftMarginLoss() #use multi label loss across unigram bag of words model
     optimizer = optim.Adam(model.parameters(),
                            lr=config.learning_rate,
                            weight_decay=config.weight_decay)
@@ -105,7 +105,8 @@ if __name__ == "__main__":
         for i, data in enumerate(train_loader, 0):
             words, inputs, lengths, labels = data
             labels = Variable(labels)
-
+            print('in labels')
+            print(labels)
             if use_gpu:
                 inputs = inputs.cuda()
                 labels = labels.cuda()
