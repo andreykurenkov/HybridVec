@@ -6,9 +6,9 @@ import re
 import pyfscache
 from nltk.corpus import wordnet
 from nltk.stem.snowball import SnowballStemmer
-from vocabulary.vocabulary import Vocabulary as vb
 import wikipedia
 from wordnik import swagger, WordApi
+from vocabulary.vocabulary import Vocabulary as vb
 
 reload(sys)
 sys.setdefaultencoding('utf8')

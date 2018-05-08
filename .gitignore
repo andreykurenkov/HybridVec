@@ -1,0 +1,10 @@
+*.pyc
+data/
+runs/
+.vector_cache/
+.DS_Store
+libs/
+outputs/
+env/
+eval/
+all_scalars.json

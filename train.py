@@ -12,60 +12,26 @@ from model import Def2VecModel
 from torch.autograd import Variable
 import torchtext.vocab as vocab
 from tensorboardX import SummaryWriter
-from pytorch_monitor import monitor_module, init_experiment
 from loader import *
 import torch.nn.init as init
 from tqdm import tqdm
 from time import time
+from config import train_config
+from pytorch_monitor import monitor_module, init_experiment
+
 
 DEBUG_LOG = False
 
-CONFIG = dict(
-    # meta data
-    title="def2vec",
-    description="Translating definitions to word vectors",
-    run_name='full_run_big', 
-    run_comment='def_concat', # gets appended to run_name as RUN_NAME-RUN_COMMENT
-    log_dir='outputs/def2vec/logs',
-    vocab_dim = 100,
-    vocab_source = '6B',
-    load_path = None,
-    # hyperparams
-    random_seed=42,
-    learning_rate=.0001,
-    max_epochs=15,
-    batch_size=64,
-    n_hidden=250,
-    # logging params
-    print_freq=1,
-    write_embed_freq=100,
-    eval_freq = 1000,
-    save_path="model_weights.torch",
-    embedding_log_size = 10000,
-    # data loading params
-    num_workers = 8,
-    packing=True,
-    shuffle=True,
-    # model configuration [for ablation/hyperparam experiments]
-    weight_init="xavier",
-    input_method=INPUT_METHOD_ALL_CONCAT,
-    use_bidirection=True,
-    use_attention=True,
-    cell_type='GRU',
-    #use_batchnorm=True,
-    hidden_size=150,
-    embed_size=100,
-    dropout=0.1,
-    weight_decay=0.0,
-)
-TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(CONFIG['vocab_source'],CONFIG['vocab_dim'])
-VAL_FILE = 'data/glove/val_glove.%s.%sd.txt'%(CONFIG['vocab_source'],CONFIG['vocab_dim'])
+config = train_config()
+
+TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
+VAL_FILE = 'data/glove/val_glove.%s.%sd.txt'%(config.vocab_source, config.vocab_dim)
 
 def weights_init(m):
     """
     Initialize according to Xavier initialization or default initialization.
     """
-    if CONFIG['weight_init'] == 'xavier':
+    if config.weight_init == 'xavier':
         if type(m) in [nn.Linear]:
             nn.init.xavier_normal(m.weight.data)
         elif type(m) in [nn.LSTM, nn.RNN, nn.GRU]:
@@ -75,24 +41,23 @@ def weights_init(m):
 
 if __name__ == "__main__":
 
-    vocab = vocab.GloVe(name=CONFIG['vocab_source'], dim=CONFIG['vocab_dim'])
+    vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
-
     model = Def2VecModel(vocab,
-                         embed_size = CONFIG['vocab_dim'],
-                         output_size = CONFIG['vocab_dim'],
-                         hidden_size = CONFIG['hidden_size'],
-                         use_packing = CONFIG['packing'],
-                         use_bidirection = CONFIG['use_bidirection'],
-                         use_attention = CONFIG['use_attention'],
-                         cell_type = CONFIG['cell_type'],
+                         embed_size = config.vocab_dim,
+                         output_size = config.vocab_dim,
+                         hidden_size = config.hidden_size,
+                         use_packing = config.packing,
+                         use_bidirection = config.use_bidirection,
+                         use_attention = config.use_attention,
+                         cell_type = config.cell_type,
                          use_cuda = use_gpu)
 
-    if CONFIG["load_path"] is None:
+    if config.load_path is None:
         model.apply(weights_init)
     else:
-        model.load_state_dict(torch.load(CONFIG["load_path"]))
+        model.load_state_dict(torch.load(config.load_path))
     model.apply(weights_init)
 
     if use_gpu:
@@ -100,26 +65,28 @@ if __name__ == "__main__":
 
     train_loader = get_data_loader(TRAIN_FILE,
                                    vocab,
-                                   CONFIG['input_method'],
-                                   CONFIG['vocab_dim'],
-                                   batch_size = CONFIG['batch_size'],
-                                   num_workers = CONFIG['num_workers'],
-                                   shuffle=CONFIG['shuffle'])
+                                   config.input_method,
+                                   config.vocab_dim,
+                                   batch_size = config.batch_size,
+                                   num_workers = config.num_workers,
+                                   shuffle=config.shuffle)
+
     val_loader = get_data_loader(VAL_FILE,
                                    vocab,
-                                   CONFIG['input_method'],
-                                   CONFIG['vocab_dim'],
-                                   batch_size = CONFIG['batch_size'],
-                                   num_workers = CONFIG['num_workers'],
-                                   shuffle=CONFIG['shuffle'])
+                                   config.input_method,
+                                   config.vocab_dim,
+                                   batch_size = config.batch_size,
+                                   num_workers = config.num_workers,
+                                   shuffle=config.shuffle)
 
 
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(),
-                           lr=CONFIG['learning_rate'],
-                           weight_decay=CONFIG['weight_decay'])
+                           lr=config.learning_rate,
+                           weight_decay=config.weight_decay)
 
-    writer, conf = init_experiment(CONFIG)
+    writer, conf = init_experiment(config.__dict__) #pytorch-monitor needs a dict
+
     if DEBUG_LOG:
         monitor_module(model, writer)
 
@@ -129,11 +96,12 @@ if __name__ == "__main__":
     embed_outs = None
     embed_labels = []
 
-    for epoch in range(CONFIG['max_epochs']):
+    for epoch in range(config.max_epochs):
 
         running_loss = 0.0
         start = time()
         print("Epoch", epoch)
+
 
         for i, data in enumerate(train_loader, 0):
             words, inputs, lengths, labels = data
@@ -159,29 +127,29 @@ if __name__ == "__main__":
                 embed_outs = torch.cat([embed_outs, outputs.data])
                 embed_labels += words
                 num_outs = embed_outs.shape[0]
-                if num_outs > CONFIG['embedding_log_size']:
-                    diff = num_outs - CONFIG['embedding_log_size']
+                if num_outs > config.embedding_log_size:
+                    diff = num_outs - config.embedding_log_size
                     embed_outs = embed_outs[diff:]
                     embed_labels = embed_labels[diff:]
 
-            if i % CONFIG['print_freq'] == (CONFIG['print_freq']-1):
+            if i % config.print_freq == (config.print_freq-1):
                 end = time()
                 diff = end-start
                 total_time+=diff
                 print('Epoch: %d, batch: %d, loss: %.4f , time/iter: %.2fs, total time: %.2fs' %
                              (epoch + 1, i + 1,
-                              running_loss / CONFIG['print_freq'],
-                              diff/CONFIG['print_freq'],
+                              running_loss / config.print_freq,
+                              diff/config.print_freq,
                               total_time))
                 start = end
                 running_loss = 0.0
 
-            if i % CONFIG['write_embed_freq'] == (CONFIG['write_embed_freq']-1):
+            if i % config.write_embed_freq == (config.write_embed_freq-1):
                 writer.add_embedding(embed_outs,
                                      metadata=embed_labels,
                                      global_step=total_iter)
 
-            if i % CONFIG['eval_freq'] == (CONFIG['eval_freq'] - 1):
+            if i % config.eval_freq == (config.eval_freq - 1):
 
                 val_loss = 0.0
                 for data in tqdm(val_loader, total=len(val_loader)):
@@ -198,14 +166,14 @@ if __name__ == "__main__":
                              (epoch + 1, i + 1, val_loss / len(val_loader)))
 
             total_iter += 1
-        name = CONFIG['run_name'] + '-' + CONFIG['run_comment']
-        out_dir = "outputs/def2vec/checkpoints/{}".format(name)
+
+        out_dir = "outputs/def2vec/checkpoints/{}".format(config.run_name)
         if not os.path.exists(out_dir):
-            os.mkdirs(out_dir)
-        out_path = "outputs/def2vec/checkpoints/{}/epoch_{}".format(name, epoch + 1)
+            os.makedirs(out_dir)
+        out_path = "outputs/def2vec/checkpoints/{}/epoch_{}".format(config.run_name, epoch + 1)
         if not os.path.exists(out_path):
             os.mkdir(out_path)
-        torch.save(model.state_dict(), out_path + "/" + CONFIG['save_path'])
+        torch.save(model.state_dict(), out_path + "/" + config.save_path)
 
     writer.export_scalars_to_json("./all_scalars.json")
     writer.close()
