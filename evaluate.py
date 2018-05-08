@@ -77,7 +77,7 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(config.save_path))
     test_loader = get_data_loader(TEST_FILE,
                                    vocab,
-                                   config.method,
+                                   config.input_method,
                                    config.vocab_dim,
                                    batch_size = config.batch_size,
                                    num_workers = config.num_workers,

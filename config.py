@@ -59,6 +59,6 @@ def eval_config(d, run_name, run_comment, epoch, verbose):
     e.input_method=INPUT_METHOD_ONE
 
     if verbose:
-            print ("Evaluation model will be saved at {}".format(e.save_path))
+            print ("Evaluation model will be loaded from {}".format(e.save_path))
 
     return e

@@ -5,3 +5,6 @@ runs/
 .DS_Store
 libs/
 outputs/
+env/
+eval/
+all_scalars.json

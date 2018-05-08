@@ -44,7 +44,6 @@ if __name__ == "__main__":
     vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
-
     model = Def2VecModel(vocab,
                          embed_size = config.vocab_dim,
                          output_size = config.vocab_dim,
@@ -71,6 +70,7 @@ if __name__ == "__main__":
                                    batch_size = config.batch_size,
                                    num_workers = config.num_workers,
                                    shuffle=config.shuffle)
+
     val_loader = get_data_loader(VAL_FILE,
                                    vocab,
                                    config.input_method,
@@ -85,8 +85,8 @@ if __name__ == "__main__":
                            lr=config.learning_rate,
                            weight_decay=config.weight_decay)
 
-
     writer, conf = init_experiment(config.__dict__) #pytorch-monitor needs a dict
+
     if DEBUG_LOG:
         monitor_module(model, writer)
 
@@ -101,6 +101,7 @@ if __name__ == "__main__":
         running_loss = 0.0
         start = time()
         print("Epoch", epoch)
+
 
         for i, data in enumerate(train_loader, 0):
             words, inputs, lengths, labels = data
@@ -165,11 +166,11 @@ if __name__ == "__main__":
                              (epoch + 1, i + 1, val_loss / len(val_loader)))
 
             total_iter += 1
-        name = config.run_name + '-' + config.run_comment
-        out_dir = "outputs/def2vec/checkpoints/{}".format(name)
+
+        out_dir = "outputs/def2vec/checkpoints/{}".format(config.run_name)
         if not os.path.exists(out_dir):
-            os.mkdirs(out_dir)
-        out_path = "outputs/def2vec/checkpoints/{}/epoch_{}".format(name, epoch + 1)
+            os.makedirs(out_dir)
+        out_path = "outputs/def2vec/checkpoints/{}/epoch_{}".format(config.run_name, epoch + 1)
         if not os.path.exists(out_path):
             os.mkdir(out_path)
         torch.save(model.state_dict(), out_path + "/" + config.save_path)
