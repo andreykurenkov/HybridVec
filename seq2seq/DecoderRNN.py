@@ -66,7 +66,7 @@ class DecoderRNN(BaseRNN):
     KEY_SEQUENCE = 'sequence'
 
     def __init__(self, vocab_size, max_len, hidden_size,
-            sos_id = 100, eos_id = 100,
+            sos_id = None, eos_id = None,
             n_layers=1, rnn_cell='gru', bidirectional=False,
             input_dropout_p=0, dropout_p=0, use_attention=False):
         super(DecoderRNN, self).__init__(vocab_size, max_len, hidden_size,
@@ -79,11 +79,11 @@ class DecoderRNN(BaseRNN):
 
         self.rnn = self.rnn_cell(hidden_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
 
-        self.output_size = vocab_size
+        self.output_size = vocab_size + 3 # for unk tokens and start and end symbols
         self.max_length = max_len
         self.use_attention = use_attention
-        self.eos_id = eos_id
-        self.sos_id = sos_id
+        self.eos_id = vocab_size + 1
+        self.sos_id = vocab_size + 2 #
 
         self.init_input = None 
 

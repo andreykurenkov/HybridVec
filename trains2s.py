@@ -98,7 +98,8 @@ if __name__ == "__main__":
                                    config.vocab_dim,
                                    batch_size = config.batch_size,
                                    num_workers = config.num_workers,
-                                   shuffle=config.shuffle)
+                                   shuffle=config.shuffle,
+                                   vocab_size = vocab_size)
 
     val_loader = get_data_loader(VAL_FILE,
                                    vocab,
@@ -106,7 +107,8 @@ if __name__ == "__main__":
                                    config.vocab_dim,
                                    batch_size = config.batch_size,
                                    num_workers = config.num_workers,
-                                   shuffle=config.shuffle)
+                                   shuffle=config.shuffle,
+                                   vocab_size = vocab_size)
 
 
     criterion = nn.NLLLoss()
@@ -149,7 +151,6 @@ if __name__ == "__main__":
                 batch_size = config.batch_size
                 labeled_vals = Variable((inputs).long()[:, step + 1])
                 labeled_vals.requires_grad = False
-                #labeled_vals.requires_grad = True
                 pred = step_output.contiguous().view(batch_size, -1)
                 acc_loss += criterion(pred, labeled_vals)
                 norm_term += 1
