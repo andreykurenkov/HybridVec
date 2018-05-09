@@ -164,17 +164,19 @@ if __name__ == "__main__":
             # print statistics
             running_loss += batch_loss
             writer.add_scalar('loss', batch_loss, total_iter)
-            # if embed_outs is None:
-            #     embed_outs = outputs.data
-            #     embed_labels = words
-            # else:
-            #     embed_outs = torch.cat([embed_outs, outputs.data])
-            #     embed_labels += words
-            #     num_outs = embed_outs.shape[0]
-            #     if num_outs > config.embedding_log_size:
-            #         diff = num_outs - config.embedding_log_size
-            #         embed_outs = embed_outs[diff:]
-            #         embed_labels = embed_labels[diff:]
+            if embed_outs is None:
+                embed_outs = model.encoder_hidden
+                embed_labels = words
+                print ("here")
+            else:
+                embed_outs = torch.cat([embed_outs, model.encoder_hidden])
+                embed_labels += words
+                num_outs = embed_outs.shape[0]
+                if num_outs > config.embedding_log_size:
+                    diff = num_outs - config.embedding_log_size
+                    embed_outs = embed_outs[diff:]
+                    embed_labels = embed_labels[diff:]
+                print ("and here")
 
             if i % config.print_freq == (config.print_freq-1):
                 end = time()
@@ -188,10 +190,10 @@ if __name__ == "__main__":
                 start = end
                 running_loss = 0.0
 
-            # if i % config.write_embed_freq == (config.write_embed_freq-1):
-            #     writer.add_embedding(embed_outs,
-            #                          metadata=embed_labels,
-            #                          global_step=total_iter)
+            if i % config.write_embed_freq == (config.write_embed_freq-1):
+                writer.add_embedding(embed_outs,
+                                     metadata=embed_labels,
+                                     global_step=total_iter)
 
             if i % config.eval_freq == (config.eval_freq - 1):
 

@@ -14,6 +14,7 @@ class Seq2SeqModel(nn.Module):
         self.encoder = encoder
         self.decoder = decoder
         self.decode_function = decode_function
+        self.encoder_hidden = None
 
     def flatten_parameters(self):
         self.encoder.rnn.flatten_parameters()
@@ -22,7 +23,8 @@ class Seq2SeqModel(nn.Module):
     def forward(self, input_variable, input_lengths=None, target_variable=None,
                 teacher_forcing_ratio=0):
         encoder_outputs, encoder_hidden = self.encoder(input_variable, input_lengths)
-        
+        self.encoder_hidden = encoder_hidden[self.encoder.n_layers - 1]
+        print (self.encoder_hidden)
         result = self.decoder(inputs=target_variable,
                               encoder_hidden=encoder_hidden,
                               encoder_outputs=encoder_outputs,
