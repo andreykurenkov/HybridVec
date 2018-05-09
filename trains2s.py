@@ -125,16 +125,29 @@ if __name__ == "__main__":
 
         for i, data in enumerate(train_loader, 0):
             words, inputs, lengths, labels = data
+            print(words, "words")
+            print (inputs, "inputs")
+            print (lengths, "lengths")
+            print (labels, "labels")
             labels = Variable(labels)
 
             if use_gpu:
                 inputs = inputs.cuda()
                 labels = labels.cuda()
-            print (inputs)
             optimizer.zero_grad()
-            outputs = model(inputs, lengths)
-            for step, step_output in enumerate(outputs):
-                loss = criterion(step_output.contiguous().view(config.batch_size, -1), labels[:, step + 1])
+            decoder_outputs, decoder_hidden, ret_dicts = model(inputs, lengths)
+            word_preds = ret_dicts["sequence"]
+
+            print (i, "out of data")
+            # print (len(outputs[2]), "lenght of outputs 2")
+            # print (outputs[2].keys(), "outputs 2")
+            #print (outputs[2][1], "outputs 2")
+            #print (outputs[0])
+            for step, step_output in enumerate(decoder_outputs):
+                batch_size = config.batch_size
+                print(step_output.contiguous().view(batch_size, -1), target_variable[:, step + 1])
+
+
             loss.backward()
             optimizer.step()
 

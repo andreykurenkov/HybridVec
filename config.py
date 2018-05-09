@@ -26,7 +26,7 @@ class base_config(object):
         # data loading params
         self.num_workers = 8
         self.packing=True
-        self.shuffle=True
+        self.shuffle=False
         # model configuration [for ablation/hyperparam experiments]
         self.weight_init="xavier"
         self.input_method=INPUT_METHOD_ALL_CONCAT
