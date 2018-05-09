@@ -39,6 +39,15 @@ def weights_init(m):
             nn.init.xavier_normal(m.weight_hh_l0)
             nn.init.xavier_normal(m.weight_ih_l0)
 
+def get_loss_nll(acc_loss, norm_term):
+        if isinstance(acc_loss, int):
+            return 0
+        # total loss for all batches
+        loss = acc_loss.data.item()
+        loss /= norm_term
+        return loss
+
+
 
 if __name__ == "__main__":
     vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
@@ -100,7 +109,7 @@ if __name__ == "__main__":
                                    shuffle=config.shuffle)
 
 
-    criterion = nn.MSELoss()
+    criterion = nn.NLLLoss()
     optimizer = optim.Adam(filter(lambda p: p.requires_grad,model.parameters()),
                            lr=config.learning_rate,
                            weight_decay=config.weight_decay)
@@ -125,10 +134,6 @@ if __name__ == "__main__":
 
         for i, data in enumerate(train_loader, 0):
             words, inputs, lengths, labels = data
-            print(words, "words")
-            print (inputs, "inputs")
-            print (lengths, "lengths")
-            print (labels, "labels")
             labels = Variable(labels)
 
             if use_gpu:
@@ -136,24 +141,25 @@ if __name__ == "__main__":
                 labels = labels.cuda()
             optimizer.zero_grad()
             decoder_outputs, decoder_hidden, ret_dicts = model(inputs, lengths)
-            word_preds = ret_dicts["sequence"]
-
             print (i, "out of data")
-            # print (len(outputs[2]), "lenght of outputs 2")
-            # print (outputs[2].keys(), "outputs 2")
-            #print (outputs[2][1], "outputs 2")
-            #print (outputs[0])
+            acc_loss = 0
+            norm_term = 0
+
             for step, step_output in enumerate(decoder_outputs):
                 batch_size = config.batch_size
-                print(step_output.contiguous().view(batch_size, -1), target_variable[:, step + 1])
+                acc_loss += criterion(step_output.contiguous().view(batch_size, -1), labels[:, step + 1])
+                norm_term += 1
 
 
-            loss.backward()
+            if type(self.acc_loss) is int:
+                raise ValueError("No loss to back propagate.")
+            acc_loss.backward()
             optimizer.step()
 
+            batch_loss = get_loss_nll(acc_loss, norm_term)
             # print statistics
-            running_loss += loss.data[0]
-            writer.add_scalar('loss', loss.data[0], total_iter)
+            running_loss += batch_loss
+            writer.add_scalar('loss', batch_loss, total_iter)
             if embed_outs is None:
                 embed_outs = outputs.data
                 embed_labels = words
@@ -192,9 +198,25 @@ if __name__ == "__main__":
                     if use_gpu:
                         inputs = inputs.cuda()
                         labels = labels.cuda()
-                    outputs = model(inputs, lengths)
-                    loss = criterion(outputs, labels)
-                    val_loss += loss.data[0]
+
+                    decoder_outputs, decoder_hidden, ret_dicts = model(inputs, lengths)
+                    acc_loss = 0
+                    norm_term = 0
+
+                    for step, step_output in enumerate(decoder_outputs):
+                        batch_size = config.batch_size
+                        acc_loss += criterion(step_output.contiguous().view(batch_size, -1), labels[:, step + 1])
+                        norm_term += 1
+
+
+                    if type(self.acc_loss) is int:
+                        raise ValueError("No loss to back propagate.")
+                    acc_loss.backward()
+                    optimizer.step()
+
+                    batch_loss = get_loss_nll(acc_loss, norm_term)
+
+                    val_loss += batch_loss
                 writer.add_scalar('val_loss', val_loss / len(val_loader), total_iter)
                 print('Epoch: %d, batch: %d, val loss: %.4f' %
                              (epoch + 1, i + 1, val_loss / len(val_loader)))
