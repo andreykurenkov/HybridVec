@@ -9,6 +9,7 @@ import torch.nn as nn
 import numpy as np
 from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
 from model import Def2VecModel
+from baseline import BaselineModel
 from torch.autograd import Variable
 import torchtext.vocab as vocab
 from tensorboardX import SummaryWriter
@@ -44,8 +45,8 @@ if __name__ == "__main__":
     vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
-
-    model = Def2VecModel(vocab,
+    print ('vocab dim', config.vocab_dim)
+    model = BaselineModel(vocab,
                          embed_size = config.vocab_dim,
                          output_size = config.vocab_dim,
                          hidden_size = config.hidden_size,
@@ -104,15 +105,35 @@ if __name__ == "__main__":
 
         for i, data in enumerate(train_loader, 0):
             words, inputs, lengths, labels = data
+            #labels are glove vectors to regress on we just need to max the likelihood of the words in definition 
             labels = Variable(labels)
-            print('in labels')
-            print(labels)
+            # print('in labels')
+            # print(labels)
+            # print(labels.shape)
             if use_gpu:
                 inputs = inputs.cuda()
                 labels = labels.cuda()
 
             optimizer.zero_grad()
             outputs = model(inputs, lengths)
+            # print('outputs', outputs.shape, outputs)
+            to_add = torch.tensor([i * len(vocab.stoi) for i in range(config.batch_size)])
+            print('before', to_add.shape)
+            print('to_add', to_add)
+            to_add = to_add.unsqueeze(1)
+            print('after', to_add.shape)
+
+            print('before inputs', inputs[1])
+            input_indices = inputs + to_add
+            print('input indices after add', input_indices[1])
+            input_indices = input_indices.view(-1)
+            # input_indices = [input_indices[index] + len(vocab.stoi) * int(index/config.batch_size) for index in range(len(input_indices))]
+            
+            labels_one_hot = torch.zeros((config.batch_size, len(vocab.stoi)))
+            labels_one_hot = labels_one_hot.view(-1)
+            labels_one_hot[input_indices] = 1 #set definitional word labels
+            labels_one_hot = labels_one_hot.view(config.batch_size, -1)
+            print('labels one hot?', labels_one_hot)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
