@@ -68,6 +68,7 @@ class EncoderRNN(BaseRNN):
         # input_var = Variable(input_var)
         # batch_size, input_size = input_var.shape
         # embed = self.embeddings(inputs.view(-1, input_size)).view(batch_size, input_size, -1)
+        print (input_var)
 
         input_var = Variable(input_var)
         batch_size, input_size = input_var.shape

@@ -130,12 +130,11 @@ if __name__ == "__main__":
             if use_gpu:
                 inputs = inputs.cuda()
                 labels = labels.cuda()
-
+            print (inputs)
             optimizer.zero_grad()
             outputs = model(inputs, lengths)
-            print (type(outputs))
-            print (outputs)
-            loss = criterion(outputs, labels)
+            for step, step_output in enumerate(outputs):
+                loss = criterion(step_output.contiguous().view(config.batch_size, -1), labels[:, step + 1])
             loss.backward()
             optimizer.step()
 

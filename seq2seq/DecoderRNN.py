@@ -180,7 +180,6 @@ class DecoderRNN(BaseRNN):
             encoder_hidden = tuple([self._cat_directions(h) for h in encoder_hidden])
         else:
             encoder_hidden = self._cat_directions(encoder_hidden)
-            print (encoder_hidden, "here")
         return encoder_hidden
 
     def _cat_directions(self, h):
@@ -212,7 +211,6 @@ class DecoderRNN(BaseRNN):
         if inputs is None:
             if teacher_forcing_ratio > 0:
                 raise ValueError("Teacher forcing has to be disabled (set 0) when no inputs is provided.")
-            print ("")
             inputs = torch.LongTensor([self.sos_id] * batch_size).view(batch_size, 1)
             if torch.cuda.is_available():
                 inputs = inputs.cuda()
