@@ -43,7 +43,7 @@ def get_loss_nll(acc_loss, norm_term):
         if isinstance(acc_loss, int):
             return 0
         # total loss for all batches
-        loss = acc_loss.data.item()
+        loss = acc_loss.data
         loss /= norm_term
         return loss
 
@@ -147,11 +147,15 @@ if __name__ == "__main__":
 
             for step, step_output in enumerate(decoder_outputs):
                 batch_size = config.batch_size
-                acc_loss += criterion(step_output.contiguous().view(batch_size, -1), labels[:, step + 1])
+                labeled_vals = Variable((inputs).long()[:, step + 1])
+                labeled_vals.requires_grad = False
+                #labeled_vals.requires_grad = True
+                pred = step_output.contiguous().view(batch_size, -1)
+                acc_loss += criterion(pred, labeled_vals)
                 norm_term += 1
 
 
-            if type(self.acc_loss) is int:
+            if type(acc_loss) is int:
                 raise ValueError("No loss to back propagate.")
             acc_loss.backward()
             optimizer.step()
@@ -160,17 +164,17 @@ if __name__ == "__main__":
             # print statistics
             running_loss += batch_loss
             writer.add_scalar('loss', batch_loss, total_iter)
-            if embed_outs is None:
-                embed_outs = outputs.data
-                embed_labels = words
-            else:
-                embed_outs = torch.cat([embed_outs, outputs.data])
-                embed_labels += words
-                num_outs = embed_outs.shape[0]
-                if num_outs > config.embedding_log_size:
-                    diff = num_outs - config.embedding_log_size
-                    embed_outs = embed_outs[diff:]
-                    embed_labels = embed_labels[diff:]
+            # if embed_outs is None:
+            #     embed_outs = outputs.data
+            #     embed_labels = words
+            # else:
+            #     embed_outs = torch.cat([embed_outs, outputs.data])
+            #     embed_labels += words
+            #     num_outs = embed_outs.shape[0]
+            #     if num_outs > config.embedding_log_size:
+            #         diff = num_outs - config.embedding_log_size
+            #         embed_outs = embed_outs[diff:]
+            #         embed_labels = embed_labels[diff:]
 
             if i % config.print_freq == (config.print_freq-1):
                 end = time()
@@ -184,10 +188,10 @@ if __name__ == "__main__":
                 start = end
                 running_loss = 0.0
 
-            if i % config.write_embed_freq == (config.write_embed_freq-1):
-                writer.add_embedding(embed_outs,
-                                     metadata=embed_labels,
-                                     global_step=total_iter)
+            # if i % config.write_embed_freq == (config.write_embed_freq-1):
+            #     writer.add_embedding(embed_outs,
+            #                          metadata=embed_labels,
+            #                          global_step=total_iter)
 
             if i % config.eval_freq == (config.eval_freq - 1):
 
