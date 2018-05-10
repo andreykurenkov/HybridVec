@@ -23,13 +23,13 @@ class Seq2SeqModel(nn.Module):
     def forward(self, input_variable, input_lengths=None, target_variable=None,
                 teacher_forcing_ratio=0):
         encoder_outputs, encoder_hidden = self.encoder(input_variable, input_lengths)
-        self.encoder_hidden = encoder_hidden[self.encoder.n_layers - 1]
+        #self.encoder_hidden = encoder_hidden[self.encoder.n_layers - 1]
         result = self.decoder(inputs=target_variable,
                               encoder_hidden=encoder_hidden,
                               encoder_outputs=encoder_outputs,
                               function=self.decode_function,
                               teacher_forcing_ratio=teacher_forcing_ratio)
-        return result
+        return result, encoder_hidden[self.encoder.n_layers - 1]
 
 
 class Def2VecModel(nn.Module):

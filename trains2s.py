@@ -144,7 +144,7 @@ if __name__ == "__main__":
                 inputs = inputs.cuda()
                 labels = labels.cuda()
             optimizer.zero_grad()
-            decoder_outputs, decoder_hidden, ret_dicts = model(inputs, lengths)
+            (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = model(inputs, lengths)
             #print (i, "out of data")
             acc_loss = 0
             norm_term = 0
@@ -168,10 +168,10 @@ if __name__ == "__main__":
             running_loss += batch_loss
             writer.add_scalar('loss', batch_loss, total_iter)
             if embed_outs is None:
-                embed_outs = model.encoder_hidden
+                embed_outs = encoder_hidden
                 embed_labels = words
             else:
-                embed_outs = torch.cat([embed_outs, model.encoder_hidden])
+                embed_outs = torch.cat([embed_outs, encoder_hidden])
                 embed_labels += words
                 num_outs = embed_outs.shape[0]
                 if num_outs > config.embedding_log_size:
