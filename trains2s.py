@@ -53,8 +53,10 @@ if __name__ == "__main__":
     vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
-    vocab_size = len(vocab.stoi)
-
+    #vocab_size = len(vocab.stoi)
+    #reduced vocab_size
+    vocab_size = 100000
+    vocab_reduced = True if vocab_size < 400000 else False
     encoder = EncoderRNN(vocab_size = vocab_size,
                         max_len = 50, 
                         hidden_size = config.hidden_size, 
@@ -143,11 +145,12 @@ if __name__ == "__main__":
                 labels = labels.cuda()
             optimizer.zero_grad()
             decoder_outputs, decoder_hidden, ret_dicts = model(inputs, lengths)
-            print (i, "out of data")
+            #print (i, "out of data")
             acc_loss = 0
             norm_term = 0
 
             for step, step_output in enumerate(decoder_outputs):
+                if step == 1: print (step_output)
                 batch_size = config.batch_size
                 labeled_vals = Variable((inputs).long()[:, step + 1])
                 labeled_vals.requires_grad = False
