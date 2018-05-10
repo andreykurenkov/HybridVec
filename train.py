@@ -20,8 +20,7 @@ from time import time
 from config import train_config
 from pytorch_monitor import monitor_module, init_experiment
 
-
-DEBUG_LOG = False
+DEBUG_LOG = True
 
 config = train_config()
 
@@ -44,6 +43,7 @@ if __name__ == "__main__":
 
     vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
     use_gpu = torch.cuda.is_available()
+    #use_gpu = False
     print("Using GPU:", use_gpu)
     print ('vocab dim', config.vocab_dim)
     model = BaselineModel(vocab,
@@ -81,7 +81,7 @@ if __name__ == "__main__":
                                    shuffle=config.shuffle)
 
 
-    criterion = nn.MultiLabelSoftMarginLoss() #use multi label loss across unigram bag of words model
+    criterion = nn.NLLLoss() #use multi label loss across unigram bag of words model
     optimizer = optim.Adam(model.parameters(),
                            lr=config.learning_rate,
                            weight_decay=config.weight_decay)
@@ -116,32 +116,15 @@ if __name__ == "__main__":
             optimizer.zero_grad()
             outputs = model(inputs, lengths)
 
-            #code to do one-hot vectorization of words that occur in definition for each eaxample in minibatch
-            #to-add broadcast sums the size of the vocab so when flattened the indices that are set to 1 in labels are correct, since pytorch doesn't seem to do fancy indexing well
-            # print('inputs', inputs)
-            to_add = torch.LongTensor([i * len(vocab.stoi) for i in range(config.batch_size)])
-            to_add = to_add.unsqueeze(1)
-
-            # print('to_add', to_add, to_add.shape)
-
-            # print('before inputs', inputs.shape, inputs[3])
-            input_indices = inputs + to_add
-            # print('input indices after add', input_indices[3])
-            input_indices = input_indices.view(-1)
-            
-            labels_one_hot = torch.zeros((config.batch_size, len(vocab.stoi)))
-            labels_one_hot = labels_one_hot.view(-1)
-            # print('input indices shape and label one hot shape', input_indices.shape, labels_one_hot.shape)
-            labels_one_hot[input_indices] = 1 #set definitional word labels
-            #checking 
-            labels_indices = labels_one_hot.nonzero()
-            labels_one_hot = labels_one_hot.view(config.batch_size, -1)
-
-            # print('labels one hot', labels_one_hot[3].nonzero())
-            # print('input indices', inputs[3])
-
-            labels_one_hot = Variable(labels_one_hot)
-            loss = criterion(outputs, labels_one_hot)
+            loss = 0
+            count = 0
+            for word_idx in range(list(inputs.size())[1]):
+                label = Variable(inputs[:,word_idx])
+                if use_gpu:
+                    label = label.cuda()
+                loss+= criterion(outputs, label)
+                count+=1.0
+            loss/=count
             loss.backward()
             optimizer.step()
 

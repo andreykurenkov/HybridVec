@@ -86,6 +86,7 @@ class BaselineModel(nn.Module):
                               batch_size, self.hidden_size))
     if self.use_cuda:
       h0 = h0.cuda()
+      c0 = c0.cuda()
     if self.cell_type == 'LSTM':
         cell_outputs, _ = self.cell(embed, (h0, c0))
     elif self.cell_type:
@@ -102,7 +103,7 @@ class BaselineModel(nn.Module):
     else:
         self.defn_embed = torch.mean(cell_outputs, dim=1)
     likelihood_scores = self.output_layer(self.defn_embed) #calculate score for definition embedding --> to max unigram prob for words in definition
-    softmax = nn.Softmax(dim = 1)
+    softmax = nn.LogSoftmax(dim = 1)
     probability_unigram = softmax(likelihood_scores)
 
     if return_attn:

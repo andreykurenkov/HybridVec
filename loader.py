@@ -47,7 +47,7 @@ class DefinitionsDataset(Dataset):
         elif definition is None:
             definition = '<unk>'
         words = [clean_str(w) for w in definition.split()]
-        definition = [self.glove.stoi[w] + 1 if w in self.glove.stoi else 0 for w in words]
+        definition = [self.glove.stoi[w] if w in self.glove.stoi else 399999 for w in words]
         return (word, np.array(definition).astype(np.float32), embedding.astype(np.float32))
 
 def collate_fn(data):
