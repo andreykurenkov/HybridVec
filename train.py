@@ -105,7 +105,6 @@ if __name__ == "__main__":
 
         for i, data in enumerate(train_loader, 0):
             words, inputs, lengths, labels = data
-            #labels are glove vectors to regress on we just need to max the likelihood of the words in definition 
             labels = Variable(labels)
             # print('in labels')
             # print(labels)
@@ -116,25 +115,33 @@ if __name__ == "__main__":
 
             optimizer.zero_grad()
             outputs = model(inputs, lengths)
-            # print('outputs', outputs.shape, outputs)
-            to_add = torch.tensor([i * len(vocab.stoi) for i in range(config.batch_size)])
-            print('before', to_add.shape)
-            print('to_add', to_add)
-            to_add = to_add.unsqueeze(1)
-            print('after', to_add.shape)
 
-            print('before inputs', inputs[1])
+            #code to do one-hot vectorization of words that occur in definition for each eaxample in minibatch
+            #to-add broadcast sums the size of the vocab so when flattened the indices that are set to 1 in labels are correct, since pytorch doesn't seem to do fancy indexing well
+            # print('inputs', inputs)
+            to_add = torch.LongTensor([i * len(vocab.stoi) for i in range(config.batch_size)])
+            to_add = to_add.unsqueeze(1)
+
+            # print('to_add', to_add, to_add.shape)
+
+            # print('before inputs', inputs.shape, inputs[3])
             input_indices = inputs + to_add
-            print('input indices after add', input_indices[1])
+            # print('input indices after add', input_indices[3])
             input_indices = input_indices.view(-1)
-            # input_indices = [input_indices[index] + len(vocab.stoi) * int(index/config.batch_size) for index in range(len(input_indices))]
             
             labels_one_hot = torch.zeros((config.batch_size, len(vocab.stoi)))
             labels_one_hot = labels_one_hot.view(-1)
+            # print('input indices shape and label one hot shape', input_indices.shape, labels_one_hot.shape)
             labels_one_hot[input_indices] = 1 #set definitional word labels
+            #checking 
+            labels_indices = labels_one_hot.nonzero()
             labels_one_hot = labels_one_hot.view(config.batch_size, -1)
-            print('labels one hot?', labels_one_hot)
-            loss = criterion(outputs, labels)
+
+            # print('labels one hot', labels_one_hot[3].nonzero())
+            # print('input indices', inputs[3])
+
+            labels_one_hot = Variable(labels_one_hot)
+            loss = criterion(outputs, labels_one_hot)
             loss.backward()
             optimizer.step()
 
@@ -142,10 +149,10 @@ if __name__ == "__main__":
             running_loss += loss.data[0]
             writer.add_scalar('loss', loss.data[0], total_iter)
             if embed_outs is None:
-                embed_outs = outputs.data
+                embed_outs = model.defn_embed
                 embed_labels = words
             else:
-                embed_outs = torch.cat([embed_outs, outputs.data])
+                embed_outs = torch.cat([embed_outs, model.defn_embed])
                 embed_labels += words
                 num_outs = embed_outs.shape[0]
                 if num_outs > config.embedding_log_size:

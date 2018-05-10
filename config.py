@@ -32,7 +32,7 @@ class base_config(object):
         self.input_method=INPUT_METHOD_ALL_CONCAT
         self.use_bidirection=True
         self.use_attention=True
-        self.cell_type='GRU'
+        self.cell_type='LSTM'
         #use_batchnorm=True,
         self.hidden_size=150
         self.embed_size=100
