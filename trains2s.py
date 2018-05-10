@@ -25,8 +25,8 @@ DEBUG_LOG = False
 
 config = train_config()
 
-TRAIN_FILE = 'data/glove/config_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
-VAL_FILE = 'data/glove/config_glove.%s.%sd.txt'%(config.vocab_source, config.vocab_dim)
+TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
+VAL_FILE = 'data/glove/val_glove.%s.%sd.txt'%(config.vocab_source, config.vocab_dim)
 
 def weights_init(m):
     """
@@ -54,11 +54,9 @@ if __name__ == "__main__":
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
     vocab_size = len(vocab.stoi)
-    #just for end to end testing
-    vocab_size = 6
 
     encoder = EncoderRNN(vocab_size = vocab_size,
-                        max_len = 10, 
+                        max_len = 50, 
                         hidden_size = config.hidden_size, 
                         embed_size = config.vocab_dim,
                         input_dropout_p=config.dropout,
@@ -71,7 +69,7 @@ if __name__ == "__main__":
                         )
 
     decoder = DecoderRNN(vocab_size = vocab_size,
-                        max_len = 10,
+                        max_len = 50,
                         hidden_size = config.hidden_size,
                         n_layers=2,
                         rnn_cell=config.cell_type.lower(),

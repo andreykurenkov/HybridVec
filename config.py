@@ -4,9 +4,9 @@ from loader import *
 class base_config(object):
     def __init__ (self):
         self.title="def2vec"
-        self.description="Translating definitions to word vectors"
-        self.run_name='test-config'
-        self.run_comment='wohoo' # gets appended to run_name as RUN_NAME-RUN_COMMENT
+        self.description="Creating new word embeddings using seq2seq"
+        self.run_name='seq2seq'
+        self.run_comment='first-version' # gets appended to run_name as RUN_NAME-RUN_COMMENT
         self.log_dir='outputs/def2vec/logs'
         self.vocab_dim = 100
         self.vocab_source = '6B'
