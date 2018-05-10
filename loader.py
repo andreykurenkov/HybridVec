@@ -49,6 +49,12 @@ class DefinitionsDataset(Dataset):
             definition = '<unk>'
         words = [clean_str(w) for w in definition.split()]
         definition = [self.glove.stoi[w] + 1 if w in self.glove.stoi else 0 for w in words]
+        #just for testing so that inputs are valid
+        # definition = np.array(definition)
+        # definition[definition>self.vocab_size-1] = 0
+
+        # np.insert(definition,0, self.vocab_size + 1)#start 
+        # np.append(definition, self.vocab_size + 2) # end
         definition.insert(0, self.vocab_size + 1) #start symbol
         definition.append(self.vocab_size + 2) #end symbol
         return (word, np.array(definition).astype(np.float32), embedding.astype(np.float32))

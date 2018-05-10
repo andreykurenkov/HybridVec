@@ -25,8 +25,8 @@ DEBUG_LOG = False
 
 config = train_config()
 
-TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
-VAL_FILE = 'data/glove/val_glove.%s.%sd.txt'%(config.vocab_source, config.vocab_dim)
+TRAIN_FILE = 'data/glove/config_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
+VAL_FILE = 'data/glove/config_glove.%s.%sd.txt'%(config.vocab_source, config.vocab_dim)
 
 def weights_init(m):
     """
@@ -54,6 +54,8 @@ if __name__ == "__main__":
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
     vocab_size = len(vocab.stoi)
+    #just for end to end testing
+    vocab_size = 6
 
     encoder = EncoderRNN(vocab_size = vocab_size,
                         max_len = 10, 
@@ -168,7 +170,6 @@ if __name__ == "__main__":
             if embed_outs is None:
                 embed_outs = model.encoder_hidden
                 embed_labels = words
-                print ("here")
             else:
                 embed_outs = torch.cat([embed_outs, model.encoder_hidden])
                 embed_labels += words
@@ -177,7 +178,6 @@ if __name__ == "__main__":
                     diff = num_outs - config.embedding_log_size
                     embed_outs = embed_outs[diff:]
                     embed_labels = embed_labels[diff:]
-                print ("and here")
 
             if i % config.print_freq == (config.print_freq-1):
                 end = time()
@@ -192,7 +192,7 @@ if __name__ == "__main__":
                 running_loss = 0.0
 
             if i % config.write_embed_freq == (config.write_embed_freq-1):
-                writer.add_embedding(embed_outs,
+                writer.add_embedding(embed_outs.data,
                                      metadata=embed_labels,
                                      global_step=total_iter)
 
@@ -212,11 +212,13 @@ if __name__ == "__main__":
 
                     for step, step_output in enumerate(decoder_outputs):
                         batch_size = config.batch_size
-                        acc_loss += criterion(step_output.contiguous().view(batch_size, -1), labels[:, step + 1])
+                        labeled_vals = Variable((inputs).long()[:, step + 1])
+                        labeled_vals.requires_grad = False
+                        acc_loss += criterion(step_output.contiguous().view(batch_size, -1), labeled_vals)
                         norm_term += 1
 
 
-                    if type(self.acc_loss) is int:
+                    if type(acc_loss) is int:
                         raise ValueError("No loss to back propagate.")
                     acc_loss.backward()
                     optimizer.step()
@@ -236,6 +238,7 @@ if __name__ == "__main__":
         out_path = "outputs/def2vec/checkpoints/{}/epoch_{}".format(config.run_name, epoch + 1)
         if not os.path.exists(out_path):
             os.mkdir(out_path)
+        print ("saving")
         torch.save(model.state_dict(), out_path + "/" + config.save_path)
 
     writer.export_scalars_to_json("./all_scalars.json")

@@ -5,8 +5,8 @@ class base_config(object):
     def __init__ (self):
         self.title="def2vec"
         self.description="Translating definitions to word vectors"
-        self.run_name='full_run_big'
-        self.run_comment='def_concat' # gets appended to run_name as RUN_NAME-RUN_COMMENT
+        self.run_name='test-config'
+        self.run_comment='wohoo' # gets appended to run_name as RUN_NAME-RUN_COMMENT
         self.log_dir='outputs/def2vec/logs'
         self.vocab_dim = 100
         self.vocab_source = '6B'
@@ -19,7 +19,7 @@ class base_config(object):
         self.n_hidden=250
         # logging params
         self.print_freq=1
-        self.write_embed_freq=100
+        self.write_embed_freq= 100
         self.eval_freq = 1000
         self.save_path="model_weights.torch"
         self.embedding_log_size = 10000
