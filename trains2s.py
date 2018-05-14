@@ -45,6 +45,8 @@ def get_loss_nll(acc_loss, norm_term):
         # total loss for all batches
         loss = acc_loss.data
         loss /= norm_term
+        loss =  (Variable(loss).data)[0]
+        print (type(loss))
         return loss
 
 
@@ -55,7 +57,7 @@ if __name__ == "__main__":
     print("Using GPU:", use_gpu)
     #vocab_size = len(vocab.stoi)
     #reduced vocab_size
-    vocab_size = 50000
+    vocab_size = 10000
     vocab_reduced = True if vocab_size < 400000 else False
     encoder = EncoderRNN(vocab_size = vocab_size,
                         max_len = 40, 
@@ -63,7 +65,7 @@ if __name__ == "__main__":
                         embed_size = config.vocab_dim,
                         input_dropout_p=config.dropout,
                         dropout_p=config.dropout,
-                        n_layers=2,
+                        n_layers=1,
                         bidirectional=config.use_bidirection,
                         rnn_cell=config.cell_type.lower(),
                         variable_lengths=False,
@@ -73,7 +75,7 @@ if __name__ == "__main__":
     decoder = DecoderRNN(vocab_size = vocab_size,
                         max_len = 40,
                         hidden_size = config.hidden_size,
-                        n_layers=2,
+                        n_layers=1,
                         rnn_cell=config.cell_type.lower(),
                         bidirectional=config.use_bidirection,
                         input_dropout_p=config.dropout,
@@ -166,19 +168,22 @@ if __name__ == "__main__":
             batch_loss = get_loss_nll(acc_loss, norm_term)
             # print statistics
             running_loss += batch_loss
+            #print (type(encoder_hidden.data.cpu()), "why you no work")
+            
             writer.add_scalar('loss', batch_loss, total_iter)
             if embed_outs is None:
-                embed_outs = encoder_hidden
+                embed_outs = encoder_hidden.data.cpu()
                 embed_labels = words
             else:
-                embed_outs = torch.cat([embed_outs, encoder_hidden])
+                embed_outs = torch.cat([embed_outs, encoder_hidden.data.cpu()])
                 embed_labels += words
                 num_outs = embed_outs.shape[0]
                 if num_outs > config.embedding_log_size:
                     diff = num_outs - config.embedding_log_size
                     embed_outs = embed_outs[diff:]
                     embed_labels = embed_labels[diff:]
-
+            
+            del acc_loss, encoder_hidden
             if i % config.print_freq == (config.print_freq-1):
                 end = time()
                 diff = end-start
@@ -192,7 +197,7 @@ if __name__ == "__main__":
                 running_loss = 0.0
 
             if i % config.write_embed_freq == (config.write_embed_freq-1):
-                writer.add_embedding(embed_outs.data,
+                writer.add_embedding(embed_outs,
                                      metadata=embed_labels,
                                      global_step=total_iter)
 
@@ -227,6 +232,7 @@ if __name__ == "__main__":
 
                     val_loss += batch_loss
                 writer.add_scalar('val_loss', val_loss / len(val_loader), total_iter)
+                del acc_loss, encoder_hidden
                 print('Epoch: %d, batch: %d, val loss: %.4f' %
                              (epoch + 1, i + 1, val_loss / len(val_loader)))
 

@@ -34,7 +34,7 @@ class base_config(object):
         self.use_attention=True
         self.cell_type='GRU'
         #use_batchnorm=True,
-        self.hidden_size=150
+        self.hidden_size=100
         self.embed_size=100
         self.dropout=0.1
         self.weight_decay=0.0
