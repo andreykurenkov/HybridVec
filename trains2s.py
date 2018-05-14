@@ -46,7 +46,7 @@ def get_loss_nll(acc_loss, norm_term):
         loss = acc_loss.data
         loss /= norm_term
         loss =  (Variable(loss).data)[0]
-        print (type(loss))
+        #print (type(loss))
         return loss
 
 
@@ -57,15 +57,15 @@ if __name__ == "__main__":
     print("Using GPU:", use_gpu)
     #vocab_size = len(vocab.stoi)
     #reduced vocab_size
-    vocab_size = 10000
+    vocab_size = 100000
     vocab_reduced = True if vocab_size < 400000 else False
     encoder = EncoderRNN(vocab_size = vocab_size,
-                        max_len = 40, 
+                        max_len = 200, 
                         hidden_size = config.hidden_size, 
                         embed_size = config.vocab_dim,
                         input_dropout_p=config.dropout,
                         dropout_p=config.dropout,
-                        n_layers=1,
+                        n_layers=2,
                         bidirectional=config.use_bidirection,
                         rnn_cell=config.cell_type.lower(),
                         variable_lengths=False,
@@ -73,9 +73,9 @@ if __name__ == "__main__":
                         )
 
     decoder = DecoderRNN(vocab_size = vocab_size,
-                        max_len = 40,
+                        max_len = 200,
                         hidden_size = config.hidden_size,
-                        n_layers=1,
+                        n_layers=2,
                         rnn_cell=config.cell_type.lower(),
                         bidirectional=config.use_bidirection,
                         input_dropout_p=config.dropout,
@@ -152,8 +152,9 @@ if __name__ == "__main__":
             norm_term = 0
 
             for step, step_output in enumerate(decoder_outputs):
-                batch_size = config.batch_size
-                labeled_vals = Variable((inputs).long()[:, step + 1])
+                batch_size = inputs.shape[0]
+                if step > (inputs.shape[1] -1): continue
+                labeled_vals = Variable((inputs).long()[:, step])
                 labeled_vals.requires_grad = False
                 pred = step_output.contiguous().view(batch_size, -1)
                 acc_loss += criterion(pred, labeled_vals)
@@ -202,7 +203,7 @@ if __name__ == "__main__":
                                      global_step=total_iter)
 
             if i % config.eval_freq == (config.eval_freq - 1):
-
+                print ("happening")
                 val_loss = 0.0
                 for data in tqdm(val_loader, total=len(val_loader)):
                     words, inputs, lengths, labels = data
@@ -211,13 +212,14 @@ if __name__ == "__main__":
                         inputs = inputs.cuda()
                         labels = labels.cuda()
 
-                    decoder_outputs, decoder_hidden, ret_dicts = model(inputs, lengths)
+                    (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden = model(inputs, lengths)
                     acc_loss = 0
                     norm_term = 0
 
                     for step, step_output in enumerate(decoder_outputs):
-                        batch_size = config.batch_size
-                        labeled_vals = Variable((inputs).long()[:, step + 1])
+                        batch_size = inputs.shape[0]
+                        is step > (inputs.shape[1] -1): continue
+                        labeled_vals = Variable((inputs).long()[:, step])
                         labeled_vals.requires_grad = False
                         acc_loss += criterion(step_output.contiguous().view(batch_size, -1), labeled_vals)
                         norm_term += 1
