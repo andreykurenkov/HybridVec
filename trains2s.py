@@ -60,6 +60,7 @@ if __name__ == "__main__":
     vocab_size = 50000
     vocab_reduced = True if vocab_size < 400000 else False
     encoder = EncoderRNN(vocab_size = vocab_size,
+                        vocab = vocab,
                         max_len = 100, 
                         hidden_size = config.hidden_size, 
                         embed_size = config.vocab_dim,
@@ -70,6 +71,7 @@ if __name__ == "__main__":
                         rnn_cell=config.cell_type.lower(),
                         variable_lengths=False,
                         embedding=None, #randomly initialized,
+                        update_embedding=False,
                         )
 
     decoder = DecoderRNN(vocab_size = vocab_size,

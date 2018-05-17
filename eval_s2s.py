@@ -73,18 +73,6 @@ def write_output(f, pred, inputs, words, vocab_size):
     f.write(dfn_pred)
     f.write("\n\n")
 
-def load_dicts(d):
-  e_dict = collections.OrderedDict()
-  d_dict = collections.OrderedDict()
-
-  for key in d:
-    if "encoder" in key:
-      e_dict[key] = d[key]
-    else:
-      d_dict = d[key]
-
-  return (e_dict, d_dict)
-
 
 
 

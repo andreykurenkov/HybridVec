@@ -37,7 +37,7 @@ class EncoderRNN(BaseRNN):
 
     """
 
-    def __init__(self, vocab_size, max_len = 784, hidden_size = 150, embed_size = 100,
+    def __init__(self, vocab_size, vocab, max_len = 784, hidden_size = 150, embed_size = 100,
                  input_dropout_p=0, dropout_p=0,
                  n_layers=2, bidirectional=True, rnn_cell='gru', variable_lengths=False,
                  embedding=None, update_embedding=True):
@@ -46,6 +46,7 @@ class EncoderRNN(BaseRNN):
 
         self.variable_lengths = variable_lengths
         self.embedding = nn.Embedding(vocab_size+3, embed_size, padding_idx=0) #+2 for the start and end symbol and +1 for unk token
+        self.embeddings.weight.data[1:vocab_size,:].copy_(vocab.vectors)
         self.embedding.weight.data[0:,:] = 0
         if embedding is not None:
             self.embedding.weight = nn.Parameter(embedding)
