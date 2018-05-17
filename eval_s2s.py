@@ -60,7 +60,7 @@ def closest(vec, n=10):
     return sorted(all_dists, key=lambda t: t[1])[:n]
 
 def write_output(f, pred, inputs, words, vocab_size):
-  print (pred)  
+  #print (pred)  
   for w in range(len(words)):
     f.write(words[w] +"\n")
     definition_input = [( vocab.itos[i - 1] if (i>0 and i<=vocab_size+1) else str(i)) for i in (inputs[w])]
@@ -85,6 +85,9 @@ def load_dicts(d):
 
   return (e_dict, d_dict)
 
+
+
+
 def get_loss_nll(acc_loss, norm_term):
         if isinstance(acc_loss, int):
             return 0
@@ -106,12 +109,12 @@ if __name__ == "__main__":
   vocab_size = 50000
   vocab_reduced = True if vocab_size < 400000 else False
   encoder = EncoderRNN(vocab_size = vocab_size,
-                      max_len = 40, 
+                      max_len = 200, 
                       hidden_size = config.hidden_size, 
                       embed_size = config.vocab_dim,
                       input_dropout_p=config.dropout,
                       dropout_p=config.dropout,
-                      n_layers=1,
+                      n_layers=2,
                       bidirectional=config.use_bidirection,
                       rnn_cell=config.cell_type.lower(),
                       variable_lengths=False,
@@ -119,9 +122,9 @@ if __name__ == "__main__":
                       )
 
   decoder = DecoderRNN(vocab_size = vocab_size,
-                      max_len = 40,
+                      max_len = 200,
                       hidden_size = config.hidden_size,
-                      n_layers=1,
+                      n_layers=2,
                       rnn_cell=config.cell_type.lower(),
                       bidirectional=config.use_bidirection,
                       input_dropout_p=config.dropout,
@@ -139,7 +142,8 @@ if __name__ == "__main__":
   model = Seq2SeqModel(encoder = encoder,
                       decoder = decoder
                       )
-  model.load_state_dict(torch.load(config.save_path), strict=False)
+  print (model.state_dict().keys())
+  model.load_state_dict(torch.load(config.save_path), strict = True)
 
   test_loader = get_data_loader(TEST_FILE,
                                  vocab,
