@@ -60,17 +60,18 @@ def closest(vec, n=10):
     return sorted(all_dists, key=lambda t: t[1])[:n]
 
 def write_output(f, pred, inputs, words, vocab_size):
-  for i in range(len(words)):
-    f.write(words[i])
-    definition_input = [(vocab.itos[i - 1] if (i>0 and i<=vocab_size+1) else i )for i in inputs[i] ]
+  print (pred)  
+  for w in range(len(words)):
+    f.write(words[w] +"\n")
+    definition_input = [( vocab.itos[i - 1] if (i>0 and i<=vocab_size+1) else str(i)) for i in (inputs[w])]
     definition_input = "input definition: " + " ".join(definition_input)
-    f.write(definition_input)
+    f.write(definition_input+ "\n")
 
-    len_pred = min(len(inputs[i]), len(pred[i]))
-    dfn_pred = [(vocab.itos[i - 1] if (i>0 and i<=vocab_size+1) else i )for i in len_pred ]
-    dfn_pred = "predicted definition: " + " ".join(dfn_pred)
+    len_pred = min(len(inputs[w]), len(pred[w]))
+    dfn_pred = [(vocab.itos[pred[w][i] - 1] if (pred[w][i]>0 and pred[w][i]<=vocab_size+1) else str(pred[w][i])) for i in range(len_pred) ]
+    dfn_pred = "predicted definition: " + " ".join(dfn_pred) + "\n"
     f.write(dfn_pred)
-    f.write("\n")
+    f.write("\n\n")
 
 def load_dicts(d):
   e_dict = collections.OrderedDict()
@@ -190,8 +191,12 @@ if __name__ == "__main__":
       n_batches += 1
 
 
-      #write to file
-      preds = torch.cat(decoder_outputs, dim=1).data.cpu
+      #write to fil
+      word_preds = []
+      for soft in decoder_outputs:
+          vals, idx = soft.max(1)
+          word_preds.append(idx.unsqueeze(1))
+      preds = torch.cat(word_preds, dim=1).cpu().data
       write_output(f, preds, inputs, words, vocab_size)
 
 
