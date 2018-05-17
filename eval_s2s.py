@@ -10,7 +10,7 @@ import torch.nn as nn
 import numpy as np
 from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
 from time import time
-from model import Def2VecModel
+from model import Def2VecModel, Seq2SeqModel
 from torch.autograd import Variable
 import torchtext.vocab as vocab
 from tensorboardX import SummaryWriter
@@ -20,6 +20,7 @@ from config import eval_config
 import json
 import argparse
 from seq2seq import EncoderRNN, DecoderRNN
+from collections import OrderedDict
 
 DEBUG_LOG = False
 
@@ -71,6 +72,17 @@ def write_output(f, pred, inputs, words, vocab_size):
     f.write(dfn_pred)
     f.write("\n")
 
+def load_dicts(d):
+  e_dict = collections.OrderedDict()
+  d_dict = collections.OrderedDict()
+
+  for key in d:
+    if "encoder" in key:
+      e_dict[key] = d[key]
+    else:
+      d_dict = d[key]
+
+  return (e_dic, d_dict)
 
 def get_loss_nll(acc_loss, norm_term):
         if isinstance(acc_loss, int):
@@ -90,7 +102,7 @@ if __name__ == "__main__":
   use_gpu = torch.cuda.is_available()
   print("Using GPU:", use_gpu)
 
-  vocab_size = 10000
+  vocab_size = 50000
   vocab_reduced = True if vocab_size < 400000 else False
   encoder = EncoderRNN(vocab_size = vocab_size,
                       max_len = 40, 
@@ -116,19 +128,24 @@ if __name__ == "__main__":
                       use_attention=config.use_attention
                       )
 
+
+
+
+  encoder_dict, decoder_dict = load_dicts(torch.load(config.save_path))
+  encoder.load_state_dict(encoder_dict)
+  decoder.load_state_dict(decoder_dict)
+
   model = Seq2SeqModel(encoder = encoder,
                       decoder = decoder
                       )
-
-
-  model.load_state_dict(torch.load(config.save_path))
   test_loader = get_data_loader(TEST_FILE,
                                  vocab,
                                  config.input_method,
                                  config.vocab_dim,
                                  batch_size = config.batch_size,
                                  num_workers = config.num_workers,
-                                 shuffle=False)
+                                 shuffle=False,
+                                 vocab_size=vocab_size)
 
   if use_gpu:
       model = model.cuda()
