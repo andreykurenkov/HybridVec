@@ -82,7 +82,7 @@ def load_dicts(d):
     else:
       d_dict = d[key]
 
-  return (e_dic, d_dict)
+  return (e_dict, d_dict)
 
 def get_loss_nll(acc_loss, norm_term):
         if isinstance(acc_loss, int):
@@ -131,13 +131,15 @@ if __name__ == "__main__":
 
 
 
-  encoder_dict, decoder_dict = load_dicts(torch.load(config.save_path))
-  encoder.load_state_dict(encoder_dict)
-  decoder.load_state_dict(decoder_dict)
+  # encoder_dict, decoder_dict = load_dicts(torch.load(config.save_path))
+  # encoder.load_state_dict(encoder_dict)
+  # decoder.load_state_dict(decoder_dict)
 
   model = Seq2SeqModel(encoder = encoder,
                       decoder = decoder
                       )
+  model.load_state_dict(torch.load(config.save_path))
+
   test_loader = get_data_loader(TEST_FILE,
                                  vocab,
                                  config.input_method,
@@ -185,8 +187,6 @@ if __name__ == "__main__":
 
       batch_loss = get_loss_nll(acc_loss, norm_term)
       running_loss += batch_loss
-
-      running_loss += loss.data[0]
       n_batches += 1
 
 
