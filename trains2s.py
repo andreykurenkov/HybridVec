@@ -57,10 +57,10 @@ if __name__ == "__main__":
     print("Using GPU:", use_gpu)
     #vocab_size = len(vocab.stoi)
     #reduced vocab_size
-    vocab_size = 100000
+    vocab_size = 50000
     vocab_reduced = True if vocab_size < 400000 else False
     encoder = EncoderRNN(vocab_size = vocab_size,
-                        max_len = 200, 
+                        max_len = 100, 
                         hidden_size = config.hidden_size, 
                         embed_size = config.vocab_dim,
                         input_dropout_p=config.dropout,
@@ -73,7 +73,7 @@ if __name__ == "__main__":
                         )
 
     decoder = DecoderRNN(vocab_size = vocab_size,
-                        max_len = 200,
+                        max_len = 100,
                         hidden_size = config.hidden_size,
                         n_layers=2,
                         rnn_cell=config.cell_type.lower(),
@@ -218,7 +218,7 @@ if __name__ == "__main__":
 
                     for step, step_output in enumerate(decoder_outputs):
                         batch_size = inputs.shape[0]
-                        is step > (inputs.shape[1] -1): continue
+                        if step > (inputs.shape[1] -1): continue
                         labeled_vals = Variable((inputs).long()[:, step])
                         labeled_vals.requires_grad = False
                         acc_loss += criterion(step_output.contiguous().view(batch_size, -1), labeled_vals)
