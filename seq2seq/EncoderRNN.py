@@ -46,7 +46,8 @@ class EncoderRNN(BaseRNN):
 
         self.variable_lengths = variable_lengths
         self.embedding = nn.Embedding(vocab_size+3, embed_size, padding_idx=0) #+2 for the start and end symbol and +1 for unk token
-        self.embeddings.weight.data[1:vocab_size,:].copy_(vocab.vectors)
+        print (vocab_size)
+        self.embedding.weight.data[1:vocab_size,:].copy_(vocab.vectors[:vocab_size-1,:])
         self.embedding.weight.data[0:,:] = 0
         if embedding is not None:
             self.embedding.weight = nn.Parameter(embedding)
