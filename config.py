@@ -6,7 +6,7 @@ class base_config(object):
         self.title="def2vec"
         self.description="Creating new word embeddings using seq2seq"
         self.run_name='seq2seq'
-        self.run_comment='first-version' # gets appended to run_name as RUN_NAME-RUN_COMMENT
+        self.run_comment='fixed-max-len-1' # gets appended to run_name as RUN_NAME-RUN_COMMENT
         self.log_dir='outputs/def2vec/logs'
         self.vocab_dim = 100
         self.vocab_source = '6B'
@@ -26,7 +26,7 @@ class base_config(object):
         # data loading params
         self.num_workers = 8
         self.packing=True
-        self.shuffle=False
+        self.shuffle=True
         # model configuration [for ablation/hyperparam experiments]
         self.weight_init="xavier"
         self.input_method=INPUT_METHOD_ALL_CONCAT
@@ -34,7 +34,7 @@ class base_config(object):
         self.use_attention=True
         self.cell_type='GRU'
         #use_batchnorm=True,
-        self.hidden_size=100
+        self.hidden_size=150
         self.embed_size=100
         self.dropout=0.1
         self.weight_decay=0.0
