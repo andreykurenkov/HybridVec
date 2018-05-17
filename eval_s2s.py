@@ -19,6 +19,7 @@ from loader import *
 from config import eval_config
 import json
 import argparse
+from seq2seq import EncoderRNN, DecoderRNN
 
 DEBUG_LOG = False
 
