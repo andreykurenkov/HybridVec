@@ -138,7 +138,7 @@ if __name__ == "__main__":
   model = Seq2SeqModel(encoder = encoder,
                       decoder = decoder
                       )
-  model.load_state_dict(torch.load(config.save_path))
+  model.load_state_dict(torch.load(config.save_path), strict=False)
 
   test_loader = get_data_loader(TEST_FILE,
                                  vocab,
