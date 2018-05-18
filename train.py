@@ -46,7 +46,10 @@ if __name__ == "__main__":
     #use_gpu = False
     print("Using GPU:", use_gpu)
     print ('vocab dim', config.vocab_dim)
+    # vocab_size = len(vocab.stoi)
+    vocab_size = 50000
     model = BaselineModel(vocab,
+                         vocab_size = vocab_size,
                          embed_size = config.vocab_dim,
                          output_size = config.vocab_dim,
                          hidden_size = config.hidden_size,
@@ -71,14 +74,16 @@ if __name__ == "__main__":
                                    config.vocab_dim,
                                    batch_size = config.batch_size,
                                    num_workers = config.num_workers,
-                                   shuffle=config.shuffle)
+                                   shuffle=config.shuffle,
+                                   vocab_size = vocab_size)
     val_loader = get_data_loader(VAL_FILE,
                                    vocab,
                                    config.input_method,
                                    config.vocab_dim,
                                    batch_size = config.batch_size,
                                    num_workers = config.num_workers,
-                                   shuffle=config.shuffle)
+                                   shuffle=config.shuffle,
+                                   vocab_size = vocab_size)
 
 
     criterion = nn.NLLLoss() #use multi label loss across unigram bag of words model
@@ -126,7 +131,8 @@ if __name__ == "__main__":
                 count+=1.0
             loss/=count
             w_indices = [vocab.stoi[w] + 1 for w in words]
-
+            w_indices = np.array(w_indices)
+            w_indices[w_indices > vocab_size] = 0 #for vocab size 
             embedding_layer = model.embeddings.weight.data
             input_embeddings = embedding_layer[w_indices]
             input_embeddings = Variable(input_embeddings)

@@ -12,6 +12,7 @@ class BaselineModel(nn.Module):
 
   def __init__(self,
                vocab,
+               vocab_size,
                output_size=100,
                hidden_size=150,
                embed_size=100,
@@ -26,14 +27,15 @@ class BaselineModel(nn.Module):
     super(BaselineModel, self).__init__()
     self.use_packing = use_packing
     self.use_cuda = use_cuda
-    self.vocab_size = 50000 #OOM issues
+    self.vocab_size = vocab_size
     self.embeddings = nn.Embedding(self.vocab_size + 1, embed_size, padding_idx=0)
-    #no longer copying glove 
-    # self.embeddings.weight.data[1:,:].copy_(vocab.vectors) #no longer copying glove, randomly initialize weights
-    # self.embeddings.weight.data[0:,:] = 0 #regularizing against input embeddings doesn't make sense if these are all zero -- esp since the gradient on these is 0 bc we regularize against them
+    #no longer copying glove, randomly initialize weights
+    # self.embeddings.weight.data[1:,:].copy_(vocab.vectors) 
+    self.embeddings.weight.data[0,:] = 0 #set to 0 for unk 
     self.embed_size = embed_size
     self.num_layers = num_layers
-    # needs to be the same as number of words used in the definitions, so same as embedding size 
+
+    # needs to be the same as number of words used in the definitions, so same as vocab size 
     self.output_size = self.vocab_size
     self.hidden_size = int(embed_size/2) if use_attention else embed_size
     self.use_attention = use_attention

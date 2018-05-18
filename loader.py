@@ -14,13 +14,15 @@ INPUT_METHOD_RANDOM = "random_words"
 
 class DefinitionsDataset(Dataset):
 
-    def __init__(self, vocab_file, glove, input_method, shuffle, embedding_size):
+    def __init__(self, vocab_file, glove, input_method, shuffle, embedding_size, vocab_size):
         with open(vocab_file, "r") as f:
             self.vocab_lines = f.readlines()
         self.glove = glove
         self.embedding_size = embedding_size
         self.input_method = input_method
         self.shuffle = shuffle
+        self.vocab_size = vocab_size
+        self.vocab_reduced = True if vocab_size < 400000 else False
         if shuffle:
             np.random.shuffle(self.vocab_lines)
 
@@ -48,6 +50,11 @@ class DefinitionsDataset(Dataset):
             definition = '<unk>'
         words = [clean_str(w) for w in definition.split()]
         definition = [self.glove.stoi[w] if w in self.glove.stoi else 399999 for w in words]
+
+        if self.vocab_reduced:
+            definition = np.array(definition)
+            definition[definition > self.vocab_size] = 0
+
         return (word, np.array(definition).astype(np.float32), embedding.astype(np.float32))
 
 def collate_fn(data):
@@ -85,8 +92,8 @@ def collate_fn(data):
     return word, src_seqs, src_lengths, trg_seqs
 
 
-def get_data_loader(vocab_file, vocab, input_method, embedding_size, batch_size=8, num_workers=1, shuffle=False):
-    dataset = DefinitionsDataset(vocab_file, vocab, input_method, shuffle, embedding_size)
+def get_data_loader(vocab_file, vocab, input_method, embedding_size, vocab_size, batch_size=8, num_workers=1, shuffle=False):
+    dataset = DefinitionsDataset(vocab_file, vocab, input_method, shuffle, embedding_size, vocab_size)
     return DataLoader(dataset,
                       batch_size=batch_size,
                       num_workers=num_workers,
