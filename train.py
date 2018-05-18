@@ -154,10 +154,10 @@ if __name__ == "__main__":
             running_loss += loss.data[0]
             writer.add_scalar('loss', loss.data[0], total_iter)
             if embed_outs is None:
-                embed_outs = model.defn_embed.cpu()
+                embed_outs = model.defn_embed.data.cpu()
                 embed_labels = words
             else:
-                embed_outs = torch.cat([embed_outs, model.defn_embed.cpu()]).cpu()
+                embed_outs = torch.cat([embed_outs, model.defn_embed.data.cpu()])
                 embed_labels += words
                 num_outs = embed_outs.shape[0]
                 if num_outs > config.embedding_log_size:
@@ -178,6 +178,7 @@ if __name__ == "__main__":
                 running_loss = 0.0
 
             if i % config.write_embed_freq == (config.write_embed_freq-1):
+
                 writer.add_embedding(embed_outs,
                                      metadata=embed_labels,
                                      global_step=total_iter)
