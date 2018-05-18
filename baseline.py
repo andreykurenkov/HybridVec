@@ -30,32 +30,32 @@ class BaselineModel(nn.Module):
     self.embeddings = nn.Embedding(self.vocab_size + 1, embed_size, padding_idx=0)
     #no longer copying glove 
     # self.embeddings.weight.data[1:,:].copy_(vocab.vectors) #no longer copying glove, randomly initialize weights
-    self.embeddings.weight.data[0:,:] = 0
+    # self.embeddings.weight.data[0:,:] = 0 #regularizing against input embeddings doesn't make sense if these are all zero -- esp since the gradient on these is 0 bc we regularize against them
     self.embed_size = embed_size
     self.num_layers = num_layers
     # needs to be the same as number of words used in the definitions, so same as embedding size 
     self.output_size = self.vocab_size
-    self.hidden_size = hidden_size
+    self.hidden_size = int(embed_size/2) if use_attention else embed_size
     self.use_attention = use_attention
     self.use_bidirection = use_bidirection
     self.cell_type = cell_type
     if cell_type == 'GRU':
         self.cell = nn.GRU(embed_size,
-                           hidden_size,
+                           self.hidden_size,
                            num_layers,
                            batch_first=True,
                            dropout=dropout,
                            bidirectional=use_bidirection)
     elif cell_type == 'LSTM':
         self.cell = nn.LSTM(embed_size,
-                           hidden_size,
+                           self.hidden_size,
                            num_layers,
                            batch_first=True,
                            dropout=dropout,
                            bidirectional=use_bidirection)
     elif cell_type == 'RNN':
         self.cell = nn.RNN(embed_size,
-                           hidden_size,
+                           self.hidden_size,
                            num_layers,
                            batch_first=True,
                            dropout=dropout,
@@ -75,11 +75,9 @@ class BaselineModel(nn.Module):
     batch_size, input_size = inputs.shape
 
     embed = self.embeddings(inputs.view(-1, input_size)).view(batch_size, input_size, -1)
+
     if self.use_packing:
-
       embed = nn.utils.rnn.pack_padded_sequence(embed, lengths, batch_first=True)
-      # print('after size', embed)
-
     h0 = Variable(torch.zeros(self.num_layers * (2 if self.use_bidirection else 1),
                               batch_size, self.hidden_size))
     c0 = Variable(torch.zeros(self.num_layers * (2 if self.use_bidirection else 1),
