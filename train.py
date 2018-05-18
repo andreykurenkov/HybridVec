@@ -81,7 +81,7 @@ if __name__ == "__main__":
                                    shuffle=config.shuffle)
 
 
-    criterion = nn.CrossEntropyLoss() #use multi label loss across unigram bag of words model
+    criterion = nn.NLLLoss() #use multi label loss across unigram bag of words model
     reg_criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(),
                            lr=config.learning_rate,
