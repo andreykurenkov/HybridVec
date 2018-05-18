@@ -218,10 +218,10 @@ if __name__ == "__main__":
         name = config.run_name + '-' + config.run_comment
         out_dir = "outputs/def2vec/checkpoints/{}".format(name)
         if not os.path.exists(out_dir):
-            os.mkdirs(out_dir)
+            os.makedirs(out_dir)
         out_path = "outputs/def2vec/checkpoints/{}/epoch_{}".format(name, epoch + 1)
         if not os.path.exists(out_path):
-            os.mkdir(out_path)
+            os.makedirs(out_path)
         torch.save(model.state_dict(), out_path + "/" + config.save_path)
 
     writer.export_scalars_to_json("./all_scalars.json")
