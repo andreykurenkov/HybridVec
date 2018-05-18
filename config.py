@@ -13,8 +13,8 @@ class base_config(object):
         self.load_path = None
         # hyperparams
         self.random_seed=42
-        #original learning rate was 0.0001
-        self.learning_rate=.001
+        #original learning rate was 0.0001 i.e. 1e-4
+        self.learning_rate= 5e-4
         self.reg_weight = 0.1
         self.max_epochs=15
         self.batch_size=64
