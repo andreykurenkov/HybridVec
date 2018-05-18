@@ -39,6 +39,24 @@ def weights_init(m):
             nn.init.xavier_normal(m.weight_ih_l0)
 
 
+def calculate_loss(inputs, outputs, criterion, reg_criterion, input_embeddings, defn_embeddings):
+    loss = 0
+    count = 0
+
+    for word_idx in range(list(inputs.size())[1]):
+        label = Variable(inputs[:,word_idx])
+        if use_gpu:
+            label = label.cuda()
+        loss+= criterion(outputs, label)
+        count+=1.0
+    loss/=count
+        
+    reg_loss = config.reg_weight * reg_criterion(defn_embeddings, input_embeddings)
+    reg_loss /= defn_embeddings.size()[0] 
+
+    loss += reg_loss
+    return loss 
+
 if __name__ == "__main__":
 
     vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
@@ -120,32 +138,16 @@ if __name__ == "__main__":
             optimizer.zero_grad()
             outputs = model(inputs, lengths)
 
-            loss = 0
-            count = 0
-
-            for word_idx in range(list(inputs.size())[1]):
-                label = Variable(inputs[:,word_idx])
-                if use_gpu:
-                    label = label.cuda()
-                loss+= criterion(outputs, label)
-                count+=1.0
-            loss/=count
-            w_indices = [vocab.stoi[w] + 1 for w in words]
-            w_indices = np.array(w_indices)
+            w_indices = np.array([vocab.stoi[w] + 1 for w in words])
             w_indices[w_indices > vocab_size] = 0 #for vocab size 
-            embedding_layer = model.embeddings.weight.data
-            input_embeddings = embedding_layer[w_indices]
-            input_embeddings = Variable(input_embeddings)
+            input_embeddings = Variable(model.embeddings.weight.data[w_indices])
             defn_embeddings = model.defn_embed
 
             if use_gpu:
                 defn_embeddings = defn_embeddings.cuda()
                 input_embeddings = input_embeddings.cuda()
-                
-            reg_loss = config.reg_weight * reg_criterion(defn_embeddings, input_embeddings)
-            reg_loss /= defn_embeddings.size()[0] 
 
-            loss += reg_loss
+            loss = calculate_loss(inputs, outputs, criterion, reg_criterion, input_embeddings, defn_embeddings)
 
             loss.backward()
             optimizer.step()
@@ -189,11 +191,24 @@ if __name__ == "__main__":
                 for data in tqdm(val_loader, total=len(val_loader)):
                     words, inputs, lengths, labels = data
                     labels = Variable(labels)
+
                     if use_gpu:
                         inputs = inputs.cuda()
                         labels = labels.cuda()
+
+                    optimizer.zero_grad()
                     outputs = model(inputs, lengths)
-                    loss = criterion(outputs, labels)
+
+                    w_indices = np.array([vocab.stoi[w] + 1 for w in words])
+                    w_indices[w_indices > vocab_size] = 0 #for vocab size 
+                    input_embeddings = Variable(model.embeddings.weight.data[w_indices])
+                    defn_embeddings = model.defn_embed
+
+                    if use_gpu:
+                        defn_embeddings = defn_embeddings.cuda()
+                        input_embeddings = input_embeddings.cuda()
+
+                    loss = calculate_loss(inputs, outputs, criterion, reg_criterion, input_embeddings, defn_embeddings)
                     val_loss += loss.data[0]
                 writer.add_scalar('val_loss', val_loss / len(val_loader), total_iter)
                 print('Epoch: %d, batch: %d, val loss: %.4f' %
