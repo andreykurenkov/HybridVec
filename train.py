@@ -106,11 +106,8 @@ if __name__ == "__main__":
 
         for i, data in enumerate(train_loader, 0):
             words, inputs, lengths, labels = data
-            # print('words', words)
             labels = Variable(labels)
-            # print('in labels')
-            # print(labels.shape)
-            # print(labels)
+
             if use_gpu:
                 inputs = inputs.cuda()
                 labels = labels.cuda()
@@ -120,15 +117,7 @@ if __name__ == "__main__":
 
             loss = 0
             count = 0
-            # print('input information')
-            # print('inputs', inputs)
-            # print(inputs.size())
-            # print(list(inputs.size())[1])
-            # print(range(list(inputs.size())[1]))
 
-            #TODO
-            #NLLOSS expects -log probabilities (log softmax layer) or convert to cross entropy loss
-            #Add l2 regularization where each defn embedding is regressed against input embeddings for each of its definitional words
             for word_idx in range(list(inputs.size())[1]):
                 label = Variable(inputs[:,word_idx])
                 if use_gpu:
@@ -137,32 +126,20 @@ if __name__ == "__main__":
                 count+=1.0
             loss/=count
             w_indices = [vocab.stoi[w] + 1 for w in words]
-            # tensor_w_indices = torch.LongTensor(w_indices)
-            # print('torch w indices', tensor_w_indices)
-            # tensor_w_indices = Variable(tensor_w_indices)
+
             embedding_layer = model.embeddings.weight.data
             input_embeddings = embedding_layer[w_indices]
-            # print('input embeddings', input_embeddings)
             input_embeddings = Variable(input_embeddings)
             defn_embeddings = model.defn_embed
-            # print('defn embed', defn_embeddings)
+
             if use_gpu:
                 defn_embeddings = defn_embeddings.cuda()
                 input_embeddings = input_embeddings.cuda()
+                
             reg_loss = config.reg_weight * reg_criterion(defn_embeddings, input_embeddings)
             reg_loss /= defn_embeddings.size()[0] 
 
             loss += reg_loss
-            # for w in words:
-            #   w_index = vocab.stoi[w] + 1 #because we add one for UNK 
-            #   print('w index', w_index)
-            #   lookupTensor = torch.unsqueeze(torch.LongTensor([w_index]), 0)
-            #   print('lookup tensor', lookupTensor)
-            #   input_embedding = model.embeddings(torch.LongTensor(w_index))
-            #   defn_embedding = model.defn_embed[w_index] 
-            #   print('input embed', input_embedding)
-            #   print('defn embed', defn_embed)
-            #   # loss+= criterion( , defn_embed)
 
             loss.backward()
             optimizer.step()

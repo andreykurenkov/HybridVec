@@ -26,7 +26,7 @@ class BaselineModel(nn.Module):
     super(BaselineModel, self).__init__()
     self.use_packing = use_packing
     self.use_cuda = use_cuda
-    self.vocab_size = len(vocab.stoi)
+    self.vocab_size = 50000 #OOM issues
     self.embeddings = nn.Embedding(self.vocab_size + 1, embed_size, padding_idx=0)
     #no longer copying glove 
     # self.embeddings.weight.data[1:,:].copy_(vocab.vectors) #no longer copying glove, randomly initialize weights
