@@ -157,7 +157,7 @@ if __name__ == "__main__":
                 embed_outs = model.defn_embed.cpu()
                 embed_labels = words
             else:
-                embed_outs = torch.cat([embed_outs, model.defn_embed]).cpu()
+                embed_outs = torch.cat([embed_outs, model.defn_embed.cpu()]).cpu()
                 embed_labels += words
                 num_outs = embed_outs.shape[0]
                 if num_outs > config.embedding_log_size:
