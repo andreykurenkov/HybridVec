@@ -118,6 +118,7 @@ if __name__ == "__main__":
 
 
     criterion = nn.NLLLoss()
+    criterion2 = nn.MSELoss()
     optimizer = optim.Adam(filter(lambda p: p.requires_grad,model.parameters()),
                            lr=config.learning_rate,
                            weight_decay=config.weight_decay)
@@ -165,13 +166,14 @@ if __name__ == "__main__":
 
             if type(acc_loss) is int:
                 raise ValueError("No loss to back propagate.")
-            acc_loss.backward()
-            optimizer.step()
-
+            glove_loss = 0
+            glove_loss += criterion2(encoder_hidden.data[:, :100], labels)
+            total_loss = sum ([acc_loss, glove_loss])
             batch_loss = get_loss_nll(acc_loss, norm_term)
-            # print statistics
-            running_loss += batch_loss
-            #print (type(encoder_hidden.data.cpu()), "why you no work")
+    
+            total_loss.backward()
+            optimizer.step()
+            running_loss += batch_loss + glove_loss.cpu().data[0]
             
             writer.add_scalar('loss', batch_loss, total_iter)
             if embed_outs is None:
@@ -229,12 +231,13 @@ if __name__ == "__main__":
 
                     if type(acc_loss) is int:
                         raise ValueError("No loss to back propagate.")
-                    acc_loss.backward()
-                    optimizer.step()
-
+                    glove_loss = 0
+                    glove_loss += criterion2(encoder_hidden.data[:, :100], labels)
+                    total_loss = sum ([acc_loss, glove_loss])
                     batch_loss = get_loss_nll(acc_loss, norm_term)
+     
+                    val_loss += batch_loss + glove_loss.cpu().data[0]
 
-                    val_loss += batch_loss
                 writer.add_scalar('val_loss', val_loss / len(val_loader), total_iter)
                 del acc_loss, encoder_hidden
                 print('Epoch: %d, batch: %d, val loss: %.4f' %
