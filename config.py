@@ -36,7 +36,7 @@ class base_config(object):
         #use_batchnorm=True,
         self.hidden_size=150
         self.embed_size=100
-        self.dropout=0.1
+        self.dropout=0.3
         self.weight_decay=0.0
 
 def train_config():
