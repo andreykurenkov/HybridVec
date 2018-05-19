@@ -167,7 +167,7 @@ if __name__ == "__main__":
             if type(acc_loss) is int:
                 raise ValueError("No loss to back propagate.")
             glove_loss = 0
-            glove_loss += criterion2(encoder_hidden.data[:, :100], labels)
+            glove_loss += criterion2(Variable(encoder_hidden.data[:, :100]), labels)
             total_loss = sum ([acc_loss, glove_loss])
             batch_loss = get_loss_nll(acc_loss, norm_term)
     
@@ -201,10 +201,10 @@ if __name__ == "__main__":
                 start = end
                 running_loss = 0.0
 
-            if i % config.write_embed_freq == (config.write_embed_freq-1):
-                writer.add_embedding(embed_outs,
-                                     metadata=embed_labels,
-                                     global_step=total_iter)
+            # if i % config.write_embed_freq == (config.write_embed_freq-1):
+            #     writer.add_embedding(embed_outs,
+            #                          metadata=embed_labels,
+            #                          global_step=total_iter)
 
             if i % config.eval_freq == (config.eval_freq - 1):
                 print ("happening")
@@ -232,7 +232,7 @@ if __name__ == "__main__":
                     if type(acc_loss) is int:
                         raise ValueError("No loss to back propagate.")
                     glove_loss = 0
-                    glove_loss += criterion2(encoder_hidden.data[:, :100], labels)
+                    glove_loss += criterion2(Variable(encoder_hidden.data[:, :100]), labels)
                     total_loss = sum ([acc_loss, glove_loss])
                     batch_loss = get_loss_nll(acc_loss, norm_term)
      
