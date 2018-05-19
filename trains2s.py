@@ -57,7 +57,7 @@ if __name__ == "__main__":
     print("Using GPU:", use_gpu)
     #vocab_size = len(vocab.stoi)
     #reduced vocab_size
-    vocab_size = 50000
+    vocab_size = 100000
     vocab_reduced = True if vocab_size < 400000 else False
     encoder = EncoderRNN(vocab_size = vocab_size,
                         vocab = vocab,
