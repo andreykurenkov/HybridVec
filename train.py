@@ -39,10 +39,11 @@ def weights_init(m):
             nn.init.xavier_normal(m.weight_ih_l0)
 
 
-def calculate_loss(inputs, outputs, criterion, reg_criterion, input_embeddings, defn_embeddings):
+def calculate_loss(inputs, outputs, labels, criterions, input_embeddings, defn_embeddings):
     loss = 0
     count = 0
 
+    criterion, reg_criterion = criterions[0], criterions[1]
     for word_idx in range(list(inputs.size())[1]):
         label = Variable(inputs[:,word_idx])
         if use_gpu:
@@ -55,6 +56,13 @@ def calculate_loss(inputs, outputs, criterion, reg_criterion, input_embeddings, 
     reg_loss /= defn_embeddings.size()[0] 
 
     loss += reg_loss
+
+    if config.glove_aux_loss: #add regression on original glove labels into loss 
+      glove_criterion = criterions[2]
+      glove_loss = glove_criterion(defn_embeddings, labels)
+      glove_loss /= defn_embeddings.size()[0]
+      loss += glove_loss
+
     return loss 
 
 if __name__ == "__main__":
@@ -64,10 +72,9 @@ if __name__ == "__main__":
     #use_gpu = False
     print("Using GPU:", use_gpu)
     print ('vocab dim', config.vocab_dim)
-    # vocab_size = len(vocab.stoi)
-    vocab_size = 50000
+    
     model = BaselineModel(vocab,
-                         vocab_size = vocab_size,
+                         vocab_size = config.vocab_size,
                          embed_size = config.vocab_dim,
                          output_size = config.vocab_dim,
                          hidden_size = config.hidden_size,
@@ -75,7 +82,8 @@ if __name__ == "__main__":
                          use_bidirection = config.use_bidirection,
                          use_attention = config.use_attention,
                          cell_type = config.cell_type,
-                         use_cuda = use_gpu)
+                         use_cuda = use_gpu,
+                         use_glove_init = config.use_glove_init)
 
     if config.load_path is None:
         model.apply(weights_init)
@@ -93,7 +101,7 @@ if __name__ == "__main__":
                                    batch_size = config.batch_size,
                                    num_workers = config.num_workers,
                                    shuffle=config.shuffle,
-                                   vocab_size = vocab_size)
+                                   vocab_size = config.vocab_size)
     val_loader = get_data_loader(VAL_FILE,
                                    vocab,
                                    config.input_method,
@@ -101,11 +109,12 @@ if __name__ == "__main__":
                                    batch_size = config.batch_size,
                                    num_workers = config.num_workers,
                                    shuffle=config.shuffle,
-                                   vocab_size = vocab_size)
+                                   vocab_size = config.vocab_size)
 
 
     criterion = nn.NLLLoss() #use multi label loss across unigram bag of words model
     reg_criterion = nn.MSELoss()
+    if config.glove_aux_loss: glove_criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(),
                            lr=config.learning_rate,
                            weight_decay=config.weight_decay)
@@ -139,15 +148,17 @@ if __name__ == "__main__":
             outputs = model(inputs, lengths)
 
             w_indices = np.array([vocab.stoi[w] + 1 for w in words])
-            w_indices[w_indices > vocab_size] = 0 #for vocab size 
+            w_indices[w_indices > config.vocab_size] = 0 #for vocab size 
             input_embeddings = Variable(model.embeddings.weight.data[w_indices])
             defn_embeddings = model.defn_embed
 
             if use_gpu:
                 defn_embeddings = defn_embeddings.cuda()
                 input_embeddings = input_embeddings.cuda()
-
-            loss = calculate_loss(inputs, outputs, criterion, reg_criterion, input_embeddings, defn_embeddings)
+                labels = labels.cuda()
+            
+            criterions = [criterion, reg_criterion, glove_criterion] if config.glove_aux_loss else [criterion, reg_criterion]
+            loss = calculate_loss(inputs, outputs, labels, criterions, input_embeddings, defn_embeddings)
 
             loss.backward()
             optimizer.step()
@@ -200,7 +211,7 @@ if __name__ == "__main__":
                     outputs = model(inputs, lengths)
 
                     w_indices = np.array([vocab.stoi[w] + 1 for w in words])
-                    w_indices[w_indices > vocab_size] = 0 #for vocab size 
+                    w_indices[w_indices > config.vocab_size] = 0 #for vocab size 
                     input_embeddings = Variable(model.embeddings.weight.data[w_indices])
                     defn_embeddings = model.defn_embed
 

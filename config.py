@@ -11,6 +11,7 @@ class base_config(object):
         self.vocab_dim = 100
         self.vocab_source = '6B'
         self.load_path = None
+
         # hyperparams
         self.random_seed=42
         #original learning rate was 0.0001 i.e. 1e-4
@@ -19,6 +20,9 @@ class base_config(object):
         self.max_epochs=15
         self.batch_size=64
         self.n_hidden=250
+        self.vocab_size = 50000 
+        self.use_glove_init = False
+        self.glove_aux_loss = False 
         # logging params
         self.print_freq=1
         self.write_embed_freq=100
@@ -29,6 +33,7 @@ class base_config(object):
         self.num_workers = 8
         self.packing=True
         self.shuffle=True
+
         # model configuration [for ablation/hyperparam experiments]
         self.weight_init="xavier"
         self.input_method=INPUT_METHOD_ALL_CONCAT

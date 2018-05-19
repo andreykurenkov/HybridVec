@@ -23,14 +23,16 @@ class BaselineModel(nn.Module):
                cell_type='LSTM',
                use_cuda=True,
                use_packing=False,
-               max_length=784):
+               max_length=784,
+               use_glove_init = False):
     super(BaselineModel, self).__init__()
     self.use_packing = use_packing
     self.use_cuda = use_cuda
     self.vocab_size = vocab_size
     self.embeddings = nn.Embedding(self.vocab_size + 1, embed_size, padding_idx=0)
     #no longer copying glove, randomly initialize weights
-    # self.embeddings.weight.data[1:,:].copy_(vocab.vectors) 
+    if use_glove_init:
+      self.embeddings.weight.data[1:,:].copy_(vocab.vectors[:vocab_size, :]) 
     self.embeddings.weight.data[0,:] = 0 #set to 0 for unk 
     self.embed_size = embed_size
     self.num_layers = num_layers
