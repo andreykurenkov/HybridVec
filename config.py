@@ -3,10 +3,10 @@ from loader import *
 
 class base_config(object):
     def __init__ (self):
-        self.title="def2vec"
-        self.description="Translating definitions to word vectors"
-        self.run_name='full_run_big'
-        self.run_comment='def_concat' # gets appended to run_name as RUN_NAME-RUN_COMMENT
+        self.title="baseline_glove-loss_only"
+        self.description="Baseline auto encoder with glove loss only"
+        self.run_name='baseline_glove-loss_only'
+        self.run_comment='glove_loss_only'
         self.log_dir='outputs/def2vec/logs'
         self.vocab_dim = 100
         self.vocab_source = '6B'
