@@ -102,7 +102,7 @@ if __name__ == "__main__":
                                  batch_size = config.batch_size,
                                  num_workers = config.num_workers,
                                  shuffle=False,
-                                 vocab_size=vocab_size)
+                                 vocab_size=config.vocab_size)
 
     if use_gpu:
         model = model.cuda()
@@ -154,7 +154,7 @@ if __name__ == "__main__":
 
         #write to fil
         word_preds = []
-        
+
         #need to make preds matrix of indices for each word where we take top d and fill the rest w 0s 
         #output is currently a 64 x vocab size matrix of probabilities -- from each, take the top d 
         print('this is outputs', outputs)
