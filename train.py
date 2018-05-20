@@ -220,7 +220,8 @@ if __name__ == "__main__":
                         input_embeddings = input_embeddings.cuda()
 
                 criterions = [criterion, reg_criterion, glove_criterion] if config.glove_aux_loss else [criterion, reg_criterion]
-                loss = calculate_loss(inputs, outputs, labels, criterions, input_embeddings, defn_embeddings)                    val_loss += loss.data[0]
+                loss = calculate_loss(inputs, outputs, labels, criterions, input_embeddings, defn_embeddings)                    
+                val_loss += loss.data[0]
                 writer.add_scalar('val_loss', val_loss / len(val_loader), total_iter)
                 print('Epoch: %d, batch: %d, val loss: %.4f' %
                              (epoch + 1, i + 1, val_loss / len(val_loader)))
