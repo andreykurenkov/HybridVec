@@ -83,7 +83,7 @@ def get_embeddings():
                                  batch_size = config.batch_size,
                                  num_workers = config.num_workers,
                                  shuffle=False,
-                                 vocab_size=vocab_size)
+                                 vocab_size=config.vocab_size)
   if use_gpu:
       model = model.cuda()
   model.train(False)
