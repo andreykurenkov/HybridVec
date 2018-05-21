@@ -56,7 +56,7 @@ if __name__ == "__main__":
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
     
-    vocab_size = 50000
+    vocab_size = 100000
     vocab_reduced = True if vocab_size < 400000 else False
     embedding = nn.Embedding(vocab_size+3, config.vocab_dim, padding_idx=0) #+2 for the start and end symbol and +1 for unk token
     embedding.weight.data[0,:] = 0
