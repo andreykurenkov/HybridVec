@@ -251,7 +251,7 @@ if __name__ == "__main__":
                         raise ValueError("No loss to back propagate.")
 
 
-                    val_loss += batch_loss = get_loss_nll(acc_loss, norm_term)
+                    val_loss += get_loss_nll(acc_loss, norm_term)
                     if config.glove_loss:
                         glove_loss = 0
                         glove_loss += criterion2(Variable(encoder_hidden.data[:, :100]), labels) *config.glove_weight
@@ -274,8 +274,9 @@ if __name__ == "__main__":
         print ("saving")
         torch.save(model.state_dict(), out_path + "/" + config.save_path)
 
-    np.save("outputs/def2vec/checkpoints/{}".format(config.run_name), embed_dicts)
     writer.export_scalars_to_json("./all_scalars.json")
     writer.close()
 
     print('Finished Training')
+    np.save("outputs/def2vec/checkpoints/{}/out_embeddings.npy".format(config.run_name), embed_dicts)
+
