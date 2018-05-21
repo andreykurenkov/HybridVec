@@ -55,10 +55,15 @@ if __name__ == "__main__":
     vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
-    #vocab_size = len(vocab.stoi)
-    #reduced vocab_size
+    
     vocab_size = 50000
     vocab_reduced = True if vocab_size < 400000 else False
+    embedding = nn.Embedding(vocab_size+3, embed_size, padding_idx=0) #+2 for the start and end symbol and +1 for unk token
+    embedding.weight.data[0,:] = 0
+    if config.use_glove:
+        self.embedding.weight.data[1:vocab_size,:].copy_(vocab.vectors[:vocab_size-1,:])
+
+
     encoder = EncoderRNN(vocab_size = vocab_size,
                         vocab = vocab,
                         max_len = 100, 
@@ -70,7 +75,7 @@ if __name__ == "__main__":
                         bidirectional=config.use_bidirection,
                         rnn_cell=config.cell_type.lower(),
                         variable_lengths=False,
-                        embedding=None, #randomly initialized,
+                        embedding=embedding,
                         update_embedding=False,
                         )
 
@@ -134,6 +139,8 @@ if __name__ == "__main__":
     embed_outs = None
     embed_labels = []
 
+    embed_dicts = {}
+
     for epoch in range(config.max_epochs):
 
         running_loss = 0.0
@@ -176,6 +183,11 @@ if __name__ == "__main__":
             running_loss += batch_loss + glove_loss.cpu().data[0]
             
             writer.add_scalar('loss', batch_loss, total_iter)
+            #save outputs on last run
+            if epoch == (config.max_epochs -1):
+                for word, embed in zip(words, encoder_hidden.data.cpu()):
+                    embed_dicts[word] = embed.numpy()
+
             if embed_outs is None:
                 embed_outs = encoder_hidden.data.cpu()
                 embed_labels = words
@@ -254,6 +266,7 @@ if __name__ == "__main__":
         print ("saving")
         torch.save(model.state_dict(), out_path + "/" + config.save_path)
 
+    np.save("outputs/def2vec/checkpoints/{}".format(config.run_name), embed_dicts)
     writer.export_scalars_to_json("./all_scalars.json")
     writer.close()
 

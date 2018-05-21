@@ -38,6 +38,7 @@ class base_config(object):
         self.embed_size=100
         self.dropout=0.1
         self.weight_decay=0.0
+        self.use_glove = True
 
 def train_config():
     return base_config()
