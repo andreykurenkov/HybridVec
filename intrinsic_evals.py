@@ -22,7 +22,7 @@ import json
 import argparse
 from seq2seq import EncoderRNN, DecoderRNN
 from collections import OrderedDict
-
+from baseline import BaselineModel
 
 # # runs over all the words in glove and returns embeddings for each one
 # def get_embeddings():
@@ -62,36 +62,18 @@ def get_embeddings():
   use_gpu = torch.cuda.is_available()
   print("Using GPU:", use_gpu)
 
-  vocab_size = 50000
-  vocab_reduced = True if vocab_size < 400000 else False
-  encoder = EncoderRNN(vocab_size = vocab_size,
-                      max_len = 200, 
-                      hidden_size = config.hidden_size, 
-                      embed_size = config.vocab_dim,
-                      input_dropout_p=config.dropout,
-                      dropout_p=config.dropout,
-                      n_layers=2,
-                      bidirectional=config.use_bidirection,
-                      rnn_cell=config.cell_type.lower(),
-                      variable_lengths=False,
-                      embedding=None, #randomly initialized,
-                      )
+  model = BaselineModel(vocab,
+                         vocab_size = config.vocab_size,
+                         embed_size = config.vocab_dim,
+                         output_size = config.vocab_dim,
+                         hidden_size = config.hidden_size,
+                         use_packing = config.packing,
+                         use_bidirection = config.use_bidirection,
+                         use_attention = config.use_attention,
+                         cell_type = config.cell_type,
+                         use_cuda = use_gpu,
+                         use_glove_init = config.use_glove_init)
 
-  decoder = DecoderRNN(vocab_size = vocab_size,
-                      max_len = 200,
-                      hidden_size = config.hidden_size,
-                      n_layers=2,
-                      rnn_cell=config.cell_type.lower(),
-                      bidirectional=config.use_bidirection,
-                      input_dropout_p=config.dropout,
-                      dropout_p=config.dropout,
-                      use_attention=config.use_attention
-                      )
-
-
-  model = Seq2SeqModel(encoder = encoder,
-                      decoder = decoder
-                      )
   model.load_state_dict(torch.load(config.save_path), strict = True)
 
   train_loader = get_data_loader(TRAIN_FILE,
@@ -104,7 +86,6 @@ def get_embeddings():
                                  vocab_size=vocab_size)
   if use_gpu:
       model = model.cuda()
-  criterion = nn.NLLLoss()
   model.train(False)
 
   running_loss = 0.0
@@ -122,9 +103,9 @@ def get_embeddings():
           inputs = inputs.cuda()
           labels = labels.cuda()
 
-      (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = model(inputs, lengths)
+      outputs = model(inputs, lengths)
       for idx, word in enumerate(words):
-      	out_embeddings[word] = encoder_hidden.cpu().data[idx, :]
+      	out_embeddings[word] = model.defn_embed.cpu().data[idx, :]
 
   np.save("eval/name-output_embeddings.npy".format(name), out_embeddings)
   return out_embeddings
