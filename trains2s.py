@@ -220,10 +220,10 @@ if __name__ == "__main__":
                 start = end
                 running_loss = 0.0
 
-            # if i % config.write_embed_freq == (config.write_embed_freq-1):
-            #     writer.add_embedding(embed_outs,
-            #                          metadata=embed_labels,
-            #                          global_step=total_iter)
+            if i % config.write_embed_freq == (config.write_embed_freq-1):
+                writer.add_embedding(embed_outs,
+                                     metadata=embed_labels,
+                                     global_step=total_iter)
 
             if i % config.eval_freq == (config.eval_freq - 1):
                 print ("happening")
