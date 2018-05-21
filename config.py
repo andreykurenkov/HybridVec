@@ -7,7 +7,7 @@ class base_config(object):
         self.description="Creating new word embeddings using seq2seq"
         self.run_name='seq2seq-glove-regress'
         self.run_comment='base' # gets appended to run_name as RUN_NAME-RUN_COMMENT
-        self.log_dir='outputs/def2vec/logs'
+        self.log_dir='outputs/{}/logs'.format(self.title)
         self.vocab_dim = 100
         self.vocab_source = '6B'
         self.load_path = None
@@ -36,7 +36,7 @@ class base_config(object):
         #use_batchnorm=True,
         self.hidden_size=150
         self.embed_size=100
-        self.dropout=0.1
+        self.dropout=0.3
         self.weight_decay=0.0
         self.use_glove = True
         self.glove_weight = 1
