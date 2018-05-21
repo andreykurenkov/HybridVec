@@ -139,14 +139,16 @@ def evaluate_similarity(w, X, y):
         w = Embedding.from_dict(w)
 
     missing_words = 0
+    miss = []
     words = w.vocabulary.word_id
     for query in X:
         for query_word in query:
             if query_word not in words:
+                miss.append(query_word)
                 missing_words += 1
-    print (missing_words, "what")
     if missing_words > 0:
         print("Missing {} words. Will replace them with mean vector".format(missing_words))
+        print (miss)
 
 
     mean_vector = np.mean(w.vectors, axis=0, keepdims=True)

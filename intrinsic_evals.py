@@ -131,14 +131,23 @@ def get_embeddings():
 
 
 def load_embeddings():
-  config, name = load_config()
-	a = np.load("./outputs/{}/embeddings/{}/out_embeddings.npy".format(config.title, config.run_name)).item()
-	return a
+   config, name = load_config()
+   a = np.load("./outputs/{}/embeddings/{}/out_embeddings.npy".format(config.title, config.run_name)).item()
+   return a
+
+def glove_embedding():
+  vocab_glove = vocab.GloVe(name="840B", dim=300)
+  mapping = {}
+  for index, w in enumerate(vocab_glove.itos):
+    mapping[w] = vocab_glove.vectors[index]
+  return mapping
 
 def main():
-	#embeddings = get_embeddings()
+	embeddings = get_embeddings()
 	embeddings = load_embeddings()
-	evaluate_on_all(embeddings)
+   #embeddings = glove_embedding()
+   print ("got mapping")
+   evaluate_on_all(embeddings)
 
 
 
