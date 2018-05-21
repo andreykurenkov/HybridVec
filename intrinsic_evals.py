@@ -131,12 +131,13 @@ def get_embeddings():
 
 
 def load_embeddings():
-	a = np.load('./eval/out_embeddings.npy').item()
+  config, name = load_config()
+	a = np.load("./outputs/{}/embeddings/{}/out_embeddings.npy".format(config.title, config.run_name)).item()
 	return a
 
 def main():
-	embeddings = get_embeddings()
-	#embeddings = load_embeddings()
+	#embeddings = get_embeddings()
+	embeddings = load_embeddings()
 	evaluate_on_all(embeddings)
 
 
