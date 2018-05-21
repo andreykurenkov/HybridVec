@@ -38,7 +38,7 @@ class base_config(object):
         self.embed_size=100
         self.dropout=0.3
         self.weight_decay=0.0
-        self.use_glove = True
+        self.use_glove = False
         self.glove_weight = 1
         self.glove_loss = True
 
