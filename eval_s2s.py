@@ -30,6 +30,7 @@ def get_args():
     Gets the run_name, run_comment, and epoch of the model being evaluated
     """
     parser = argparse.ArgumentParser()
+    parser.add_argument("run_title")
     parser.add_argument("run_name")
     parser.add_argument("run_comment")
     parser.add_argument("epoch")
@@ -40,9 +41,9 @@ def load_config():
     """
     Load in the right config file from desired model to evaluate
     """
-    run_name, run_comment, epoch, verbose = get_args()
+    run_title, run_name, run_comment, epoch, verbose = get_args()
     name = run_name + '-' + run_comment
-    path = "outputs/def2vec/logs/{}/config.json".format(name)
+    path = "outputs/{}/logs/{}/config.json".format(run_title, name)
     config = None
     with open(path) as f:
         config = dict(json.load(f))

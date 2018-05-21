@@ -3,7 +3,7 @@ from loader import *
 
 class base_config(object):
     def __init__ (self):
-        self.title="def2vec"
+        self.title="seq2seq"
         self.description="Creating new word embeddings using seq2seq"
         self.run_name='seq2seq-glove-regress'
         self.run_comment='base' # gets appended to run_name as RUN_NAME-RUN_COMMENT
@@ -57,7 +57,7 @@ def eval_config(d, run_name, run_comment, epoch, verbose):
     e.log_dir='logs'
     e.batch_size = 16
     name = run_name + '-' + run_comment
-    e.save_path="outputs/def2vec/checkpoints/{}/epoch_{}/model_weights.torch".format(name, epoch)
+    e.save_path="outputs/{}/checkpoints/{}/epoch_{}/model_weights.torch".format(e.title, name, epoch)
     e.packing = False
     e.input_method=INPUT_METHOD_ONE
 

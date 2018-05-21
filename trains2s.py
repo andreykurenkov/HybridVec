@@ -189,6 +189,7 @@ if __name__ == "__main__":
             running_loss += batch_loss + glove_loss.cpu().data[0]
             
             writer.add_scalar('loss', batch_loss + glove_loss.cpu().data[0], total_iter)
+            writer.add_scalar('dev_loss', batch_loss, total_iter)
             #save outputs on last run
             if epoch == (config.max_epochs -1):
                 for word, embed in zip(words, encoder_hidden.data.cpu()):
@@ -265,10 +266,10 @@ if __name__ == "__main__":
 
             total_iter += 1
 
-        out_dir = "outputs/def2vec/checkpoints/{}".format(config.run_name)
+        out_dir = "outputs/{}/checkpoints/{}".format(config.title, config.run_name)
         if not os.path.exists(out_dir):
             os.makedirs(out_dir)
-        out_path = "outputs/def2vec/checkpoints/{}/epoch_{}".format(config.run_name, epoch + 1)
+        out_path = "outputs/{}/checkpoints/{}/epoch_{}".format(config.title, config.run_name, epoch + 1)
         if not os.path.exists(out_path):
             os.mkdir(out_path)
         print ("saving")
@@ -278,5 +279,8 @@ if __name__ == "__main__":
     writer.close()
 
     print('Finished Training')
-    np.save("outputs/def2vec/checkpoints/{}/out_embeddings.npy".format(config.run_name), embed_dicts)
+    out_emb = "outputs/{}/embeddings/{}".format(config.title, config.run_name)
+    if not os.path.exists(out_emb):
+        os.makedirs(out_emb)
+    np.save("outputs/{}/embeddings/{}/out_embeddings.npy".format(config.title, config.run_name), embed_dicts)
 
