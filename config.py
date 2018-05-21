@@ -5,8 +5,8 @@ class base_config(object):
     def __init__ (self):
         self.title="seq2seq"
         self.description="Creating new word embeddings using seq2seq"
-        self.run_name='check-add-embedding'
-        self.run_comment='base' # gets appended to run_name as RUN_NAME-RUN_COMMENT
+        self.run_name='one-random'
+        self.run_comment='200hidden' # gets appended to run_name as RUN_NAME-RUN_COMMENT
         self.log_dir='outputs/{}/logs'.format(self.title)
         self.vocab_dim = 100
         self.vocab_source = '6B'
@@ -29,16 +29,16 @@ class base_config(object):
         self.shuffle=True
         # model configuration [for ablation/hyperparam experiments]
         self.weight_init="xavier"
-        self.input_method=INPUT_METHOD_ALL_CONCAT
+        self.input_method=INPUT_METHOD_ONE
         self.use_bidirection=False
         self.use_attention=False
         self.cell_type='GRU'
         #use_batchnorm=True,
-        self.hidden_size=150
+        self.hidden_size=200
         self.embed_size=100
         self.dropout=0.3
         self.weight_decay=0.0
-        self.use_glove = True
+        self.use_glove = False
         self.glove_weight = 1
         self.glove_loss = True
 
