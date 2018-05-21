@@ -55,7 +55,7 @@ def calculate_loss(inputs, outputs, labels, criterions, input_embeddings, defn_e
             label = label.cuda()
         loss+= criterion(outputs, label)
         count+=1.0
-    # loss/=count
+    loss/=count
 
     # total_avg_main_loss += loss 
     reg_loss = reg_criterion(defn_embeddings, input_embeddings)
@@ -63,7 +63,7 @@ def calculate_loss(inputs, outputs, labels, criterions, input_embeddings, defn_e
     reg_loss = torch.sum(reg_loss, 1)
     reg_loss = torch.mean(reg_loss)
     reg_loss *= config.reg_weight 
-    # reg_loss /= defn_embeddings.size()[0] 
+    reg_loss /= defn_embeddings.size()[0] 
 
     loss += reg_loss
     # total_avg_regular_loss += reg_loss
@@ -75,7 +75,7 @@ def calculate_loss(inputs, outputs, labels, criterions, input_embeddings, defn_e
       glove_loss = torch.mean(glove_loss)
 
       glove_loss *= config.glove_aux_weight
-
+      glove_loss /= defn_embeddings.size()[0]
       loss += glove_loss
       # total_avg_glove_loss += glove_loss
 
