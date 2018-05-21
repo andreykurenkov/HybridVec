@@ -23,9 +23,13 @@ from pytorch_monitor import monitor_module, init_experiment
 DEBUG_LOG = True
 
 config = train_config()
+# total_avg_main_loss = 0
+# total_avg_regular_loss = 0
+# total_avg_glove_loss = 0
 
 TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
 VAL_FILE = 'data/glove/val_glove.%s.%sd.txt'%(config.vocab_source, config.vocab_dim)
+
 
 def weights_init(m):
     """
@@ -38,11 +42,12 @@ def weights_init(m):
             nn.init.xavier_normal(m.weight_hh_l0)
             nn.init.xavier_normal(m.weight_ih_l0)
 
-
 def calculate_loss(inputs, outputs, labels, criterions, input_embeddings, defn_embeddings):
     loss = 0
     count = 0
-
+    # global total_avg_main_loss 
+    # global total_avg_regular_loss
+    # global total_avg_glove_loss 
     criterion, reg_criterion = criterions[0], criterions[1]
     for word_idx in range(list(inputs.size())[1]):
         label = Variable(inputs[:,word_idx])
@@ -51,22 +56,55 @@ def calculate_loss(inputs, outputs, labels, criterions, input_embeddings, defn_e
         loss+= criterion(outputs, label)
         count+=1.0
     loss/=count
-        
-    reg_loss = config.reg_weight * reg_criterion(defn_embeddings, input_embeddings)
+
+    # total_avg_main_loss += loss 
+    reg_loss = reg_criterion(defn_embeddings, input_embeddings)
+    #sum the square differences and average across the batch
+    reg_loss = torch.sum(reg_loss, 1)
+    reg_loss = torch.mean(reg_loss)
+    reg_loss *= config.reg_weight 
     reg_loss /= defn_embeddings.size()[0] 
 
     loss += reg_loss
-
+    # total_avg_regular_loss += reg_loss
     if config.glove_aux_loss: #add regression on original glove labels into loss 
       glove_criterion = criterions[2]
       glove_loss = glove_criterion(defn_embeddings, labels)
+      #sum the square differences and average across the batch
+      glove_loss = torch.sum(glove_loss, 1)
+      glove_loss = torch.mean(glove_loss)
+
+      glove_loss *= config.glove_aux_weight
       glove_loss /= defn_embeddings.size()[0]
       loss += glove_loss
+      # total_avg_glove_loss += glove_loss
 
+    #calcualte embed magnitudes, debug 
+    # print_embed_magnitudes(input_embeddings, defn_embeddings, labels)
     return loss 
 
-if __name__ == "__main__":
+def print_embed_magnitudes(input_embeddings, defn_embeddings, labels):
+  input_norm = torch.norm(input_embeddings, 2, 1)
+  def_norm = torch.norm(defn_embeddings, 2, 1)
+  glove_norm = torch.norm(labels, 2, 1)
 
+  print('these are norms')
+  print('input norm')
+  print(torch.mean(input_norm))
+  # print(input_norm)
+  print('def norm')
+  print(torch.mean(def_norm))
+  # print(def_norm)
+  print('glove norm')
+  print(torch.mean(glove_norm))
+  # print(glove_norm)
+
+  print('these are some embeddings')
+  print(input_embeddings[0])
+  print(defn_embeddings[0])
+  print(labels[0])
+
+if __name__ == "__main__":
     vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
     use_gpu = torch.cuda.is_available()
     #use_gpu = False
@@ -113,8 +151,8 @@ if __name__ == "__main__":
 
 
     criterion = nn.NLLLoss() #use multi label loss across unigram bag of words model
-    reg_criterion = nn.MSELoss()
-    if config.glove_aux_loss: glove_criterion = nn.MSELoss()
+    reg_criterion = nn.MSELoss(reduce=False)
+    if config.glove_aux_loss: glove_criterion = nn.MSELoss(reduce=False)
     optimizer = optim.Adam(model.parameters(),
                            lr=config.learning_rate,
                            weight_decay=config.weight_decay)
@@ -131,14 +169,23 @@ if __name__ == "__main__":
     embed_labels = []
 
     for epoch in range(config.max_epochs):
+        # if epoch != 0:
+        #   print('Running average losses after epoch '+ str(epoch) + ' were: ')
+        #   print('Total avg main: ', str(total_avg_main_loss/(epoch)))
+        #   print('Total avg regular: ', str(total_avg_regular_loss/(epoch)))
+        #   print('Total avg glovee: ', str(total_avg_glove_loss/(epoch)))
 
         running_loss = 0.0
         start = time()
         print("Epoch", epoch)
-
         for i, data in enumerate(train_loader, 0):
             words, inputs, lengths, labels = data
             labels = Variable(labels)
+            # if i % 1 == 0 and i != 0: 
+            #   print ('after 1 batch, runnning averages per batch are')
+            #   print('Total avg main: ', str(total_avg_main_loss/(i)))
+            #   print('Total avg regular: ', str(total_avg_regular_loss/(i)))
+            #   print('Total avg glovee: ', str(total_avg_glove_loss/(i)))
 
             if use_gpu:
                 inputs = inputs.cuda()

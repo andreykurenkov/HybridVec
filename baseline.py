@@ -39,7 +39,7 @@ class BaselineModel(nn.Module):
 
     # needs to be the same as number of words used in the definitions, so same as vocab size 
     self.output_size = self.vocab_size
-    self.hidden_size = int(embed_size/2) if use_attention else embed_size
+    self.hidden_size = int(embed_size/2) if use_bidirection else embed_size
     self.use_attention = use_attention
     self.use_bidirection = use_bidirection
     self.cell_type = cell_type
@@ -69,7 +69,6 @@ class BaselineModel(nn.Module):
     if use_attention:
         self.attn = nn.Linear((2 if use_bidirection else 1) * self.hidden_size, 1)
         self.attn_softmax = nn.Softmax(dim=1)
-
     #apply last matrix operation to compute dotproduct log likelihood of hidden representation with 
     #each word in definitional vocabulary 
     self.output_layer = nn.Linear((2 if use_bidirection else 1) * self.hidden_size, self.output_size)
