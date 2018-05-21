@@ -58,7 +58,7 @@ def load_config():
 def get_embeddings():
   config, name = load_config()
   TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
-  vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
+  vocab_1 = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
   use_gpu = torch.cuda.is_available()
   print("Using GPU:", use_gpu)
 
@@ -95,7 +95,7 @@ def get_embeddings():
   model.load_state_dict(torch.load(config.save_path), strict = True)
 
   train_loader = get_data_loader(TRAIN_FILE,
-                                 vocab,
+                                 vocab_1,
                                  config.input_method,
                                  config.vocab_dim,
                                  batch_size = config.batch_size,
@@ -135,8 +135,8 @@ def load_embeddings():
 	return a
 
 def main():
-	#embeddings = get_embeddings()
-	embeddings = load_embeddings()
+	embeddings = get_embeddings()
+	#embeddings = load_embeddings()
 	evaluate_on_all(embeddings)
 
 
