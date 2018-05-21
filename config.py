@@ -5,8 +5,8 @@ class base_config(object):
     def __init__ (self):
         self.title="seq2seq"
         self.description="Creating new word embeddings using seq2seq"
-        self.run_name='check-add-embedding'
-        self.run_comment='base' # gets appended to run_name as RUN_NAME-RUN_COMMENT
+        self.run_name='concat-random'
+        self.run_comment='100k' # gets appended to run_name as RUN_NAME-RUN_COMMENT
         self.log_dir='outputs/{}/logs'.format(self.title)
         self.vocab_dim = 100
         self.vocab_source = '6B'
