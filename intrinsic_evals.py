@@ -53,10 +53,10 @@ def load_config():
     with open(path) as f:
         config = dict(json.load(f))
         config = eval_config(config, run_name, run_comment, epoch, verbose)
-    return config
+    return (config,name)
 
 def get_embeddings():
-  config = load_config()
+  config, name = load_config()
   TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
   vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
   use_gpu = torch.cuda.is_available()
@@ -114,7 +114,7 @@ def get_embeddings():
   out_defns = {}
 
 
-  for i, data in tqdm(enumerate(test_loader, 0), total=len(test_loader)):
+  for i, data in tqdm(enumerate(train_loader, 0), total=len(train_loader)):
       words, inputs, lengths, labels = data
       labels = Variable(labels)
 
@@ -123,12 +123,20 @@ def get_embeddings():
           labels = labels.cuda()
 
       (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = model(inputs, lengths)
-      print (encoder_hidden)
       for idx, word in enumerate(words):
       	out_embeddings[word] = encoder_hidden[idx, :]
 
+  np.save("eval/name-output_embeddings.npy".format(name), out_embeddings)
+  return out_embeddings
+
+
+def load_embeddings():
+	a = np.load('./eval/out_embeddings.npy').item()
+	return a
+
 def main():
-	embeddings = get_embeddings()
+	#embeddings = get_embeddings()
+	embeddings = load_embeddings()
 	evaluate_on_all(embeddings)
 
 

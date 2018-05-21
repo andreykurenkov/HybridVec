@@ -144,8 +144,9 @@ def evaluate_similarity(w, X, y):
         for query_word in query:
             if query_word not in words:
                 missing_words += 1
+    print (missing_words, "what")
     if missing_words > 0:
-        logger.warning("Missing {} words. Will replace them with mean vector".format(missing_words))
+        print("Missing {} words. Will replace them with mean vector".format(missing_words))
 
 
     mean_vector = np.mean(w.vectors, axis=0, keepdims=True)

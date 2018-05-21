@@ -10,7 +10,7 @@ import scipy
 import pandas as pd
 from itertools import product
 
-logger = logging.getLogger(__name__)
+#logger = logging.getLogger(__name__)
 import sklearn
 from eval_datasets.analogy import *
 from eval_utils import batched
@@ -87,19 +87,22 @@ class SimpleAnalogySolver(sklearn.base.BaseEstimator):
         output = []
 
         missing_words = 0
+        counter = 0
         for query in X:
             for query_word in query:
+                counter += 1
                 if query_word not in word_id:
                     missing_words += 1
+        print (counter, "counters")
         if missing_words > 0:
-            logger.warning("Missing {} words. Will replace them with mean vector".format(missing_words))
+            print("Missing {} words. Will replace them with mean vector".format(missing_words))
 
         # Batch due to memory constaints (in dot operation)
         for id_batch, batch in enumerate(batched(range(len(X)), self.batch_size)):
             ids = list(batch)
             X_b = X[ids]
             if id_batch % np.floor(len(X) / (10. * self.batch_size)) == 0:
-                logger.info("Processing {}/{} batch".format(int(np.ceil(ids[1] / float(self.batch_size))),
+                print("Processing {}/{} batch".format(int(np.ceil(ids[1] / float(self.batch_size))),
                                                             int(np.ceil(X.shape[0] / float(self.batch_size)))))
 
             A, B, C = np.vstack(w.get(word, mean_vector) for word in X_b[:, 0]), \
