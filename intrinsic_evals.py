@@ -124,7 +124,7 @@ def get_embeddings():
 
       (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = model(inputs, lengths)
       for idx, word in enumerate(words):
-      	out_embeddings[word] = encoder_hidden[idx, :]
+      	out_embeddings[word] = encoder_hidden.cpu().data[idx, :]
 
   np.save("eval/name-output_embeddings.npy".format(name), out_embeddings)
   return out_embeddings
