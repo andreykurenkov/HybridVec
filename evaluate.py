@@ -181,22 +181,23 @@ if __name__ == "__main__":
 
         #need to make preds matrix of indices for each word where we take top d and fill the rest w 0s 
         #output is currently a 64 x vocab size matrix of probabilities -- from each, take the top d 
-        print('this is outputs', outputs)
         def_len = inputs.size()[1] #length of definitions for the batch 
-        outputs_np = outputs.data.numpy()
-        top_indices = np.argpartition(outputs_np, -1*def_len)[-1*def_len:]
-        preds = top_indices[np.argsort(outputs_np[top_indices])][::-1] #sort indices from max to low
-
-        write_output(f, preds, inputs, words, config.vocab_size)
+        outputs_np = outputs.data.cpu().numpy()
+        top_indices = np.argpartition(outputs_np, -1*def_len)[:,-1*def_len:]
+        #print('these are top indices', top_indices.shape, top_indices)
+        #preds = top_indices[np.argsort(outputs_np[:,top_indices])]#sort indices from max to low
+        #preds = preds[:, ::-1]
+        #print('these are preds, hopefully reversed', preds)
+        write_output(f, top_indices, inputs, words, config.vocab_size)
 
         for word, embed, inp in zip(words,
-                                  encoder_hidden.data.cpu(),
+                                  model.defn_embed.data.cpu(),
                                   inputs.cpu()):
             out_embeddings[word] = embed.numpy()
             out_defns[word] = " ".join([vocab.itos[i - 1] for i in inp])
 
-        f.close()
-        print("L2 loss over entire set:", running_loss / n_batches)
-        np.save("eval/out_embeddings.npy", out_embeddings)
-        #np.save("eval/out_attns.npy", out_attns)
-        np.save("eval/out_defns.npy", out_defns)
+    f.close()
+    print("L2 loss over entire set:", running_loss / n_batches)
+    np.save("eval/out_embeddings.npy", out_embeddings)
+    #np.save("eval/out_attns.npy", out_attns)
+    np.save("eval/out_defns.npy", out_defns)
