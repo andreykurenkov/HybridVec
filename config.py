@@ -21,7 +21,7 @@ class base_config(object):
         self.batch_size=128
         self.n_hidden=250
         self.vocab_size = 50000 
-        self.use_glove_init = False
+        self.use_glove_init = True
         self.glove_aux_loss = True 
         # logging params
         self.print_freq=1
