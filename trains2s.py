@@ -188,7 +188,7 @@ if __name__ == "__main__":
             optimizer.step()
             running_loss += batch_loss + glove_loss.cpu().data[0]
             
-            writer.add_scalar('loss', batch_loss + glove_loss.cpu().data[0], total_iter)
+            #writer.add_scalar('loss', batch_loss + glove_loss.cpu().data[0], total_iter)
             writer.add_scalar('dev_loss', batch_loss, total_iter)
             #save outputs on last run
             if epoch == (config.max_epochs -1):
