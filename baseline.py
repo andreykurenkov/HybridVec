@@ -12,6 +12,7 @@ class BaselineModel(nn.Module):
 
   def __init__(self,
                vocab,
+               vocab_size,
                output_size=100,
                hidden_size=150,
                embed_size=100,
@@ -22,40 +23,43 @@ class BaselineModel(nn.Module):
                cell_type='LSTM',
                use_cuda=True,
                use_packing=False,
-               max_length=784):
+               max_length=784,
+               use_glove_init = False):
     super(BaselineModel, self).__init__()
     self.use_packing = use_packing
     self.use_cuda = use_cuda
-    self.vocab_size = len(vocab.stoi)
+    self.vocab_size = vocab_size
     self.embeddings = nn.Embedding(self.vocab_size + 1, embed_size, padding_idx=0)
-    #no longer copying glove 
-    # self.embeddings.weight.data[1:,:].copy_(vocab.vectors) #no longer copying glove, randomly initialize weights
-    self.embeddings.weight.data[0:,:] = 0
+    #no longer copying glove, randomly initialize weights
+    if use_glove_init:
+      self.embeddings.weight.data[1:,:].copy_(vocab.vectors[:vocab_size, :]) 
+    self.embeddings.weight.data[0,:] = 0 #set to 0 for unk 
     self.embed_size = embed_size
     self.num_layers = num_layers
-    # needs to be the same as number of words used in the definitions, so same as embedding size 
+
+    # needs to be the same as number of words used in the definitions, so same as vocab size 
     self.output_size = self.vocab_size
-    self.hidden_size = hidden_size
+    self.hidden_size = int(embed_size/2) if use_attention else embed_size
     self.use_attention = use_attention
     self.use_bidirection = use_bidirection
     self.cell_type = cell_type
     if cell_type == 'GRU':
         self.cell = nn.GRU(embed_size,
-                           hidden_size,
+                           self.hidden_size,
                            num_layers,
                            batch_first=True,
                            dropout=dropout,
                            bidirectional=use_bidirection)
     elif cell_type == 'LSTM':
         self.cell = nn.LSTM(embed_size,
-                           hidden_size,
+                           self.hidden_size,
                            num_layers,
                            batch_first=True,
                            dropout=dropout,
                            bidirectional=use_bidirection)
     elif cell_type == 'RNN':
         self.cell = nn.RNN(embed_size,
-                           hidden_size,
+                           self.hidden_size,
                            num_layers,
                            batch_first=True,
                            dropout=dropout,
@@ -75,11 +79,9 @@ class BaselineModel(nn.Module):
     batch_size, input_size = inputs.shape
 
     embed = self.embeddings(inputs.view(-1, input_size)).view(batch_size, input_size, -1)
+
     if self.use_packing:
-
       embed = nn.utils.rnn.pack_padded_sequence(embed, lengths, batch_first=True)
-      # print('after size', embed)
-
     h0 = Variable(torch.zeros(self.num_layers * (2 if self.use_bidirection else 1),
                               batch_size, self.hidden_size))
     c0 = Variable(torch.zeros(self.num_layers * (2 if self.use_bidirection else 1),
