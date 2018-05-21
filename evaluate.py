@@ -63,12 +63,12 @@ def write_output(f, pred, inputs, words, vocab_size):
   #print (pred)  
   for w in range(len(words)):
     f.write(words[w] +"\n")
-    definition_input = [(vocab.itos[i - 1] if (i>0 and i<=vocab_size+1) else str(i)) for i in (inputs[w])]
+    definition_input = [(vocab.itos[i] if (i>0 and i<=vocab_size+1) else str(i)) for i in (inputs[w])]
     definition_input = "input definition: " + " ".join(definition_input)
     f.write(definition_input+ "\n")
 
     len_pred = min(len(inputs[w]), len(pred[w]))
-    dfn_pred = [(vocab.itos[pred[w][i] - 1] if (pred[w][i]>0 and pred[w][i]<=vocab_size+1) else str(pred[w][i])) for i in range(len_pred) ]
+    dfn_pred = [(vocab.itos[pred[w][i]] if (pred[w][i]>0 and pred[w][i]<=vocab_size+1) else str(pred[w][i])) for i in range(len_pred) ]
     dfn_pred = "predicted definition: " + " ".join(dfn_pred) + "\n"
     f.write(dfn_pred)
     f.write("\n\n")

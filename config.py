@@ -14,7 +14,7 @@ class base_config(object):
         # hyperparams
         self.random_seed=42
         #original learning rate was 0.0001 i.e. 1e-4
-        self.learning_rate= 1e-5 
+        self.learning_rate= 1e-4
         self.reg_weight = 0.5
         self.glove_aux_weight = 1
         self.max_epochs=15
