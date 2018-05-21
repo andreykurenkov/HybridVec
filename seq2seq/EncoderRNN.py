@@ -46,7 +46,7 @@ class EncoderRNN(BaseRNN):
 
         self.variable_lengths = variable_lengths
         self.embedding = nn.Embedding(vocab_size+3, embed_size, padding_idx=0) #+2 for the start and end symbol and +1 for unk token
-        self.embedding = nn.Parameter(embedding)
+        #self.embedding = nn.Parameter(embedding)
         self.embedding.weight.requires_grad = update_embedding
         self.rnn = self.rnn_cell(embed_size, hidden_size, n_layers,
                                  batch_first=True, bidirectional=bidirectional, dropout=dropout_p)

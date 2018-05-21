@@ -58,10 +58,10 @@ if __name__ == "__main__":
     
     vocab_size = 50000
     vocab_reduced = True if vocab_size < 400000 else False
-    embedding = nn.Embedding(vocab_size+3, embed_size, padding_idx=0) #+2 for the start and end symbol and +1 for unk token
+    embedding = nn.Embedding(vocab_size+3, config.vocab_dim, padding_idx=0) #+2 for the start and end symbol and +1 for unk token
     embedding.weight.data[0,:] = 0
     if config.use_glove:
-        self.embedding.weight.data[1:vocab_size,:].copy_(vocab.vectors[:vocab_size-1,:])
+        embedding.weight.data[1:vocab_size,:].copy_(vocab.vectors[:vocab_size-1,:])
 
 
     encoder = EncoderRNN(vocab_size = vocab_size,
@@ -173,16 +173,22 @@ if __name__ == "__main__":
 
             if type(acc_loss) is int:
                 raise ValueError("No loss to back propagate.")
-            glove_loss = 0
-            glove_loss += criterion2(Variable(encoder_hidden.data[:, :100]), labels)
-            total_loss = sum ([acc_loss, glove_loss])
+
             batch_loss = get_loss_nll(acc_loss, norm_term)
+            #glove loss weight
+            if config.glove_loss:
+                glove_loss = 0
+                glove_loss += criterion2(Variable(encoder_hidden.data[:, :100]), labels)* config.glove_weight
+                total_loss = sum ([acc_loss, glove_loss])
+                writer.add_scalar('l2_loss', glove_loss.cpu().data[0], total_iter)
+            else:
+                total_loss = acc_loss
     
             total_loss.backward()
             optimizer.step()
             running_loss += batch_loss + glove_loss.cpu().data[0]
             
-            writer.add_scalar('loss', batch_loss, total_iter)
+            writer.add_scalar('loss', batch_loss + glove_loss.cpu().data[0], total_iter)
             #save outputs on last run
             if epoch == (config.max_epochs -1):
                 for word, embed in zip(words, encoder_hidden.data.cpu()):
@@ -243,12 +249,14 @@ if __name__ == "__main__":
 
                     if type(acc_loss) is int:
                         raise ValueError("No loss to back propagate.")
-                    glove_loss = 0
-                    glove_loss += criterion2(Variable(encoder_hidden.data[:, :100]), labels)
-                    total_loss = sum ([acc_loss, glove_loss])
-                    batch_loss = get_loss_nll(acc_loss, norm_term)
+
+
+                    val_loss += batch_loss = get_loss_nll(acc_loss, norm_term)
+                    if config.glove_loss:
+                        glove_loss = 0
+                        glove_loss += criterion2(Variable(encoder_hidden.data[:, :100]), labels) *config.glove_weight
+                        val_loss += glove_loss.cpu().data[0]
      
-                    val_loss += batch_loss + glove_loss.cpu().data[0]
 
                 writer.add_scalar('val_loss', val_loss / len(val_loader), total_iter)
                 del acc_loss, encoder_hidden

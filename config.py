@@ -39,6 +39,8 @@ class base_config(object):
         self.dropout=0.1
         self.weight_decay=0.0
         self.use_glove = True
+        self.glove_weight = 1
+        self.glove_loss = True
 
 def train_config():
     return base_config()

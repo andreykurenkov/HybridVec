@@ -96,6 +96,12 @@ if __name__ == "__main__":
 
   vocab_size = 50000
   vocab_reduced = True if vocab_size < 400000 else False
+
+  embedding = nn.Embedding(vocab_size+3, config.vocab_dim, padding_idx=0) #+2 for the start and end symbol and +1 for unk token
+  embedding.weight.data[0,:] = 0
+  if config.use_glove:
+      embedding.weight.data[1:vocab_size,:].copy_(vocab.vectors[:vocab_size-1,:])
+
   encoder = EncoderRNN(vocab_size = vocab_size,
                       max_len = 200, 
                       hidden_size = config.hidden_size, 
@@ -106,7 +112,7 @@ if __name__ == "__main__":
                       bidirectional=config.use_bidirection,
                       rnn_cell=config.cell_type.lower(),
                       variable_lengths=False,
-                      embedding=None, #randomly initialized,
+                      embedding=embedding, #randomly initialized,
                       )
 
   decoder = DecoderRNN(vocab_size = vocab_size,
