@@ -4,8 +4,8 @@ class base_config(object):
     def __init__ (self):
         self.title="def2vec"
         self.description="Translating definitions to word vectors"
-        self.run_name='jk'
-        self.run_comment='def_concat' # gets appended to run_name as RUN_NAME-RUN_COMMENT
+        self.run_name='baseline_one'
+        self.run_comment='glove_init_only' # gets appended to run_name as RUN_NAME-RUN_COMMENT
         self.log_dir='outputs/def2vec/logs'
         self.vocab_dim = 100
         self.vocab_source = '6B'
