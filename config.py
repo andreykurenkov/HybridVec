@@ -21,7 +21,7 @@ class base_config(object):
         self.batch_size=128
         self.n_hidden=250
         self.vocab_size = 50000 
-        self.use_glove_init = False
+        self.use_glove_init = True 
         self.glove_aux_loss = True 
         # logging params
         self.print_freq=1
@@ -36,7 +36,7 @@ class base_config(object):
 
         # model configuration [for ablation/hyperparam experiments]
         self.weight_init="xavier"
-        self.input_method=INPUT_METHOD_ALL_CONCAT
+        self.input_method=INPUT_METHOD_ONE
         self.use_bidirection=False
         self.use_attention=False
         self.cell_type='LSTM'
