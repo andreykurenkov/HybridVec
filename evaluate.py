@@ -20,34 +20,10 @@ from loader import *
 from config import eval_config
 import json
 import argparse
+from train import calculate_loss
 
 DEBUG_LOG = False
 
-def calculate_loss(inputs, outputs, labels, criterions, input_embeddings, defn_embeddings):
-    loss = 0
-    count = 0
-
-    criterion, reg_criterion = criterions[0], criterions[1]
-    for word_idx in range(list(inputs.size())[1]):
-        label = Variable(inputs[:,word_idx])
-        if use_gpu:
-            label = label.cuda()
-        loss+= criterion(outputs, label)
-        count+=1.0
-    loss/=count
-        
-    reg_loss = config.reg_weight * reg_criterion(defn_embeddings, input_embeddings)
-    reg_loss /= defn_embeddings.size()[0] 
-
-    loss += reg_loss
-
-    if config.glove_aux_loss: #add regression on original glove labels into loss 
-      glove_criterion = criterions[2]
-      glove_loss = glove_criterion(defn_embeddings, labels)
-      glove_loss /= defn_embeddings.size()[0]
-      loss += glove_loss
-
-    return loss 
 
 def get_args():
     """
@@ -131,8 +107,8 @@ if __name__ == "__main__":
     if use_gpu:
         model = model.cuda()
     criterion = nn.NLLLoss() #use multi label loss across unigram bag of words model
-    reg_criterion = nn.MSELoss()
-    if config.glove_aux_loss: glove_criterion = nn.MSELoss()
+    reg_criterion = nn.MSELoss(reduce=False)
+    if config.glove_aux_loss: glove_criterion = nn.MSELoss(reduce=False)
     model.train(False)
 
     running_loss = 0.0
