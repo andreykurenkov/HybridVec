@@ -48,7 +48,7 @@ def calculate_loss(inputs, outputs, labels, criterions, input_embeddings, defn_e
       loss += glove_loss
 
     return loss 
-    
+
 def get_args():
     """
     Gets the run_name, run_comment, and epoch of the model being evaluated
@@ -183,7 +183,7 @@ if __name__ == "__main__":
         #output is currently a 64 x vocab size matrix of probabilities -- from each, take the top d 
         print('this is outputs', outputs)
         def_len = inputs.size()[1] #length of definitions for the batch 
-        outputs_np = outputs.numpy()
+        outputs_np = outputs.data.numpy()
         top_indices = np.argpartition(outputs_np, -1*def_len)[-1*def_len:]
         preds = top_indices[np.argsort(outputs_np[top_indices])][::-1] #sort indices from max to low
 
