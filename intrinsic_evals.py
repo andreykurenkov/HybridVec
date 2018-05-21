@@ -39,18 +39,18 @@ def get_args():
     parser.add_argument("run_title")
     parser.add_argument("run_name")
     parser.add_argument("run_comment")
-    parser.add_argument("epoch")
     parser.add_argument("--verbose", default=True)
     args = parser.parse_args()
-    return (arg.run_title args.run_name, args.run_comment, args.epoch, args.verbose)
+    return (args.run_title, args.run_name, args.run_comment, args.verbose)
 def load_config():
     """
     Load in the right config file from desired model to evaluate
     """
-    run_title, run_name, run_comment, epoch, verbose = get_args()
+    run_title, run_name, run_comment, verbose = get_args()
     name = run_name + '-' + run_comment
-    path = "outputs/{}/logs/{}/config.json".format(run_title, name)
+    path = "outputs/{}/logs/{}/config.json".format(str(run_title), name)
     config = None
+    epoch = 15
     with open(path) as f:
         config = dict(json.load(f))
         config = eval_config(config, run_name, run_comment, epoch, verbose)
@@ -133,7 +133,7 @@ def get_embeddings():
 
 def load_embeddings():
    config, name = load_config()
-   a = np.load("./outputs/{}/embeddings/{}/out_embeddings.npy".format(config.title, config.run_name)).item()
+   a = np.load("./outputs/{}/embeddings/{}/out_embeddings.npy".format(config.title, name)).item()
    return a
 
 def glove_embedding():
