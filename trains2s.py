@@ -241,7 +241,6 @@ if __name__ == "__main__":
                                      global_step=total_iter)
 
             if i % config.eval_freq == (config.eval_freq - 1):
-                print ("happening")
                 val_loss = 0.0
                 for data in tqdm(val_loader, total=len(val_loader)):
                     words, inputs, lengths, labels = data
