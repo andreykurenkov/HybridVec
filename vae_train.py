@@ -138,7 +138,7 @@ def main(args):
         for iteration, data in enumerate(train_loader, 0):
             words, inputs, lengths, labels = data
             batch_size = inputs.shape[0]
-            inputs, labels, lengths = Variable(inputs), Variable(labels), torch.FloatTensor(lengths)
+            inputs, labels, lengths = Variable(inputs), Variable(labels), Variable(torch.FloatTensor(lengths))
 
             if use_gpu:
                 inputs = inputs.cuda()
