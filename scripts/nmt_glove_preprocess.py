@@ -10,11 +10,11 @@ import torchtext.vocab as vocab
 import argparse
 import shutil
 from tqdm import tqdm
-from model import Def2VecModel
+from model import Def2VecModel, Seq2SeqModel
 from torch.autograd import Variable
 from loader import *
-from baseline import BaselineModel
 import json
+from seq2seq import EncoderRNN, DecoderRNN
 from config import eval_config
 
 
@@ -28,7 +28,7 @@ def get_args():
                         help='Source glove file.')
     parser.add_argument('num_k_keep', type=int, 
                         help='How many thousands of GloVe vectors to keep for NMT model.')
-    parers.add_argument("run_title")
+    parser.add_argument("run_title")
     parser.add_argument("run_name")
     parser.add_argument("run_comment")
     parser.add_argument("epoch")
