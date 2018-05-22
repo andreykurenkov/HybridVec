@@ -133,7 +133,7 @@ if __name__ == "__main__":
     out_dir = "outputs/{}/checkpoints/{}".format(config.title, config.run_name + "-" + config.run_comment + "-" + str(config.exp_counter))
     while os.path.exists(out_dir):
         config.exp_counter += 1
-        out_dir = "outputs/{}/checkpoints/{}".format(config.title, config.run_name + "-{}".format(config.exp_counter))
+        out_dir = "outputs/{}/checkpoints/{}".format(config.title, config.run_name + "-" + config.run_comment + "-{}".format(config.exp_counter))
     
     
     config.run_comment += "-{}".format(config.exp_counter) #add exp counter to run-comment so that other eval code doesnt change and for log changed in pytorch-monitor
@@ -294,10 +294,10 @@ if __name__ == "__main__":
         out_emb = "outputs/{}/embeddings/{}".format(config.title, config.run_name)
         if not os.path.exists(out_emb):
             os.makedirs(out_emb)
-        np.save("outputs/{}/embeddings/{}/out_embeddings_{}.npy".format(config.title, config.run_name), embed_dicts, epoch + 1)
+        np.save("outputs/{}/embeddings/{}/out_embeddings_{}.npy".format(config.title, config.run_name, epoch + 1), embed_dicts)
 
-        writer.export_scalars_to_json("./all_scalars.json")
-        writer.close()
+    writer.export_scalars_to_json("./all_scalars.json")
+    writer.close()
 
     print('Finished Training')
 
