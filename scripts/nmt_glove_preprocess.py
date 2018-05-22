@@ -145,7 +145,7 @@ if __name__ == "__main__":
                 labels = labels.cuda()
 
             outputs = model(inputs, lengths).cpu().data.numpy()
-            defn_embeds = model.defn_embeds.cpu().data.numpy()
+            defn_embeds = model.defn_embed.cpu().data.numpy()
             for i,word in enumerate(words):
                 vec_str = " ".join([str(x) for x in defn_embeds[i]])
                 output.write('%s %s\n'%(words[i],vec_str))
