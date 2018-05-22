@@ -41,6 +41,7 @@ class base_config(object):
         self.use_glove = True
         self.glove_weight = 1
         self.glove_loss = True
+        self.exp_counter = 0
 
 def train_config():
     return base_config()

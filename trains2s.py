@@ -130,6 +130,13 @@ if __name__ == "__main__":
 
     writer, conf = init_experiment(config.__dict__) #pytorch-monitor needs a dict
 
+    #calculates the right experiment counter
+    out_dir = "outputs/{}/checkpoints/{}".format(config.title, config.run_name)
+    while os.path.exists(out_dir):
+        config.exp_counter += 1
+        out_dir = "outputs/{}/checkpoints/{}".format(config.title, config.run_name + "-{}".format(config.exp_counter))
+    config.run_name += "-{}".format(config.exp_counter)
+
     if DEBUG_LOG:
         monitor_module(model, writer)
 
