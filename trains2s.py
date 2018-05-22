@@ -19,6 +19,7 @@ from time import time
 from config import train_config
 from pytorch_monitor import monitor_module, init_experiment
 from seq2seq import EncoderRNN, DecoderRNN
+from datetime import datetime
 
 
 DEBUG_LOG = False
@@ -136,7 +137,9 @@ if __name__ == "__main__":
     
     
     config.run_comment += "-{}".format(config.exp_counter) #add exp counter to run-comment so that other eval code doesnt change
+    config.run_time = str(datetime.now())
     print ("Running experiment named --- {}".format(config.run_name))
+
 
     writer, conf = init_experiment(config.__dict__) #pytorch-monitor needs a dict
 
