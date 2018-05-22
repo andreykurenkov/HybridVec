@@ -57,7 +57,7 @@ if __name__ == "__main__":
         output_file = 'data/nmt/glove/glove_s2s_train.txt'
     else:
         TRAIN_FILE = 'data/glove/glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
-        output_file = 'data/nmt/glove/glove_s2x_full.txt'
+        output_file = 'data/nmt/glove/glove_s2s_full.txt'
 
 
     VOCAB_DIM = 100
