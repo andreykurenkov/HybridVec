@@ -127,7 +127,6 @@ def get_embeddings():
 	# out_dir = "outputs/def2vec/checkpoints/{}".format(name)
 	#       if not os.path.exists(out_dir):
 	#           os.makedirs(out_dir)
-	np.save("./outputs/def2vec/checkpoints/{}/output_embeddings.npy".format(name), out_embeddings)
 	return out_embeddings
 
 
