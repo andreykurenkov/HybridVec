@@ -117,7 +117,7 @@ if __name__ == "__main__":
                                   num_workers = 8,
                                   shuffle=False,
                                   vocab_size = config.vocab_size)
-        output_file = 'data/nmt/glove/glove_train.txt'
+        output_file = 'data/nmt/glove/glove_baseline_train.txt'
 
     else:
         data_loader = get_data_loader(FULL_FILE,
@@ -128,7 +128,7 @@ if __name__ == "__main__":
                                   num_workers = 8,
                                   shuffle=False,
                                   vocab_size = config.vocab_size)
-        output_file = 'data/nmt/glove/glove_full.txt'
+        output_file = 'data/nmt/glove/glove_baseline_full.txt'
 
     if use_gpu:
         model = model.cuda()
