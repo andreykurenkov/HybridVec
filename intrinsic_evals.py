@@ -42,6 +42,7 @@ def get_args():
     parser.add_argument("--verbose", default=True)
     args = parser.parse_args()
     return (args.run_name, args.run_comment, args.epoch, args.verbose)
+
 def load_config():
     """
     Load in the right config file from desired model to evaluate
@@ -93,7 +94,6 @@ def get_embeddings():
   out_embeddings = {}
   pred_defns = {}
   out_defns = {}
-
 
   for i, data in tqdm(enumerate(train_loader, 0), total=len(train_loader)):
       words, inputs, lengths, labels = data
