@@ -145,10 +145,10 @@ def glove_embedding():
 
 def main():
 	#embeddings = get_embeddings()
-	embeddings = load_embeddings()
-   #embeddings = glove_embedding()
-   print ("got mapping")
-   evaluate_on_all(embeddings)
+  embeddings = load_embeddings()
+  #embeddings = glove_embedding()
+  print ("got mapping")
+  evaluate_on_all(embeddings)
 
 
 
