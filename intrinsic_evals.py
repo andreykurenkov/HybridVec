@@ -50,7 +50,7 @@ def load_config():
     name = run_name + '-' + run_comment
     path = "outputs/{}/logs/{}/config.json".format(str(run_title), name)
     config = None
-    epoch = 15
+    epoch = 2
     with open(path) as f:
         config = dict(json.load(f))
         config = eval_config(config, run_name, run_comment, epoch, verbose)
@@ -144,9 +144,7 @@ def glove_embedding():
   return mapping
 
 def main():
-	#embeddings = get_embeddings()
-	embeddings = load_embeddings()
-   #embeddings = glove_embedding()
+   embeddings = glove_embedding()
    print ("got mapping")
    evaluate_on_all(embeddings)
 
