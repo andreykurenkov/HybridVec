@@ -46,34 +46,33 @@ def get_args():
     parser.add_argument("run_comment")
     parser.add_argument("epoch")
     parser.add_argument("--verbose", default=True)
+    parser.add_argument("--train", default=True, required = True)
     args = parser.parse_args()
-    return (args.glove_file,  args.run_name, args.run_comment, args.epoch, args.verbose)
+    return (args.glove_file,  args.run_name, args.run_comment, args.epoch, args.verbose, args.train)
 
 def load_config():
     """
     Load in the right config file from desired model to evaluate
     """
-    glove_file, run_name, run_comment, epoch, verbose = get_args()
+    glove_file, run_name, run_comment, epoch, verbose, train_data_flag = get_args()
     name = run_name + '-' + run_comment
     path = "outputs/def2vec/logs/{}/config.json".format(name)
     config = None
     with open(path) as f:
         config = dict(json.load(f))
         config = eval_config(config, run_name, run_comment, epoch, verbose)
-    return (config,name, glove_file)
+    return (config,name, glove_file, train_data_flag)
 
 def get_word(word):
     return vocab.vectors[vocab.stoi[word]]
 
 if __name__ == "__main__":
-    config, name, glove_file = load_config()
+    config, name, glove_file, train_data_flag = load_config()
 
     # GLOVE_TOTAL_K = 400
 
     # provided_file = 'data/nmt/glove/glove_%dk_provided.txt'%(num_k_keep)
     # held_out_file = 'data/nmt/glove/glove_%dk_held_out.txt'%(GLOVE_TOTAL_K-num_k_keep)
-    # output_file = 'data/nmt/glove/glove_%dk_provided_filled.txt'%(num_k_keep)
-
     # with open(glove_file,'r') as glove_f:
     #     glove_lines = glove_f.readlines()
 
@@ -92,6 +91,8 @@ if __name__ == "__main__":
     vocab = vocab.GloVe(name=VOCAB_SOURCE, dim=VOCAB_DIM)
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
+    TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
+    FULL_FILE = 'data/glove/glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
 
     model = BaselineModel(vocab,
                              vocab_size = config.vocab_size,
@@ -107,18 +108,31 @@ if __name__ == "__main__":
 
     model.load_state_dict(torch.load(config.save_path), strict = True)
 
-    data_loader = get_data_loader(held_out_file,
+    if train_data_flag:
+        data_loader = get_data_loader(TRAIN_FILE,
                                   vocab,
                                   INPUT_METHOD_ONE,
                                   VOCAB_DIM,
                                   batch_size = config.batch_size,
                                   num_workers = 8,
                                   shuffle=False)
+        output_file = 'data/nmt/glove/glove_train.txt'
+
+    else:
+        data_loader = get_data_loader(FULL_FILE,
+                                  vocab,
+                                  INPUT_METHOD_ONE,
+                                  VOCAB_DIM,
+                                  batch_size = config.batch_size,
+                                  num_workers = 8,
+                                  shuffle=False)
+        output_file = 'data/nmt/glove/glove_full.txt'
 
     if use_gpu:
         model = model.cuda()
 
     # shutil.copyfile(provided_file,output_file)
+
     with open(output_file,'a') as output:
         for i, data in tqdm(enumerate(data_loader, 0), total=len(data_loader)):
             words, inputs, lengths, labels = data
@@ -133,3 +147,4 @@ if __name__ == "__main__":
             for i,word in enumerate(words):
                 vec_str = " ".join([str(x) for x in defn_embeds[i]])
                 output.write('%s %s\n'%(words[i],vec_str))
+
