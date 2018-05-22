@@ -172,8 +172,11 @@ def glove_embedding():
 def main():
 	embeddings = get_embeddings()
 	#embeddings = load_embeddings()
-	# embeddings = glove_embedding()
+	glove_embeddings = glove_embedding()
+	print('average coefficient for embeddings')
 	evaluate_antonyms(embeddings)
+	print('average coefficient for glove')
+	evaluate_antonyms(glove_embeddings)
 
 
 if __name__ == "__main__":
