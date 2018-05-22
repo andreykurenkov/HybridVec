@@ -63,7 +63,7 @@ def get_embeddings():
   use_gpu = torch.cuda.is_available()
   print("Using GPU:", use_gpu)
 
-  model = BaselineModel(vocab,
+  model = BaselineModel(vocab_1,
                          vocab_size = config.vocab_size,
                          embed_size = config.vocab_dim,
                          output_size = config.vocab_dim,
