@@ -1,14 +1,14 @@
 import torch
 import torch.nn as nn
 import torch.nn.utils.rnn as rnn_utils
-from utils import to_var
+from vae_utils import to_var
 
 class SentenceVAE(nn.Module):
 
     def __init__(self, vocab_size, embedding_size, rnn_type, hidden_size, word_dropout, latent_size,
                 sos_idx, eos_idx, pad_idx, max_sequence_length, num_layers=1, bidirectional=False):
 
-        super().__init__()
+        super(SentenceVAE, self).__init__()
         self.tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.Tensor
 
         self.max_sequence_length = max_sequence_length

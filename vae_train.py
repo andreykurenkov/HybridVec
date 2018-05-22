@@ -1,30 +1,54 @@
-import os
-import json
-import time
-import torch
-import argparse
-import numpy as np
-from multiprocessing import cpu_count
-from tensorboardX import SummaryWriter
-from torch.utils.data import DataLoader
-from collections import OrderedDict, defaultdict
+# import os
+# import json
+# import time
+# import torch
+# import argparse
+# import numpy as np
+# from multiprocessing import cpu_count
+# from tensorboardX import SummaryWriter
+# from torch.utils.data import DataLoader
+# from collections import OrderedDict, defaultdict
 
-from ptb import PTB
-from utils import to_var, idx2word, expierment_name
+import sys
+import os
+import collections
+import traceback
+import torch
+import torch.optim as optim
+import torch.nn as nn
+import numpy as np
+import argparse
+
+from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
+from model import Def2VecModel, Seq2SeqModel
+from torch.autograd import Variable
+import torchtext.vocab as vocab
+from tensorboardX import SummaryWriter
+from loader import *
+import torch.nn.init as init
+from tqdm import tqdm
+from time import time
+from config import train_config
+from pytorch_monitor import monitor_module, init_experiment
+from datetime import datetime
+
+from vae_utils import to_var, idx2word, expierment_name
 from vae_model import SentenceVAE
+DEBUG_LOG = False
 
 def main(args):
     config = train_config()
-    vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
+    vocab_1 = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
+    TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
 
 
-    model = SentenceVAE(
-        vocab_size=config.vocab_size,
+
+    model = SentenceVAE(vocab_size=config.vocab_size,
         sos_idx=config.vocab_size + 2,
         eos_idx=config.vocab_size + 1,
-        pad_idx=0,
+        pad_idx=config.vocab_size + 3,
         max_sequence_length=config.max_len,
         embedding_size=config.vocab_dim,
         rnn_type=config.cell_type.lower(),
@@ -32,29 +56,29 @@ def main(args):
         word_dropout=config.dropout,
         latent_size=config.hidden_size,
         num_layers=config.num_layers,
-        bidirectional=config.bidirectional
+        bidirectional=config.use_bidirection
         )
 
     if torch.cuda.is_available():
         model = model.cuda()
 
     train_loader = get_data_loader(TRAIN_FILE,
-                                   vocab,
+                                   vocab_1,
                                    config.input_method,
                                    config.vocab_dim,
                                    batch_size = config.batch_size,
                                    num_workers = config.num_workers,
                                    shuffle=config.shuffle,
-                                   vocab_size = vocab_size)
+                                   vocab_size = config.vocab_size)
 
-    val_loader = get_data_loader(VAL_FILE,
-                                   vocab,
-                                   config.input_method,
-                                   config.vocab_dim,
-                                   batch_size = config.batch_size,
-                                   num_workers = config.num_workers,
-                                   shuffle=config.shuffle,
-                                   vocab_size = vocab_size)
+    # val_loader = get_data_loader(VAL_FILE,
+    #                                vocab_1,
+    #                                config.input_method,
+    #                                config.vocab_dim,
+    #                                batch_size = config.batch_size,
+    #                                num_workers = config.num_workers,
+    #                                shuffle=config.shuffle,
+    #                                vocab_size = config.vocab_size)
 
     out_dir = "outputs/{}/checkpoints/{}".format(config.title, config.run_name + "-" + config.run_comment + "-" + str(config.exp_counter))
     while os.path.exists(out_dir):
@@ -86,7 +110,7 @@ def main(args):
         elif anneal_function == 'linear':
             return min(1, step/x0)
 
-    NLL = torch.nn.NLLLoss(size_average=False, ignore_index=datasets['train'].pad_idx)
+    NLL = torch.nn.NLLLoss(size_average=False, ignore_index=config.vocab_size + 3)
     def loss_fn(logp, target, length, mean, logv, anneal_function, step, k, x0):
 
         # cut-off unnecessary padding from target, and flatten
@@ -114,7 +138,7 @@ def main(args):
         for iteration, data in enumerate(train_loader, 0):
             words, inputs, lengths, labels = data
             batch_size = inputs.shape[0]
-            inputs, labels = Variable(inputs), Variable(labels)
+            inputs, labels, lengths = Variable(inputs), Variable(labels), torch.FloatTensor(lengths)
 
             if use_gpu:
                 inputs = inputs.cuda()
@@ -192,12 +216,6 @@ def main(args):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-
-    parser.add_argument('--data_dir', type=str, default='data')
-    parser.add_argument('--create_data', action='store_true')
-    parser.add_argument('--max_sequence_length', type=int, default=60)
-    parser.add_argument('--min_occ', type=int, default=1)
-    parser.add_argument('--test', action='store_true')
 
     parser.add_argument('-ep', '--epochs', type=int, default=10)
     parser.add_argument('-bs', '--batch_size', type=int, default=32)
