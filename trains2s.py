@@ -130,18 +130,19 @@ if __name__ == "__main__":
                            weight_decay=config.weight_decay)
 
     #calculates the right experiment counter
-    out_dir = "outputs/{}/checkpoints/{}".format(config.title, config.run_name + "-" + config.run_comment + "-" config.exp_counter)
+    out_dir = "outputs/{}/checkpoints/{}".format(config.title, config.run_name + "-" + config.run_comment + "-" + str(config.exp_counter))
     while os.path.exists(out_dir):
         config.exp_counter += 1
         out_dir = "outputs/{}/checkpoints/{}".format(config.title, config.run_name + "-{}".format(config.exp_counter))
     
     
-    config.run_comment += "-{}".format(config.exp_counter) #add exp counter to run-comment so that other eval code doesnt change
+    config.run_comment += "-{}".format(config.exp_counter) #add exp counter to run-comment so that other eval code doesnt change and for log changed in pytorch-monitor
     config.run_time = str(datetime.now())
-    print ("Running experiment named --- {}".format(config.run_name))
 
 
     writer, conf = init_experiment(config.__dict__) #pytorch-monitor needs a dict
+    print ("Running experiment named --- {}".format(config.run_name))
+
 
 
 
@@ -290,12 +291,14 @@ if __name__ == "__main__":
         print ("saving")
         torch.save(model.state_dict(), out_path + "/" + config.save_path)
 
-    writer.export_scalars_to_json("./all_scalars.json")
-    writer.close()
+        out_emb = "outputs/{}/embeddings/{}".format(config.title, config.run_name)
+        if not os.path.exists(out_emb):
+            os.makedirs(out_emb)
+        np.save("outputs/{}/embeddings/{}/out_embeddings_{}.npy".format(config.title, config.run_name), embed_dicts, epoch + 1)
+
+        writer.export_scalars_to_json("./all_scalars.json")
+        writer.close()
 
     print('Finished Training')
-    out_emb = "outputs/{}/embeddings/{}".format(config.title, config.run_name)
-    if not os.path.exists(out_emb):
-        os.makedirs(out_emb)
-    np.save("outputs/{}/embeddings/{}/out_embeddings.npy".format(config.title, config.run_name), embed_dicts)
+
 
