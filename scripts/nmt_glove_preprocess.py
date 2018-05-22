@@ -23,11 +23,11 @@ def get_args():
     Gets the run_name, run_comment, and epoch of the model being evaluated
     """
     parser = argparse.ArgumentParser(description="Process nmt.")
-    parser.add_argument('--glove_file', type=str, required = False,
-                        default='data/glove/glove.6B.100d.txt',
-                        help='Source glove file.')
-    parser.add_argument('num_k_keep', type=int, 
-                        help='How many thousands of GloVe vectors to keep for NMT model.')
+    # parser.add_argument('--glove_file', type=str, required = False,
+    #                     default='data/glove/glove.6B.100d.txt',
+    #                     help='Source glove file.')
+    # parser.add_argument('num_k_keep', type=int, 
+    #                     help='How many thousands of GloVe vectors to keep for NMT model.')
     parser.add_argument("run_title")
     parser.add_argument("run_name")
     parser.add_argument("run_comment")
@@ -37,26 +37,26 @@ def get_args():
     parser.add_argument("--num_layers", default=2 )
     parser.add_argument("--verbose", default=True )
     args = parser.parse_args()
-    return (args.glove_file, args.num_k_keep, args.run_title, args.run_name, args.run_comment, args.epoch, args.train, args.vocab_size, args.num_layers, args.verbose)
+    return (args.run_title, args.run_name, args.run_comment, args.epoch, args.train, args.vocab_size, args.num_layers, args.verbose)
 
 def load_config():
     """
     Load in the right config file from desired model to evaluate
     """
-    glove_file, num_k_keep, run_title, run_name, run_comment, epoch, train, vocab_size, num_layers,  verbose = get_args()
+    run_title, run_name, run_comment, epoch, train, vocab_size, num_layers,  verbose = get_args()
     name = run_name + '-' + run_comment
     path = "outputs/{}/logs/{}/config.json".format(str(run_title), name)
     config = None
     with open(path) as f:
         config = dict(json.load(f))
         config = eval_config(config, run_name, run_comment, epoch, verbose)
-    return (config,name, glove_file, num_k_keep, vocab_size, num_layers, train)
+    return (config,name, vocab_size, num_layers, train)
 
 def get_word(word):
     return vocab.vectors[vocab.stoi[word]]
 
 if __name__ == "__main__":
-    config, name, glove_file, num_k_keep, vocab_size, num_layers, train_flag = load_config()
+    config, name, vocab_size, num_layers, train_flag = load_config()
     if train_flag:
         TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
         output_file = 'data/nmt/glove/glove_s2s_train.txt'
