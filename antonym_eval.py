@@ -80,28 +80,28 @@ def get_embeddings():
 	use_gpu = torch.cuda.is_available()
 	print("Using GPU:", use_gpu)
 
-	model = BaselineModel(vocab,
-												 vocab_size = config.vocab_size,
-												 embed_size = config.vocab_dim,
-												 output_size = config.vocab_dim,
-												 hidden_size = config.hidden_size,
-												 use_packing = config.packing,
-												 use_bidirection = config.use_bidirection,
-												 use_attention = config.use_attention,
-												 cell_type = config.cell_type,
-												 use_cuda = use_gpu,
-												 use_glove_init = config.use_glove_init)
+	model = BaselineModel(vocab_1,
+						 vocab_size = config.vocab_size,
+						 embed_size = config.vocab_dim,
+						 output_size = config.vocab_dim,
+						 hidden_size = config.hidden_size,
+						 use_packing = config.packing,
+						 use_bidirection = config.use_bidirection,
+						 use_attention = config.use_attention,
+						 cell_type = config.cell_type,
+						 use_cuda = use_gpu,
+						 use_glove_init = config.use_glove_init)
 
 	model.load_state_dict(torch.load(config.save_path), strict = True)
 
 	train_loader = get_data_loader(TRAIN_FILE,
-																 vocab_1,
-																 config.input_method,
-																 config.vocab_dim,
-																 batch_size = config.batch_size,
-																 num_workers = config.num_workers,
-																 shuffle=False,
-																 vocab_size=config.vocab_size)
+									 vocab_1,
+									 config.input_method,
+									 config.vocab_dim,
+									 batch_size = config.batch_size,
+									 num_workers = config.num_workers,
+									 shuffle=False,
+									 vocab_size=config.vocab_size)
 	if use_gpu:
 			model = model.cuda()
 	model.train(False)
