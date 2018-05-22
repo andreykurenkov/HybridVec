@@ -46,7 +46,7 @@ def get_args():
     parser.add_argument("run_comment")
     parser.add_argument("epoch")
     parser.add_argument("--verbose", default=True)
-    parser.add_argument("--train", default=True, required = True)
+    parser.add_argument("--train", required = True)
     args = parser.parse_args()
     return (args.glove_file,  args.run_name, args.run_comment, args.epoch, args.verbose, args.train)
 
@@ -115,7 +115,8 @@ if __name__ == "__main__":
                                   VOCAB_DIM,
                                   batch_size = config.batch_size,
                                   num_workers = 8,
-                                  shuffle=False)
+                                  shuffle=False,
+                                  vocab_size = config.vocab_size)
         output_file = 'data/nmt/glove/glove_train.txt'
 
     else:
@@ -125,7 +126,8 @@ if __name__ == "__main__":
                                   VOCAB_DIM,
                                   batch_size = config.batch_size,
                                   num_workers = 8,
-                                  shuffle=False)
+                                  shuffle=False,
+                                  vocab_size = config.vocab_size)
         output_file = 'data/nmt/glove/glove_full.txt'
 
     if use_gpu:
