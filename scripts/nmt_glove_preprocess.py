@@ -40,52 +40,52 @@ def get_args():
     parser.add_argument('--glove_file', type=str, required = False,
                         default='data/glove/glove.6B.100d.txt',
                         help='Source glove file.')
-    parser.add_argument('num_k_keep', type=int, 
-                        help='How many thousands of GloVe vectors to keep for NMT model.')
+    # parser.add_argument('num_k_keep', type=int, 
+    #                     help='How many thousands of GloVe vectors to keep for NMT model.')
     parser.add_argument("run_name")
     parser.add_argument("run_comment")
     parser.add_argument("epoch")
     parser.add_argument("--verbose", default=True)
     args = parser.parse_args()
-    return (args.glove_file, args.num_k_keep, args.run_name, args.run_comment, args.epoch, args.verbose)
+    return (args.glove_file,  args.run_name, args.run_comment, args.epoch, args.verbose)
 
 def load_config():
     """
     Load in the right config file from desired model to evaluate
     """
-    glove_file, num_k_keep, run_name, run_comment, epoch, verbose = get_args()
+    glove_file, run_name, run_comment, epoch, verbose = get_args()
     name = run_name + '-' + run_comment
     path = "outputs/def2vec/logs/{}/config.json".format(name)
     config = None
     with open(path) as f:
         config = dict(json.load(f))
         config = eval_config(config, run_name, run_comment, epoch, verbose)
-    return (config,name, glove_file, num_k_keep)
+    return (config,name, glove_file)
 
 def get_word(word):
     return vocab.vectors[vocab.stoi[word]]
 
 if __name__ == "__main__":
-    config, name, glove_file, num_k_keep = load_config()
+    config, name, glove_file = load_config()
 
-    GLOVE_TOTAL_K = 400
+    # GLOVE_TOTAL_K = 400
 
-    provided_file = 'data/nmt/glove/glove_%dk_provided.txt'%(num_k_keep)
-    held_out_file = 'data/nmt/glove/glove_%dk_held_out.txt'%(GLOVE_TOTAL_K-num_k_keep)
-    output_file = 'data/nmt/glove/glove_%dk_provided_filled.txt'%(num_k_keep)
+    # provided_file = 'data/nmt/glove/glove_%dk_provided.txt'%(num_k_keep)
+    # held_out_file = 'data/nmt/glove/glove_%dk_held_out.txt'%(GLOVE_TOTAL_K-num_k_keep)
+    # output_file = 'data/nmt/glove/glove_%dk_provided_filled.txt'%(num_k_keep)
 
-    with open(glove_file,'r') as glove_f:
-        glove_lines = glove_f.readlines()
+    # with open(glove_file,'r') as glove_f:
+    #     glove_lines = glove_f.readlines()
 
-    with open(provided_file,'w') as provided:
-        for i in range(num_k_keep*1000):
-            provided.write(glove_lines[i])
-        # Include unk token
-        provided.write(glove_lines[-1])
+    # with open(provided_file,'w') as provided:
+    #     for i in range(num_k_keep*1000):
+    #         provided.write(glove_lines[i])
+    #     # Include unk token
+    #     provided.write(glove_lines[-1])
 
-    with open(held_out_file,'w') as held_out:
-        for i in range(num_k_keep*1000, len(glove_lines)-1):
-            held_out.write(glove_lines[i])
+    # with open(held_out_file,'w') as held_out:
+    #     for i in range(num_k_keep*1000, len(glove_lines)-1):
+    #         held_out.write(glove_lines[i])
 
     VOCAB_DIM = 100
     VOCAB_SOURCE = '6B'
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     if use_gpu:
         model = model.cuda()
 
-    shutil.copyfile(provided_file,output_file)
+    # shutil.copyfile(provided_file,output_file)
     with open(output_file,'a') as output:
         for i, data in tqdm(enumerate(data_loader, 0), total=len(data_loader)):
             words, inputs, lengths, labels = data
