@@ -206,10 +206,9 @@ if __name__ == "__main__":
             
             writer.add_scalar('loss', batch_loss + glove_loss.cpu().data[0], total_iter)
             writer.add_scalar('dev_loss', batch_loss, total_iter)
-            #save outputs on last run
-            if epoch == (config.max_epochs -1):
-                for word, embed in zip(words, encoder_hidden.data.cpu()):
-                    embed_dicts[word] = embed.numpy()
+            #save output embeddings
+            for word, embed in zip(words, encoder_hidden.data.cpu()):
+                embed_dicts[word] = embed.numpy()
 
             if embed_outs is None:
                 embed_outs = encoder_hidden.data.cpu()
@@ -288,13 +287,16 @@ if __name__ == "__main__":
         out_path = "outputs/{}/checkpoints/{}/epoch_{}".format(config.title, config.run_name, epoch + 1)
         if not os.path.exists(out_path):
             os.mkdir(out_path)
-        print ("saving")
+        print ("saving model")
         torch.save(model.state_dict(), out_path + "/" + config.save_path)
 
         out_emb = "outputs/{}/embeddings/{}".format(config.title, config.run_name)
         if not os.path.exists(out_emb):
             os.makedirs(out_emb)
+        print ("saving embeddings")
         np.save("outputs/{}/embeddings/{}/out_embeddings_{}.npy".format(config.title, config.run_name, epoch + 1), embed_dicts)
+        del embed_dicts
+        embed_dicts = {}
 
     writer.export_scalars_to_json("./all_scalars.json")
     writer.close()
