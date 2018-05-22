@@ -136,6 +136,7 @@ if __name__ == "__main__":
         config.exp_counter += 1
         out_dir = "outputs/{}/checkpoints/{}".format(config.title, config.run_name + "-{}".format(config.exp_counter))
     config.run_name += "-{}".format(config.exp_counter)
+    print ("Saving model to output dir {}".format(config.run_name))
 
     if DEBUG_LOG:
         monitor_module(model, writer)
