@@ -178,8 +178,8 @@ def evaluate_antonyms(embeddings):
 
         else: continue
 
-    running_total /= count 
-    print('average cosine similarity loss is: ', running_total)
+    running_total /= count
+    return running_total
 
 
 def main():
@@ -188,7 +188,7 @@ def main():
    print ("The average distance of antonyms on GloVe embeddings is {}".format(glove_dist))
 
    s2s_emb = get_embeddings()
-   s2s_dist = evaluate_antonyms(glove_emb)
+   s2s_dist = evaluate_antonyms(s2s_emb)
    print ("The average distance of antonyms on HybridVec embeddings is {}".format(s2s_dist))
 
 
