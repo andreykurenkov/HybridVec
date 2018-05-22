@@ -31,7 +31,7 @@ class base_config(object):
         self.weight_init="xavier"
         self.input_method=INPUT_METHOD_ALL_CONCAT
         self.use_bidirection=False
-        self.use_attention=True
+        self.use_attention=False
         self.cell_type='GRU'
         #use_batchnorm=True,
         self.hidden_size=150
