@@ -23,11 +23,6 @@ def get_args():
     Gets the run_name, run_comment, and epoch of the model being evaluated
     """
     parser = argparse.ArgumentParser(description="Process nmt.")
-    # parser.add_argument('--glove_file', type=str, required = False,
-    #                     default='data/glove/glove.6B.100d.txt',
-    #                     help='Source glove file.')
-    # parser.add_argument('num_k_keep', type=int, 
-    #                     help='How many thousands of GloVe vectors to keep for NMT model.')
     parser.add_argument("run_title")
     parser.add_argument("run_name")
     parser.add_argument("run_comment")
@@ -64,26 +59,6 @@ if __name__ == "__main__":
         TRAIN_FILE = 'data/glove/glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
         output_file = 'data/nmt/glove/glove_s2x_full.txt'
 
-
-
-    # GLOVE_TOTAL_K = 400
-
-    # provided_file = 'data/nmt/glove/glove_%dk_provided.txt'%(num_k_keep)
-    # held_out_file = 'data/nmt/glove/glove_%dk_held_out.txt'%(GLOVE_TOTAL_K-num_k_keep)
-    # output_file = 'data/nmt/glove/glove_%dk_provided_filled.txt'%(num_k_keep)
-
-    # with open(glove_file,'r') as glove_f:
-    #     glove_lines = glove_f.readlines()
-
-    # with open(provided_file,'w') as provided:
-    #     for i in range(num_k_keep*1000):
-    #         provided.write(glove_lines[i])
-    #     # Include unk token
-    #     provided.write(glove_lines[-1])
-
-    # with open(held_out_file,'w') as held_out:
-    #     for i in range(num_k_keep*1000, len(glove_lines)-1):
-    #         held_out.write(glove_lines[i])
 
     VOCAB_DIM = 100
     VOCAB_SOURCE = '6B'
@@ -134,7 +109,7 @@ if __name__ == "__main__":
         model = model.cuda()
     model.train(False)
 
-    #shutil.copyfile(provided_file,output_file)
+
     with open(output_file,'a') as output:
         for i, data in tqdm(enumerate(train_loader, 0), total=len(train_loader)):
             words, inputs, lengths, labels = data
