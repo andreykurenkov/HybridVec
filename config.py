@@ -10,6 +10,7 @@ class base_config(object):
         self.log_dir='outputs/def2vec/logs'
         self.vocab_dim = 100
         self.vocab_source = '6B'
+        self.vocab_size = 50000
         self.load_path = None
         # hyperparams
         self.random_seed=42
