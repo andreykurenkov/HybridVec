@@ -50,12 +50,12 @@ def eval_config(d, run_name, run_comment, epoch, verbose):
     for k in d:
         setattr(e, k, d[k])
 
-    e.run_name=run_name, 
-    e.run_comment=run_comment,
+    e.run_name=run_name 
+    e.run_comment=run_comment
     e.log_dir='logs'
     e.batch_size = 16
     e.dropout = 0
-    name = e.run_name + '-' + run_comment
+    name = run_name + '-' + run_comment + "-" + run_comment
     e.save_path="outputs/def2vec/checkpoints/{}/epoch_{}/model_weights.torch".format(name, epoch)
     e.packing = False
     e.input_method=INPUT_METHOD_ONE
