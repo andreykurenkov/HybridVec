@@ -183,6 +183,7 @@ if __name__ == "__main__":
                 writer.add_scalar('l2_loss', glove_loss.cpu().data[0], total_iter)
                 running_loss += batch_loss + glove_loss.cpu().data[0]
             else:
+                running_loss += batch_loss
                 total_loss = acc_loss
     
             total_loss.backward()
