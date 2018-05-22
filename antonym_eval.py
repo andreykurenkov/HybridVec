@@ -1,4 +1,5 @@
 from __future__ import print_function
+import os
 from eval_scripts import evaluate_on_all
 from tqdm import tqdm
 import sys
@@ -22,14 +23,9 @@ import json
 import argparse
 from seq2seq import EncoderRNN, DecoderRNN
 from collections import OrderedDict
+from nltk.corpus import wordnet as wn
 
 
-# # runs over all the words in glove and returns embeddings for each one
-# def get_embeddings():
-# 	#check if there is a local file first
-
-
-# 	# if not run the model on all the glove files and print the scores
 
 def get_args():
     """
@@ -39,26 +35,44 @@ def get_args():
     parser.add_argument("run_title")
     parser.add_argument("run_name")
     parser.add_argument("run_comment")
+    parser.add_argument("epoch")
     parser.add_argument("--verbose", default=True)
     args = parser.parse_args()
-    return (args.run_title, args.run_name, args.run_comment, args.verbose)
+    return (args.run_title, args.run_name, args.run_comment, args.epoch, args.verbose)
 def load_config():
     """
     Load in the right config file from desired model to evaluate
     """
-    run_title, run_name, run_comment, verbose = get_args()
+    run_title, run_name, run_comment, epoch, verbose = get_args()
     name = run_name + '-' + run_comment
     path = "outputs/{}/logs/{}/config.json".format(str(run_title), name)
     config = None
-    epoch = 2
     with open(path) as f:
         config = dict(json.load(f))
         config = eval_config(config, run_name, run_comment, epoch, verbose)
     return (config,name)
 
+def create_data():
+  in_glove = open("data/glove/glove.6B.100d.txt", "r")
+
+  out_glove = open("data/glove/5k_glove.6B.100d.txt", "w")
+
+  count = 0
+  for line in in_glove:
+    if count == 5000: break
+    out_glove.write(line)
+    count += 1
+
+  in_glove.close()
+  out_glove.close()
+
 def get_embeddings():
   config, name = load_config()
-  TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
+
+  TRAIN_FILE = 'data/glove/5k_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
+  if not os.path.exists(TRAIN_FILE):
+    create_data()
+
   vocab_1 = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
   use_gpu = torch.cuda.is_available()
   print("Using GPU:", use_gpu)
@@ -105,14 +119,9 @@ def get_embeddings():
                                  vocab_size=vocab_size)
   if use_gpu:
       model = model.cuda()
-  criterion = nn.NLLLoss()
   model.train(False)
 
-  running_loss = 0.0
-  n_batches = 0
   out_embeddings = {}
-  pred_defns = {}
-  out_defns = {}
 
 
   for i, data in tqdm(enumerate(train_loader, 0), total=len(train_loader)):
@@ -125,9 +134,9 @@ def get_embeddings():
 
       (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = model(inputs, lengths)
       for idx, word in enumerate(words):
-      	out_embeddings[word] = encoder_hidden.cpu().data[idx, :]
+        out_embeddings[word] = encoder_hidden.cpu().data[idx, :]
 
-  np.save("eval/name-output_embeddings.npy".format(name), out_embeddings)
+  #np.save("eval/name-output_embeddings.npy".format(name), out_embeddings)
   return out_embeddings
 
 
@@ -137,19 +146,54 @@ def load_embeddings():
    return a
 
 def glove_embedding():
-  vocab_glove = vocab.GloVe(name="840B", dim=300)
+  vocab_glove = vocab.GloVe(name="6B", dim=100)
   mapping = {}
   for index, w in enumerate(vocab_glove.itos):
+    if index > 5000: break
     mapping[w] = vocab_glove.vectors[index]
   return mapping
 
+
+def cosine_similarity(x,y):
+    return np.dot(x,y)/(np.sqrt(np.dot(x,x)) * np.sqrt(np.dot(y,y)))
+
+def evaluate_antonyms(embeddings):
+    #embedding is dictionary of word to embedding 
+    running_total = 0
+    count = 0 
+    for word in embeddings.keys():
+        embed = embeddings[word]
+
+        #make sure the antonym can be indexed into
+        antonym = None 
+        if len(wordnet.synsets(word)) > 0 and len(wordnet.synsets(word)[0].lemmas()) > 0 and len(wordnet.synsets(word)[0].lemmas()[0].antonyms()) > 0:
+            antonym = wordnet.synsets(word)[0].lemmas()[0].antonyms()[0].name()
+        else: continue 
+
+        if antonym is not None and antonym in embeddings:
+            antonym_embed = embeddings[antonym]
+            total = cosine_similarity(embed, antonym_embed)
+            running_total += total 
+            count += 1 
+
+        else: continue
+
+    running_total /= count
+    return running_total
+
+
 def main():
-   #embeddings = glove_embedding()
-   embeddings = get_embeddings()
-   print ("got mapping")
-   evaluate_on_all(embeddings)
+   glove_emb = glove_embedding()
+   glove_dist = evaluate_antonyms(glove_emb)
+   
+
+   s2s_emb = get_embeddings()
+   s2s_dist = evaluate_antonyms(s2s_emb)
+   
+   print ("The average distance of antonyms on GloVe embeddings is {}".format(glove_dist))
+   print ("The average distance of antonyms on HybridVec embeddings is {}".format(s2s_dist))
 
 
 
 if __name__ == "__main__":
-	main()
+    main()
