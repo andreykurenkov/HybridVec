@@ -181,12 +181,13 @@ if __name__ == "__main__":
                 glove_loss += criterion2(Variable(encoder_hidden.data[:, :100]), labels)* config.glove_weight
                 total_loss = sum ([acc_loss, glove_loss])
                 writer.add_scalar('l2_loss', glove_loss.cpu().data[0], total_iter)
+                running_loss += batch_loss + glove_loss.cpu().data[0]
             else:
+                running_loss += batch_loss
                 total_loss = acc_loss
     
             total_loss.backward()
             optimizer.step()
-            running_loss += batch_loss + glove_loss.cpu().data[0]
             
             #writer.add_scalar('loss', batch_loss + glove_loss.cpu().data[0], total_iter)
             writer.add_scalar('dev_loss', batch_loss, total_iter)
