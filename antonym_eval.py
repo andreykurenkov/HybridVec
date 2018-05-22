@@ -185,10 +185,12 @@ def evaluate_antonyms(embeddings):
 def main():
    glove_emb = glove_embedding()
    glove_dist = evaluate_antonyms(glove_emb)
-   print ("The average distance of antonyms on GloVe embeddings is {}".format(glove_dist))
+   
 
    s2s_emb = get_embeddings()
    s2s_dist = evaluate_antonyms(s2s_emb)
+   
+   print ("The average distance of antonyms on GloVe embeddings is {}".format(glove_dist))
    print ("The average distance of antonyms on HybridVec embeddings is {}".format(s2s_dist))
 
 
