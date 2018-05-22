@@ -128,15 +128,19 @@ if __name__ == "__main__":
                            lr=config.learning_rate,
                            weight_decay=config.weight_decay)
 
-    writer, conf = init_experiment(config.__dict__) #pytorch-monitor needs a dict
-
     #calculates the right experiment counter
-    out_dir = "outputs/{}/checkpoints/{}".format(config.title, config.run_name)
+    out_dir = "outputs/{}/checkpoints/{}".format(config.title, config.run_name + "-" + config.run_comment + "-" config.exp_counter)
     while os.path.exists(out_dir):
         config.exp_counter += 1
         out_dir = "outputs/{}/checkpoints/{}".format(config.title, config.run_name + "-{}".format(config.exp_counter))
-    config.run_name += "-{}".format(config.exp_counter)
-    print ("Saving model to output dir {}".format(config.run_name))
+    
+    
+    config.run_comment += "-{}".format(config.exp_counter) #add exp counter to run-comment so that other eval code doesnt change
+    print ("Running experiment named --- {}".format(config.run_name))
+
+    writer, conf = init_experiment(config.__dict__) #pytorch-monitor needs a dict
+
+
 
     if DEBUG_LOG:
         monitor_module(model, writer)
