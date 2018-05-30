@@ -4,9 +4,9 @@ from loader import *
 class base_config(object):
     def __init__ (self):
         self.title="def2vec"
-        self.description="Translating definitions to word vectors"
-        self.run_name='full_run_big'
-        self.run_comment='def_concat' # gets appended to run_name as RUN_NAME-RUN_COMMENT
+        self.description="Creating new word embeddings using seq2seq"
+        self.run_name='seq2seq'
+        self.run_comment='test-aneesh' # gets appended to run_name as RUN_NAME-RUN_COMMENT
         self.log_dir='outputs/def2vec/logs'
         self.vocab_dim = 100
         self.vocab_source = '6B'
@@ -19,7 +19,7 @@ class base_config(object):
         self.n_hidden=250
         # logging params
         self.print_freq=1
-        self.write_embed_freq=100
+        self.write_embed_freq= 100
         self.eval_freq = 1000
         self.save_path="model_weights.torch"
         self.embedding_log_size = 10000
@@ -30,7 +30,7 @@ class base_config(object):
         # model configuration [for ablation/hyperparam experiments]
         self.weight_init="xavier"
         self.input_method=INPUT_METHOD_ALL_CONCAT
-        self.use_bidirection=True
+        self.use_bidirection=False
         self.use_attention=True
         self.cell_type='GRU'
         #use_batchnorm=True,
