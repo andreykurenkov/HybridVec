@@ -43,6 +43,9 @@ class base_config(object):
         self.glove_loss = True
         self.exp_counter = 0
         self.time_run = None
+        self.max_len = 100
+        self.num_layers = 3
+        self.vocab_size = 50000
 
 def train_config():
     return base_config()

@@ -57,8 +57,7 @@ if __name__ == "__main__":
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
     
-    vocab_size = 50000
-    vocab_reduced = True if vocab_size < 400000 else False
+    vocab_reduced = True if config.vocab_size < 400000 else False
     embedding = nn.Embedding(vocab_size+3, config.vocab_dim, padding_idx=0) #+2 for the start and end symbol and +1 for unk token
     embedding.weight.data[0,:] = 0
     if config.use_glove:
@@ -67,12 +66,12 @@ if __name__ == "__main__":
 
     encoder = EncoderRNN(vocab_size = vocab_size,
                         vocab = vocab,
-                        max_len = 100, 
+                        max_len = config.max_len, 
                         hidden_size = config.hidden_size, 
                         embed_size = config.vocab_dim,
                         input_dropout_p=config.dropout,
                         dropout_p=config.dropout,
-                        n_layers=2,
+                        n_layers=config.num_layers,
                         bidirectional=config.use_bidirection,
                         rnn_cell=config.cell_type.lower(),
                         variable_lengths=False,
@@ -81,9 +80,9 @@ if __name__ == "__main__":
                         )
 
     decoder = DecoderRNN(vocab_size = vocab_size,
-                        max_len = 100,
+                        max_len = config.max_len,
                         hidden_size = config.hidden_size,
-                        n_layers=2,
+                        n_layers=config.num_layers,
                         rnn_cell=config.cell_type.lower(),
                         bidirectional=config.use_bidirection,
                         input_dropout_p=config.dropout,

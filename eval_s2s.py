@@ -61,7 +61,6 @@ def closest(vec, n=10):
     return sorted(all_dists, key=lambda t: t[1])[:n]
 
 def write_output(f, pred, inputs, words, vocab_size):
-  #print (pred)  
   for w in range(len(words)):
     f.write(words[w] +"\n")
     definition_input = [( vocab.itos[i - 1] if (i>0 and i<=vocab_size+1) else str(i)) for i in (inputs[w])]
@@ -84,7 +83,6 @@ def get_loss_nll(acc_loss, norm_term):
         loss = acc_loss.data
         loss /= norm_term
         loss =  (Variable(loss).data)[0]
-        #print (type(loss))
         return loss
 
 if __name__ == "__main__":
@@ -170,7 +168,6 @@ if __name__ == "__main__":
           labels = labels.cuda()
 
       (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = model(inputs, lengths)
-      #print (i, "out of data")
       acc_loss = 0
       norm_term = 0
 
@@ -208,5 +205,4 @@ if __name__ == "__main__":
   f.close()
   print("L2 loss:", running_loss / n_batches)
   np.save("eval/out_embeddings.npy", out_embeddings)
-  #np.save("eval/out_attns.npy", out_attns)
   np.save("eval/out_defns.npy", out_defns)
