@@ -86,7 +86,7 @@ def get_loss_nll(acc_loss, norm_term):
         return loss
 
 if __name__ == "__main__":
-  f = open('input-output.txt','w')
+  f = open('input-output-max100.txt','w')
   config = load_config()
   TEST_FILE = 'data/glove/test_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
   vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
@@ -102,7 +102,7 @@ if __name__ == "__main__":
       embedding.weight.data[1:vocab_size,:].copy_(vocab.vectors[:vocab_size-1,:])
 
   encoder = EncoderRNN(vocab_size = vocab_size,
-                      max_len = 200, 
+                      max_len = 100, 
                       hidden_size = config.hidden_size, 
                       embed_size = config.vocab_dim,
                       input_dropout_p=config.dropout,
@@ -115,7 +115,7 @@ if __name__ == "__main__":
                       )
 
   decoder = DecoderRNN(vocab_size = vocab_size,
-                      max_len = 200,
+                      max_len = 100,
                       hidden_size = config.hidden_size,
                       n_layers=2,
                       rnn_cell=config.cell_type.lower(),
