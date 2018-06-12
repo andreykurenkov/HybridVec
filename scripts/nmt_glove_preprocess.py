@@ -55,15 +55,18 @@ def load_config():
     Load in the right config file from desired model to evaluate
     """
     glove_file, run_name, run_comment, epoch, verbose, train_data_flag = get_args()
-    name = run_name + '-' + run_comment
+    name = run_name + "-" + run_comment
     path = "outputs/def2vec/logs/{}/config.json".format(name)
     config = None
     with open(path) as f:
         config = dict(json.load(f))
+        run_comment+= "-" + run_comment
         config = eval_config(config, run_name, run_comment, epoch, verbose)
     return (config,name, glove_file, train_data_flag)
 
 def get_word(word):
+    #print(word)
+    word = unicode(word, 'utf-8')
     return vocab.vectors[vocab.stoi[word]]
 
 if __name__ == "__main__":
@@ -105,7 +108,7 @@ if __name__ == "__main__":
                              cell_type = config.cell_type,
                              use_cuda = use_gpu,
                              use_glove_init = config.use_glove_init)
-
+    #config.save_path+= "-" + config.run_comment
     model.load_state_dict(torch.load(config.save_path), strict = True)
 
     if train_data_flag:
@@ -147,10 +150,11 @@ if __name__ == "__main__":
             outputs = model(inputs, lengths).cpu().data.numpy()
             defn_embeds = model.defn_embed.cpu().data.numpy()
             for i,word in enumerate(words):
+                if word == "\xe2\x80\x93": continue
                 our_vecs = [str(x) for x in defn_embeds[i]]
-                glove_vecs = [str(x) for x in get_word(x)]
+                glove_vecs = [str(x) for x in get_word(word)]
                 combined = our_vecs + glove_vecs
                 vec_str = " ".join(combined)
-                print ('combined vec str', vec_str)
+                #print ('combined vec str', vec_str)
                 output.write('%s %s\n'%(word,vec_str))
 
