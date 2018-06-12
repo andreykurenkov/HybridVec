@@ -147,6 +147,10 @@ if __name__ == "__main__":
             outputs = model(inputs, lengths).cpu().data.numpy()
             defn_embeds = model.defn_embed.cpu().data.numpy()
             for i,word in enumerate(words):
-                vec_str = " ".join([str(x) for x in defn_embeds[i]])
-                output.write('%s %s\n'%(words[i],vec_str))
+                our_vecs = [str(x) for x in defn_embeds[i]]
+                glove_vecs = [str(x) for x in get_word(x)]
+                combined = our_vecs + glove_vecs
+                vec_str = " ".join(combined)
+                print ('combined vec str', vec_str)
+                output.write('%s %s\n'%(word,vec_str))
 

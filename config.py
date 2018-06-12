@@ -18,6 +18,8 @@ class base_config(object):
         self.max_epochs=15
         self.batch_size=64
         self.n_hidden=250
+        self.use_glove_init = True 
+        self.glove_aux_loss = True 
         # logging params
         self.print_freq=1
         self.write_embed_freq= 100
@@ -40,6 +42,7 @@ class base_config(object):
         self.dropout=0.1
         self.weight_decay=0.0
 
+
 def train_config():
     return base_config()
 
@@ -55,7 +58,7 @@ def eval_config(d, run_name, run_comment, epoch, verbose):
     e.log_dir='logs'
     e.batch_size = 16
     e.dropout = 0
-    name = run_name + '-' + run_comment + "-" + run_comment
+    name = run_name + '-' + run_comment
     e.save_path="outputs/def2vec/checkpoints/{}/epoch_{}/model_weights.torch".format(name, epoch)
     e.packing = False
     e.input_method=INPUT_METHOD_ONE
