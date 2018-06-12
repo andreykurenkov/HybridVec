@@ -59,7 +59,7 @@ if __name__ == "__main__":
     
     if train_flag:
         TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
-        output_file = 'data/nmt/glove/glove_s2s_train.txt'
+        output_file = 'data/nmt/glove/glove_plain_train.txt'
     else:
         TRAIN_FILE = 'data/glove/glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
         output_file = 'data/nmt/glove/glove_s2s_full.txt'
@@ -73,10 +73,10 @@ if __name__ == "__main__":
 
     with open(output_file,'a') as output:
         for word in embeddings:
-            our_vecs = [str(x) for x in embeddings[word]]
+            #our_vecs = [str(x) for x in embeddings[word]]
             glove_vecs = [str(x) for x in get_word(word)]
-            combined = our_vecs + glove_vecs
-            vec_str = " ".join(combined)
+            #combined = our_vecs + glove_vecs
+            vec_str = " ".join(glove_vecs)
             output.write('%s %s\n'%(word,vec_str))
 
 
