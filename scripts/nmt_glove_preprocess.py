@@ -124,5 +124,6 @@ if __name__ == "__main__":
             for idx, word in enumerate(words):
                 our_vecs = [str(x) for x in encoder_hidden.cpu().data[idx, :]]
                 glove_vecs = [str(x) for x in get_word(word, vocab_1)]
-                vec_str = " ".join()
+                combined = our_vecs + glove_vecs
+                vec_str = " ".join(combined)
                 output.write('%s %s\n'%(words[idx],vec_str))
