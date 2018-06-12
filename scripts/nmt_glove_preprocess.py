@@ -47,9 +47,9 @@ def load_config():
         config = eval_config(config, run_name, run_comment, epoch, verbose)
     return (config,name, vocab_size, num_layers, train)
 
-def get_word(word):
+def get_word(word, vocab_1):
     word = unicode(word, 'utf-8')
-    return vocab.vectors[vocab.stoi[word]]
+    return vocab_1.vectors[vocab_1.stoi[word]]
 
 if __name__ == "__main__":
     config, name, vocab_size, num_layers, train_flag = load_config()
@@ -123,6 +123,6 @@ if __name__ == "__main__":
             (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = model(inputs, lengths)
             for idx, word in enumerate(words):
                 our_vecs = [str(x) for x in encoder_hidden.cpu().data[idx, :]]
-                glove_vecs = [str(x) for x in get_word(word)]
+                glove_vecs = [str(x) for x in get_word(word, vocab_1)]
                 vec_str = " ".join()
                 output.write('%s %s\n'%(words[idx],vec_str))
