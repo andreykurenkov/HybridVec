@@ -3,7 +3,7 @@ import sys
 import string
 import traceback
 import re
-import pyfscache
+#import pyfscache
 from nltk.corpus import wordnet
 from nltk.stem.snowball import SnowballStemmer
 import wikipedia
@@ -19,7 +19,7 @@ client = swagger.ApiClient(apiKey, apiUrl)
 wordApi = WordApi.WordApi(client)
 stemmer = SnowballStemmer("english")
 
-fs_cache = pyfscache.FSCache('data/cache/')
+#fs_cache = pyfscache.FSCache('data/cache/')
 wikipedia.set_rate_limiting(True)
 
 DEBUG = False
@@ -40,7 +40,7 @@ def clean_str(string):
     return no_html
 
 
-@fs_cache 
+#@fs_cache 
 def get_wiki_summary(word, sentences = 1):
     try:
         return wikipedia.summary(word, sentences=sentences).strip()
@@ -49,7 +49,7 @@ def get_wiki_summary(word, sentences = 1):
             traceback.print_exc()
         return []
 
-@fs_cache
+#@fs_cache
 def get_wordnik_definitions(word):
     try: 
         defns = wordApi.getDefinitions(word)
@@ -66,11 +66,11 @@ def get_wordnik_definitions(word):
 def get_wordnet_synsets(word):
     return wordnet.synsets(word)
 
-@fs_cache
+#@fs_cache
 def get_wordnet_definitions(word):
     return [s.definition() for s in get_wordnet_synsets(word)]
 
-@fs_cache
+#@fs_cache
 def get_glosbe_definitions(word):
     """
     returns list of form

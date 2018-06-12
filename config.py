@@ -53,6 +53,7 @@ def eval_config(d, run_name, run_comment, epoch, verbose):
     e.run_comment=run_comment,
     e.log_dir='logs'
     e.batch_size = 16
+    e.epoch = epoch
     name = run_name + '-' + run_comment
     e.save_path="outputs/{}/checkpoints/{}/epoch_{}/model_weights.torch".format(e.title,name, epoch)
     e.packing = False
