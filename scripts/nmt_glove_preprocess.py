@@ -48,16 +48,17 @@ def load_config():
     return (config,name, vocab_size, num_layers, train)
 
 def get_word(word):
+    word = unicode(word, 'utf-8')
     return vocab.vectors[vocab.stoi[word]]
 
 if __name__ == "__main__":
     config, name, vocab_size, num_layers, train_flag = load_config()
     if train_flag:
         TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
-        output_file = 'data/nmt/glove/glove_s2s_train.txt'
+        output_file = 'data/nmt/glove/glove_s2s500k_train.txt'
     else:
         TRAIN_FILE = 'data/glove/glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
-        output_file = 'data/nmt/glove/glove_s2s_full.txt'
+        output_file = 'data/nmt/glove/glove_s2s500k_full.txt'
 
 
     VOCAB_DIM = 100
@@ -121,5 +122,7 @@ if __name__ == "__main__":
 
             (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = model(inputs, lengths)
             for idx, word in enumerate(words):
-                vec_str = " ".join([str(x) for x in encoder_hidden.cpu().data[idx, :]])
+                our_vecs = [str(x) for x in encoder_hidden.cpu().data[idx, :]]
+                glove_vecs = [str(x) for x in get_word(word)]
+                vec_str = " ".join()
                 output.write('%s %s\n'%(words[idx],vec_str))
