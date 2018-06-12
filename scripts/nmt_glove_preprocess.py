@@ -49,22 +49,23 @@ def load_config():
 
 def load_embeddings():
     config, name, vocab_size, num_layers, train_flag = load_config()
-    a = np.load("./outputs/{}/embeddings/{}/out_embeddings.npy".format(config.title, name)).item()
+    a = np.load("./outputs/{}/embeddings/{}/out_embeddings_{}.npy".format(config.title, name, str(15))).item()
     return a
 
 def get_word(word):
     return vocab.vectors[vocab.stoi[word]]
 
 if __name__ == "__main__":
-    
+    train_flag=True
+    embeddings, config = load_embeddings()
     if train_flag:
         TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
         output_file = 'data/nmt/glove/glove_plain_train.txt'
     else:
         TRAIN_FILE = 'data/glove/glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
-        output_file = 'data/nmt/glove/glove_s2s_full.txt'
+        output_file = 'data/nmt/glove/glove_plain_full.txt'
 
-    embeddings = load_embeddings()
+    #embeddings = load_embeddings()
 
 
     VOCAB_DIM = 100
@@ -74,8 +75,9 @@ if __name__ == "__main__":
     with open(output_file,'a') as output:
         for word in embeddings:
             #our_vecs = [str(x) for x in embeddings[word]]
-            glove_vecs = [str(x) for x in get_word(word)]
+            glove_vecs = [str(x) for x in get_word(word, vocab_1)]
             #combined = our_vecs + glove_vecs
+            #print(len(combined))
             vec_str = " ".join(glove_vecs)
             output.write('%s %s\n'%(word,vec_str))
 
