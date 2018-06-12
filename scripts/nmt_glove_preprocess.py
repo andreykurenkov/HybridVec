@@ -52,63 +52,32 @@ def get_word(word, vocab_1):
     return vocab_1.vectors[vocab_1.stoi[word]]
 
 if __name__ == "__main__":
-    config, name, vocab_size, num_layers, train_flag = load_config()
-    if train_flag:
-        TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
-        output_file = 'data/nmt/glove/glove_s2s500k_train.txt'
-    else:
-        TRAIN_FILE = 'data/glove/glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
-        output_file = 'data/nmt/glove/glove_s2s500k_full.txt'
-
+    #config, name, vocab_size, num_layers, train_flag = load_config()
 
     VOCAB_DIM = 100
     VOCAB_SOURCE = '6B'
+    train_flag = True
+    if train_flag:
+        TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(VOCAB_SOURCE,VOCAB_DIM)
+        output_file = 'data/nmt/glove/glove-full500k-train.txt'
+    else:
+        TRAIN_FILE = 'data/glove/glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
+        output_file = 'data/nmt/glove/glovefull500k_full.txt'
+
+
     vocab_1 = vocab.GloVe(name=VOCAB_SOURCE, dim=VOCAB_DIM)
     use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
     
-    vocab_reduced = True if vocab_size < 400000 else False
-    encoder = EncoderRNN(vocab_size = vocab_size,
-                      max_len = 200, 
-                      hidden_size = config.hidden_size, 
-                      embed_size = config.vocab_dim,
-                      input_dropout_p=config.dropout,
-                      dropout_p=config.dropout,
-                      n_layers=num_layers,
-                      bidirectional=config.use_bidirection,
-                      rnn_cell=config.cell_type.lower(),
-                      variable_lengths=False,
-                      embedding=None, #randomly initialized,
-                      )
-
-    decoder = DecoderRNN(vocab_size = vocab_size,
-                      max_len = 200,
-                      hidden_size = config.hidden_size,
-                      n_layers=num_layers,
-                      rnn_cell=config.cell_type.lower(),
-                      bidirectional=config.use_bidirection,
-                      input_dropout_p=config.dropout,
-                      dropout_p=config.dropout,
-                      use_attention=config.use_attention
-                      )
-
-
-    model = Seq2SeqModel(encoder = encoder,
-                        decoder = decoder
-                        )
-    model.load_state_dict(torch.load(config.save_path), strict = True)
 
     train_loader = get_data_loader(TRAIN_FILE,
                                  vocab_1,
-                                 config.input_method,
-                                 config.vocab_dim,
-                                 batch_size = config.batch_size,
-                                 num_workers = config.num_workers,
+                                 "concat_defs",
+                                 VOCAB_DIM,
+                                 batch_size = 64,
+                                 num_workers = 8,
                                  shuffle=False,
-                                 vocab_size=vocab_size)
-    if use_gpu:
-        model = model.cuda()
-    model.train(False)
+                                 vocab_size=50000)
 
 
     with open(output_file,'a') as output:
@@ -116,14 +85,7 @@ if __name__ == "__main__":
             words, inputs, lengths, labels = data
             labels = Variable(labels)
 
-            if use_gpu:
-                inputs = inputs.cuda()
-                labels = labels.cuda()
-
-            (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = model(inputs, lengths)
             for idx, word in enumerate(words):
-                our_vecs = [str(x) for x in encoder_hidden.cpu().data[idx, :]]
                 glove_vecs = [str(x) for x in get_word(word, vocab_1)]
-                combined = our_vecs + glove_vecs
-                vec_str = " ".join(combined)
+                vec_str = " ".join(glove_vecs)
                 output.write('%s %s\n'%(words[idx],vec_str))
