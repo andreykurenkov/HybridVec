@@ -22,12 +22,12 @@ class BaselineModel(nn.Module):
     self.use_cuda = use_cuda
     self.vocab = vocab
     self.vocab_size = config.vocab_size
-    self.embeddings = nn.Embedding(self.vocab_size + 1, embed_size, padding_idx=0)
+    self.embed_size = config.vocab_dim
+    self.embeddings = nn.Embedding(self.vocab_size + 1, self.embed_size, padding_idx=0)
     #no longer copying glove, randomly initialize weights
     if config.use_glove_init:
       self.embeddings.weight.data[1:,:].copy_(vocab.vectors[:vocab_size, :]) 
     self.embeddings.weight.data[0,:] = 0 #set to 0 for unk 
-    self.embed_size = config.vocab_dim
     self.num_layers = config.num_layers
 
     # needs to be the same as number of words used in the definitions, so same as vocab size 
@@ -118,7 +118,7 @@ class BaselineModel(nn.Module):
     #get input embeddings and definition embeddings for this batch of words
     w_indices = np.array([self.vocab.stoi[w] + 1 for w in words])
     w_indices[w_indices > self.vocab_size] = 0 #for vocab size 
-    input_embeddings = Variable(self..embeddings.weight.data[w_indices])
+    input_embeddings = Variable(self.embeddings.weight.data[w_indices])
     defn_embeddings=self.defn_embed
 
     #cuda shenanigans if need be 
