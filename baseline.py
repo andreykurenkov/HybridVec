@@ -26,7 +26,7 @@ class BaselineModel(nn.Module):
     self.embeddings = nn.Embedding(self.vocab_size + 1, self.embed_size, padding_idx=0)
     #no longer copying glove, randomly initialize weights
     if config.use_glove_init:
-      self.embeddings.weight.data[1:,:].copy_(vocab.vectors[:vocab_size, :]) 
+      self.embeddings.weight.data[1:,:].copy_(vocab.vectors[:self.vocab_size, :]) 
     self.embeddings.weight.data[0,:] = 0 #set to 0 for unk 
     self.num_layers = config.num_layers
 
