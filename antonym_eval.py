@@ -37,25 +37,26 @@ def get_args():
 		Gets the run_name, run_comment, and epoch of the model being evaluated
 		"""
 		parser = argparse.ArgumentParser()
+		parser.add_argument("model_type")
 		parser.add_argument("run_name")
 		parser.add_argument("run_comment")
 		parser.add_argument("epoch")
 		parser.add_argument("--verbose", default=True)
 		args = parser.parse_args()
-		return (args.run_name, args.run_comment, args.epoch, args.verbose)
+		return (args.model_type, args.run_name, args.run_comment, args.epoch, args.verbose)
 
 def load_config():
 		"""
 		Load in the right config file from desired model to evaluate
 		"""
-		run_name, run_comment, epoch, verbose = get_args()
+		model_type, run_name, run_comment, epoch, verbose = get_args()
 		name = run_name + '-' + run_comment
 		path = "outputs/def2vec/logs/{}/config.json".format(name)
 		config = None
 		with open(path) as f:
 				config = dict(json.load(f))
 				config = eval_config(config, run_name, run_comment, epoch, verbose)
-		return (config,name)
+		return (config, name, model_type)
 
 def create_data():
 	in_glove = open("data/glove/glove.6B.100d.txt", "r")
@@ -72,7 +73,7 @@ def create_data():
 	out_glove.close()
 
 def get_embeddings():
-	config, name = load_config()
+	config, name, model_type = load_config()
 	TRAIN_FILE = 'data/glove/5k_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
 	if not os.path.exists(TRAIN_FILE):
 		create_data()
@@ -80,17 +81,8 @@ def get_embeddings():
 	use_gpu = torch.cuda.is_available()
 	print("Using GPU:", use_gpu)
 
-	model = BaselineModel(vocab_1,
-						 vocab_size = config.vocab_size,
-						 embed_size = config.vocab_dim,
-						 output_size = config.vocab_dim,
-						 hidden_size = config.hidden_size,
-						 use_packing = config.packing,
-						 use_bidirection = config.use_bidirection,
-						 use_attention = config.use_attention,
-						 cell_type = config.cell_type,
-						 use_cuda = use_gpu,
-						 use_glove_init = config.use_glove_init)
+    if model_type == 'baseline': model = BaselineModel(vocab, config=config, use_cuda = use_gpu)
+    elif model_type == 's2s': model = Seq2SeqModel(config)
 
 	model.load_state_dict(torch.load(config.save_path), strict = True)
 
@@ -122,7 +114,7 @@ def get_embeddings():
 
 			outputs = model(inputs, lengths)
 			for idx, word in enumerate(words):
-				out_embeddings[word] = model.defn_embed.cpu().data[idx, :]
+				out_embeddings[word] = model.get_def_embeddings()[idx, :]
 
 	# out_dir = "outputs/def2vec/checkpoints/{}".format(name)
 	#       if not os.path.exists(out_dir):
