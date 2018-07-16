@@ -68,7 +68,7 @@ class Seq2SeqModel(nn.Module):
         return loss
 
 
-    def calculate_loss(self, output):
+    def calculate_loss(self, inputs, output, labels, words):
       (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = output
 
       criterion = nn.NLLLoss()
