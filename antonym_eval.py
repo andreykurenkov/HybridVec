@@ -51,7 +51,11 @@ def load_config():
     """
     model_type, run_name, run_comment, epoch, verbose = get_args()
     name = run_name + '-' + run_comment
-    path = "outputs/def2vec/logs/{}/config.json".format(name)
+    if run_name == "s2s": 
+      run_title = "seq2seq"
+    else:
+      run_title = "def2vec"
+    path = "outputs/{}/logs/{}/config.json".format(run_title, name)
     config = None
     with open(path) as f:
         config = dict(json.load(f))
