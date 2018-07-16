@@ -51,7 +51,7 @@ def load_config():
     """
     model_type, run_name, run_comment, epoch, verbose = get_args()
     name = run_name + '-' + run_comment
-    if run_name == "s2s": 
+    if model_type == "s2s": 
       run_title = "seq2seq"
     else:
       run_title = "def2vec"
