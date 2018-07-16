@@ -24,6 +24,9 @@ class BaselineModel(nn.Module):
     self.vocab_size = config.vocab_size
     self.embed_size = config.vocab_dim
     self.embeddings = nn.Embedding(self.vocab_size + 1, self.embed_size, padding_idx=0)
+    self.reg_weight = config.reg_weight
+    self.glove_aux_loss = config.glove_aux_loss
+    self.glove_aux_weight = config.glove_aux_weight
     #no longer copying glove, randomly initialize weights
     if config.use_glove_init:
       self.embeddings.weight.data[1:,:].copy_(vocab.vectors[:self.vocab_size, :]) 
@@ -37,22 +40,22 @@ class BaselineModel(nn.Module):
     self.use_attention = config.use_attention
     self.cell_type = config.cell_type
     self.dropout = config.dropout
-    if cell_type == 'GRU':
-        self.cell = nn.GRU(embed_size,
+    if self.cell_type == 'GRU':
+        self.cell = nn.GRU(self.embed_size,
                            self.hidden_size,
                            self.num_layers,
                            batch_first=True,
                            dropout=self.dropout,
                            bidirectional=self.use_bidirection)
-    elif cell_type == 'LSTM':
-        self.cell = nn.LSTM(embed_size,
+    elif self.cell_type == 'LSTM':
+        self.cell = nn.LSTM(self.embed_size,
                            self.hidden_size,
                            self.num_layers,
                            batch_first=True,
                            dropout=self.dropout,
                            bidirectional=self.use_bidirection)
-    elif cell_type == 'RNN':
-        self.cell = nn.RNN(embed_size,
+    elif self.cell_type == 'RNN':
+        self.cell = nn.RNN(self.embed_size,
                            self.hidden_size,
                            self.num_layers,
                            batch_first=True,
@@ -142,18 +145,18 @@ class BaselineModel(nn.Module):
     #sum the square differences and average across the batch
     reg_loss = torch.sum(reg_loss, 1)
     reg_loss = torch.mean(reg_loss)
-    reg_loss *= config.reg_weight 
+    reg_loss *= self.reg_weight 
     reg_loss /= defn_embeddings.size()[0] 
 
     loss += reg_loss
-    if config.glove_aux_loss: #add regression on original glove labels into loss 
+    if self.glove_aux_loss: #add regression on original glove labels into loss 
       glove_criterion = self.criterions[2]
       glove_loss = glove_criterion(defn_embeddings, labels)
       #sum the square differences and average across the batch
       glove_loss = torch.sum(glove_loss, 1)
       glove_loss = torch.mean(glove_loss)
 
-      glove_loss *= config.glove_aux_weight
+      glove_loss *= self.glove_aux_weight
       glove_loss /= defn_embeddings.size()[0]
       loss += glove_loss
 

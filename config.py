@@ -40,8 +40,11 @@ class base_config(object):
         self.dropout=0.1
         self.weight_decay=0.0
         self.use_glove_init = True 
+        self.glove_aux_loss = True
         self.num_layers = 2 
         self.max_len = 100
+        self.reg_weight = 0.01
+        self.glove_aux_weight = 0.01
 
 def train_config():
     return base_config()
