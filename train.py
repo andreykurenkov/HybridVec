@@ -124,7 +124,7 @@ if __name__ == "__main__":
 
             # print statistics
             running_loss += loss_val
-            writer.add_scalar('loss', loss.data[0], total_iter)
+            writer.add_scalar('loss', loss_val, total_iter)
             if embed_outs is None:
                 embed_outs = model.get_def_embeddings()
                 embed_labels = words
