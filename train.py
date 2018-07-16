@@ -126,10 +126,10 @@ if __name__ == "__main__":
             running_loss += loss_val
             writer.add_scalar('loss', loss_val, total_iter)
             if embed_outs is None:
-                embed_outs = model.get_def_embeddings()
+                embed_outs = model.get_def_embeddings(output)
                 embed_labels = words
             else:
-                embed_outs = torch.cat([embed_outs, model.get_def_embeddings()])
+                embed_outs = torch.cat([embed_outs, model.get_def_embeddings(output)])
                 embed_labels += words
                 num_outs = embed_outs.shape[0]
                 if num_outs > config.embedding_log_size:
