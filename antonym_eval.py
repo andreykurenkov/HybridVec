@@ -81,8 +81,8 @@ def get_embeddings():
 	use_gpu = torch.cuda.is_available()
 	print("Using GPU:", use_gpu)
 
-    if model_type == 'baseline': model = BaselineModel(vocab, config=config, use_cuda = use_gpu)
-    elif model_type == 's2s': model = Seq2SeqModel(config)
+  if model_type == 'baseline': model = BaselineModel(vocab, config=config, use_cuda = use_gpu)
+  elif model_type == 's2s': model = Seq2SeqModel(config)
 
 	model.load_state_dict(torch.load(config.save_path), strict = True)
 
