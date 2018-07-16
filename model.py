@@ -20,7 +20,7 @@ class Seq2SeqModel(nn.Module):
                           embed_size = config.vocab_dim,
                           input_dropout_p=config.dropout,
                           dropout_p=config.dropout,
-                          n_layers=self.num_layers,
+                          n_layers=config.num_layers,
                           bidirectional=config.use_bidirection,
                           rnn_cell=config.cell_type.lower(),
                           variable_lengths=False,
