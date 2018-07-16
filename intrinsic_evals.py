@@ -26,10 +26,10 @@ from baseline import BaselineModel
 
 # # runs over all the words in glove and returns embeddings for each one
 # def get_embeddings():
-# 	#check if there is a local file first
+#   #check if there is a local file first
 
 
-# 	# if not run the model on all the glove files and print the scores
+#   # if not run the model on all the glove files and print the scores
 
 def get_args():
     """
@@ -107,16 +107,16 @@ def get_embeddings():
 
 
 def load_embeddings():
-	a = np.load('./eval/out_embeddings.npy').item()
-	return a
+  a = np.load('./eval/out_embeddings.npy').item()
+  return a
 
 def main():
-	embeddings = get_embeddings()
-	#embeddings = load_embeddings()
-	evaluate_on_all(embeddings)
+  embeddings = get_embeddings()
+  #embeddings = load_embeddings()
+  evaluate_on_all(embeddings)
 
 
 
 
 if __name__ == "__main__":
-	main()
+  main()
