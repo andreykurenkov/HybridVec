@@ -163,4 +163,4 @@ class BaselineModel(nn.Module):
     return loss, loss.data[0]
 
   def get_def_embeddings(self, output=None):
-    return self.defn_embeds.data.cpu()
+    return self.defn_embed.data.cpu()
