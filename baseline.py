@@ -12,66 +12,67 @@ class BaselineModel(nn.Module):
 
   def __init__(self,
                vocab,
-               vocab_size,
-               output_size=100,
-               hidden_size=150,
-               embed_size=100,
-               num_layers=2,
-               dropout=0.0,
-               use_bidirection=True,
-               use_attention=True,
-               cell_type='LSTM',
+               config,
                use_cuda=True,
-               use_packing=False,
                max_length=784,
-               use_glove_init = False):
+               ):
     super(BaselineModel, self).__init__()
-    self.use_packing = use_packing
+
+    self.use_packing = config.packing
     self.use_cuda = use_cuda
-    self.vocab_size = vocab_size
+    self.vocab = vocab
+    self.vocab_size = config.vocab_size
     self.embeddings = nn.Embedding(self.vocab_size + 1, embed_size, padding_idx=0)
     #no longer copying glove, randomly initialize weights
-    if use_glove_init:
+    if config.use_glove_init:
       self.embeddings.weight.data[1:,:].copy_(vocab.vectors[:vocab_size, :]) 
     self.embeddings.weight.data[0,:] = 0 #set to 0 for unk 
-    self.embed_size = embed_size
-    self.num_layers = num_layers
+    self.embed_size = config.vocab_dim
+    self.num_layers = config.num_layers
 
     # needs to be the same as number of words used in the definitions, so same as vocab size 
     self.output_size = self.vocab_size
-    self.hidden_size = int(embed_size/2) if use_bidirection else embed_size
-    self.use_attention = use_attention
-    self.use_bidirection = use_bidirection
-    self.cell_type = cell_type
+    self.use_bidirection = config.use_bidirection
+    self.hidden_size = int(self.embed_size/2) if self.use_bidirection else self.embed_size
+    self.use_attention = config.use_attention
+    self.cell_type = config.cell_type
+    self.dropout = config.dropout
     if cell_type == 'GRU':
         self.cell = nn.GRU(embed_size,
                            self.hidden_size,
-                           num_layers,
+                           self.num_layers,
                            batch_first=True,
-                           dropout=dropout,
-                           bidirectional=use_bidirection)
+                           dropout=self.dropout,
+                           bidirectional=self.use_bidirection)
     elif cell_type == 'LSTM':
         self.cell = nn.LSTM(embed_size,
                            self.hidden_size,
-                           num_layers,
+                           self.num_layers,
                            batch_first=True,
-                           dropout=dropout,
-                           bidirectional=use_bidirection)
+                           dropout=self.dropout,
+                           bidirectional=self.use_bidirection)
     elif cell_type == 'RNN':
         self.cell = nn.RNN(embed_size,
                            self.hidden_size,
-                           num_layers,
+                           self.num_layers,
                            batch_first=True,
-                           dropout=dropout,
-                           bidirectional=use_bidirection)
+                           dropout=self.dropout,
+                           bidirectional=self.use_bidirection)
     else:
         self.baseline = nn.Linear(self.embed_size, self.hidden_size)
-    if use_attention:
-        self.attn = nn.Linear((2 if use_bidirection else 1) * self.hidden_size, 1)
+    if self.use_attention:
+        self.attn = nn.Linear((2 if self.use_bidirection else 1) * self.hidden_size, 1)
         self.attn_softmax = nn.Softmax(dim=1)
     #apply last matrix operation to compute dotproduct log likelihood of hidden representation with 
     #each word in definitional vocabulary 
-    self.output_layer = nn.Linear((2 if use_bidirection else 1) * self.hidden_size, self.output_size)
+    self.output_layer = nn.Linear((2 if self.use_bidirection else 1) * self.hidden_size, self.output_size)
+
+    #initialize loss criterions
+    criterion = nn.NLLLoss() #use multi label loss across unigram bag of words model
+    reg_criterion = nn.MSELoss(reduce=False)
+    if config.glove_aux_loss: glove_criterion = nn.MSELoss(reduce=False)
+    self.criterions = [criterion, reg_criterion, glove_criterion] if config.glove_aux_loss else [criterion, reg_criterion]
+
 
   def forward(self, inputs, lengths = None, return_attn = False):
     inputs = Variable(inputs)
@@ -111,3 +112,52 @@ class BaselineModel(nn.Module):
         return probability_unigram, softmax
     else:
         return probability_unigram
+
+  def calculate_loss(self, inputs, outputs, labels, words):
+
+    #get input embeddings and definition embeddings for this batch of words
+    w_indices = np.array([self.vocab.stoi[w] + 1 for w in words])
+    w_indices[w_indices > self.vocab_size] = 0 #for vocab size 
+    input_embeddings = Variable(self..embeddings.weight.data[w_indices])
+    defn_embeddings=self.defn_embed
+
+    #cuda shenanigans if need be 
+    if self.use_cuda:
+        defn_embeddings = defn_embeddings.cuda()
+        input_embeddings = input_embeddings.cuda()
+
+    loss = 0
+    count = 0
+
+    criterion, reg_criterion = self.criterions[0], self.criterions[1]
+    for word_idx in range(list(inputs.size())[1]):
+        label = Variable(inputs[:,word_idx])
+        if self.use_cuda:
+            label = label.cuda()
+        loss+= criterion(outputs, label)
+        count+=1.0
+    loss/=count
+
+    reg_loss = reg_criterion(defn_embeddings, input_embeddings)
+    #sum the square differences and average across the batch
+    reg_loss = torch.sum(reg_loss, 1)
+    reg_loss = torch.mean(reg_loss)
+    reg_loss *= config.reg_weight 
+    reg_loss /= defn_embeddings.size()[0] 
+
+    loss += reg_loss
+    if config.glove_aux_loss: #add regression on original glove labels into loss 
+      glove_criterion = self.criterions[2]
+      glove_loss = glove_criterion(defn_embeddings, labels)
+      #sum the square differences and average across the batch
+      glove_loss = torch.sum(glove_loss, 1)
+      glove_loss = torch.mean(glove_loss)
+
+      glove_loss *= config.glove_aux_weight
+      glove_loss /= defn_embeddings.size()[0]
+      loss += glove_loss
+
+    return loss, loss.data[0]
+
+  def get_def_embeddings(self, output=None):
+    return self.defn_embeds.data.cpu()

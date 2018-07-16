@@ -8,7 +8,7 @@ import torch.optim as optim
 import torch.nn as nn
 import numpy as np
 from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
-from model import Def2VecModel
+from model import Def2VecModel, Seq2SeqModel
 from baseline import BaselineModel
 from torch.autograd import Variable
 import torchtext.vocab as vocab
@@ -19,17 +19,14 @@ from tqdm import tqdm
 from time import time
 from config import train_config
 from pytorch_monitor import monitor_module, init_experiment
+import argparse
 
 DEBUG_LOG = True
 
 config = train_config()
-# total_avg_main_loss = 0
-# total_avg_regular_loss = 0
-# total_avg_glove_loss = 0
 
 TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
 VAL_FILE = 'data/glove/val_glove.%s.%sd.txt'%(config.vocab_source, config.vocab_dim)
-
 
 def weights_init(m):
     """
@@ -42,86 +39,25 @@ def weights_init(m):
             nn.init.xavier_normal(m.weight_hh_l0)
             nn.init.xavier_normal(m.weight_ih_l0)
 
-def calculate_loss(inputs, outputs, labels, criterions, input_embeddings, defn_embeddings):
-    loss = 0
-    count = 0
-    # global total_avg_main_loss 
-    # global total_avg_regular_loss
-    # global total_avg_glove_loss 
-    criterion, reg_criterion = criterions[0], criterions[1]
-    for word_idx in range(list(inputs.size())[1]):
-        label = Variable(inputs[:,word_idx])
-        if use_gpu:
-            label = label.cuda()
-        loss+= criterion(outputs, label)
-        count+=1.0
-    loss/=count
-
-    # total_avg_main_loss += loss 
-    reg_loss = reg_criterion(defn_embeddings, input_embeddings)
-    #sum the square differences and average across the batch
-    reg_loss = torch.sum(reg_loss, 1)
-    reg_loss = torch.mean(reg_loss)
-    reg_loss *= config.reg_weight 
-    reg_loss /= defn_embeddings.size()[0] 
-
-    loss += reg_loss
-    # total_avg_regular_loss += reg_loss
-    if config.glove_aux_loss: #add regression on original glove labels into loss 
-      glove_criterion = criterions[2]
-      glove_loss = glove_criterion(defn_embeddings, labels)
-      #sum the square differences and average across the batch
-      glove_loss = torch.sum(glove_loss, 1)
-      glove_loss = torch.mean(glove_loss)
-
-      glove_loss *= config.glove_aux_weight
-      glove_loss /= defn_embeddings.size()[0]
-      loss += glove_loss
-      # total_avg_glove_loss += glove_loss
-
-    #calcualte embed magnitudes, debug 
-    # print_embed_magnitudes(input_embeddings, defn_embeddings, labels)
-    return loss 
-
-def print_embed_magnitudes(input_embeddings, defn_embeddings, labels):
-  input_norm = torch.norm(input_embeddings, 2, 1)
-  def_norm = torch.norm(defn_embeddings, 2, 1)
-  glove_norm = torch.norm(labels, 2, 1)
-
-  print('these are norms')
-  print('input norm')
-  print(torch.mean(input_norm))
-  # print(input_norm)
-  print('def norm')
-  print(torch.mean(def_norm))
-  # print(def_norm)
-  print('glove norm')
-  print(torch.mean(glove_norm))
-  # print(glove_norm)
-
-  print('these are some embeddings')
-  print(input_embeddings[0])
-  print(defn_embeddings[0])
-  print(labels[0])
+def get_model_type():
+  """
+  Argument at command line for model type, either 'baseline' for baseline model or 's2s' for seq2seq model
+  """
+  parser = argparse.ArgumentParser()
+  parser.add_argument("model_type")
+  args = parser.parse_args()
+  return args.model_type 
 
 if __name__ == "__main__":
     vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
     use_gpu = torch.cuda.is_available()
-    #use_gpu = False
+
     print("Using GPU:", use_gpu)
     print ('vocab dim', config.vocab_dim)
     
-    model = BaselineModel(vocab,
-                         vocab_size = config.vocab_size,
-                         embed_size = config.vocab_dim,
-                         output_size = config.vocab_dim,
-                         hidden_size = config.hidden_size,
-                         use_packing = config.packing,
-                         use_bidirection = config.use_bidirection,
-                         use_attention = config.use_attention,
-                         cell_type = config.cell_type,
-                         use_cuda = use_gpu,
-                         use_glove_init = config.use_glove_init)
+    model_type = get_model_type()
+    if model_type == 'baseline': model = BaselineModel(vocab, config=config, use_cuda = use_gpu)
+    elif model_type == 's2s': model = Seq2SeqModel(config)
 
     if config.load_path is None:
         model.apply(weights_init)
@@ -150,9 +86,6 @@ if __name__ == "__main__":
                                    vocab_size = config.vocab_size)
 
 
-    criterion = nn.NLLLoss() #use multi label loss across unigram bag of words model
-    reg_criterion = nn.MSELoss(reduce=False)
-    if config.glove_aux_loss: glove_criterion = nn.MSELoss(reduce=False)
     optimizer = optim.Adam(model.parameters(),
                            lr=config.learning_rate,
                            weight_decay=config.weight_decay)
@@ -169,11 +102,6 @@ if __name__ == "__main__":
     embed_labels = []
 
     for epoch in range(config.max_epochs):
-        # if epoch != 0:
-        #   print('Running average losses after epoch '+ str(epoch) + ' were: ')
-        #   print('Total avg main: ', str(total_avg_main_loss/(epoch)))
-        #   print('Total avg regular: ', str(total_avg_regular_loss/(epoch)))
-        #   print('Total avg glovee: ', str(total_avg_glove_loss/(epoch)))
 
         running_loss = 0.0
         start = time()
@@ -181,11 +109,6 @@ if __name__ == "__main__":
         for i, data in enumerate(train_loader, 0):
             words, inputs, lengths, labels = data
             labels = Variable(labels)
-            # if i % 1 == 0 and i != 0: 
-            #   print ('after 1 batch, runnning averages per batch are')
-            #   print('Total avg main: ', str(total_avg_main_loss/(i)))
-            #   print('Total avg regular: ', str(total_avg_regular_loss/(i)))
-            #   print('Total avg glovee: ', str(total_avg_glove_loss/(i)))
 
             if use_gpu:
                 inputs = inputs.cuda()
@@ -193,31 +116,20 @@ if __name__ == "__main__":
 
             optimizer.zero_grad()
             outputs = model(inputs, lengths)
-
-            w_indices = np.array([vocab.stoi[w] + 1 for w in words])
-            w_indices[w_indices > config.vocab_size] = 0 #for vocab size 
-            input_embeddings = Variable(model.embeddings.weight.data[w_indices])
-            defn_embeddings = model.defn_embed
-
-            if use_gpu:
-                defn_embeddings = defn_embeddings.cuda()
-                input_embeddings = input_embeddings.cuda()
-                labels = labels.cuda()
             
-            criterions = [criterion, reg_criterion, glove_criterion] if config.glove_aux_loss else [criterion, reg_criterion]
-            loss = calculate_loss(inputs, outputs, labels, criterions, input_embeddings, defn_embeddings)
+            loss_object, loss_val = model.calculate_loss(inputs, outputs, labels, words)
 
-            loss.backward()
+            loss_object.backward()
             optimizer.step()
 
             # print statistics
-            running_loss += loss.data[0]
+            running_loss += loss_val
             writer.add_scalar('loss', loss.data[0], total_iter)
             if embed_outs is None:
-                embed_outs = model.defn_embed.data.cpu()
+                embed_outs = model.get_def_embeddings()
                 embed_labels = words
             else:
-                embed_outs = torch.cat([embed_outs, model.defn_embed.data.cpu()])
+                embed_outs = torch.cat([embed_outs, model.get_def_embeddings()])
                 embed_labels += words
                 num_outs = embed_outs.shape[0]
                 if num_outs > config.embedding_log_size:
@@ -257,17 +169,8 @@ if __name__ == "__main__":
                     optimizer.zero_grad()
                     outputs = model(inputs, lengths)
 
-                    w_indices = np.array([vocab.stoi[w] + 1 for w in words])
-                    w_indices[w_indices > config.vocab_size] = 0 #for vocab size 
-                    input_embeddings = Variable(model.embeddings.weight.data[w_indices])
-                    defn_embeddings = model.defn_embed
-
-                    if use_gpu:
-                        defn_embeddings = defn_embeddings.cuda()
-                        input_embeddings = input_embeddings.cuda()
-
-                    loss = calculate_loss(inputs, outputs, criterion, reg_criterion, input_embeddings, defn_embeddings)
-                    val_loss += loss.data[0]
+                    loss_object, loss_val = model.calculate_loss(inputs, outputs, labels, words)
+                    val_loss += loss_val
                 writer.add_scalar('val_loss', val_loss / len(val_loader), total_iter)
                 print('Epoch: %d, batch: %d, val loss: %.4f' %
                              (epoch + 1, i + 1, val_loss / len(val_loader)))

@@ -6,14 +6,39 @@ import torch.optim as optim
 #import torchtext.vocab as vocab
 from torch.autograd import Variable
 import numpy as np
+from seq2seq import EncoderRNN, DecoderRNN
+
 
 
 class Seq2SeqModel(nn.Module):
-    def __init__(self, encoder, decoder, decode_function=F.log_softmax):
+    def __init__(self, config, decode_function=F.log_softmax):
         super(Seq2SeqModel, self).__init__()
+        vocab_reduced = True if config.vocab_size < 400000 else False
+        encoder = EncoderRNN(vocab_size = config.vocab_size,
+                          max_len = config.max_len, 
+                          hidden_size = config.hidden_size, 
+                          embed_size = config.vocab_dim,
+                          input_dropout_p=config.dropout,
+                          dropout_p=config.dropout,
+                          n_layers=self.num_layers,
+                          bidirectional=config.use_bidirection,
+                          rnn_cell=config.cell_type.lower(),
+                          variable_lengths=False,
+                          embedding=None, #randomly initialized,
+                          )
+
+        decoder = DecoderRNN(vocab_size = config.vocab_size,
+                          max_len = config.max_len,
+                          hidden_size = config.hidden_size,
+                          n_layers= config.num_layers,
+                          rnn_cell=config.cell_type.lower(),
+                          bidirectional=config.use_bidirection,
+                          input_dropout_p=config.dropout,
+                          dropout_p=config.dropout,
+                          use_attention=config.use_attention
+                          )
         self.encoder = encoder
         self.decoder = decoder
-        #self.decode_function = decode_function
         self.encoder_hidden = None
 
     def flatten_parameters(self):
@@ -30,6 +55,47 @@ class Seq2SeqModel(nn.Module):
                               function=F.log_softmax,
                               teacher_forcing_ratio=teacher_forcing_ratio)
         return result, encoder_hidden[self.encoder.n_layers - 1]
+
+    
+    def get_loss_nll(self, acc_loss, norm_term):
+        if isinstance(acc_loss, int):
+            return 0
+        # total loss for all batches
+        loss = acc_loss.data
+        loss /= norm_term
+        loss =  (Variable(loss).data)[0]
+        #print (type(loss))
+        return loss
+
+
+    def calculate_loss(self, output):
+      (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = output
+
+      criterion = nn.NLLLoss()
+      acc_loss = 0
+      norm_term = 0
+
+      for step, step_output in enumerate(decoder_outputs):
+          batch_size = inputs.shape[0]
+          if step > (inputs.shape[1] -1): continue
+          labeled_vals = Variable((inputs).long()[:, step])
+          labeled_vals.requires_grad = False
+          pred = step_output.contiguous().view(batch_size, -1)
+          acc_loss += criterion(pred, labeled_vals)
+          norm_term += 1
+
+
+      if type(acc_loss) is int:
+          raise ValueError("No loss to back propagate.")
+
+      batch_loss = get_loss_nll(acc_loss, norm_term)
+
+      return acc_loss, batch_loss
+      # print statistics
+
+    def get_def_embeddings(self, output):
+      (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = output
+      return encoder_hidden.data.cpu()
 
 
 class Def2VecModel(nn.Module):

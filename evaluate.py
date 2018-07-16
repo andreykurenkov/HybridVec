@@ -36,6 +36,7 @@ def get_args():
     parser.add_argument("--verbose", default=True)
     args = parser.parse_args()
     return (args.run_name, args.run_comment, args.epoch, args.verbose)
+
 def load_config():
     """
     Load in the right config file from desired model to evaluate
@@ -139,15 +140,6 @@ if __name__ == "__main__":
 
         loss = calculate_loss(inputs, outputs, labels, criterions, input_embeddings, defn_embeddings)
 
-        # for step, step_output in enumerate(decoder_outputs):
-        #     batch_size = inputs.shape[0]
-        #     if step > (inputs.shape[1] -1): continue
-        #     labeled_vals = Variable((inputs).long()[:, step])
-        #     labeled_vals.requires_grad = False
-        #     pred = step_output.contiguous().view(batch_size, -1)
-        #     acc_loss += calculate_loss(inputs, outputs, labels, criterions, input_embeddings, defn_embeddings)
-        #     norm_term += 1
-
         running_loss += loss.data[0]
 
         n_batches += 1
@@ -160,10 +152,7 @@ if __name__ == "__main__":
         def_len = inputs.size()[1] #length of definitions for the batch 
         outputs_np = outputs.data.cpu().numpy()
         top_indices = np.argpartition(outputs_np, -1*def_len)[:,-1*def_len:]
-        #print('these are top indices', top_indices.shape, top_indices)
-        #preds = top_indices[np.argsort(outputs_np[:,top_indices])]#sort indices from max to low
-        #preds = preds[:, ::-1]
-        #print('these are preds, hopefully reversed', preds)
+
         write_output(f, top_indices, inputs, words, config.vocab_size)
 
         for word, embed, inp in zip(words,
