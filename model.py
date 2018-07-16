@@ -88,7 +88,7 @@ class Seq2SeqModel(nn.Module):
       if type(acc_loss) is int:
           raise ValueError("No loss to back propagate.")
 
-      batch_loss = get_loss_nll(acc_loss, norm_term)
+      batch_loss = self.get_loss_nll(acc_loss, norm_term)
 
       return acc_loss, batch_loss
       # print statistics
