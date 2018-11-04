@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-#import torchtext.vocab as vocab
 from torch.autograd import Variable
 import numpy as np
 from seq2seq import EncoderRNN, DecoderRNN
@@ -48,7 +47,6 @@ class Seq2SeqModel(nn.Module):
     def forward(self, input_variable, input_lengths=None, target_variable=None,
                 teacher_forcing_ratio=0):
         encoder_outputs, encoder_hidden = self.encoder(input_variable, input_lengths)
-        #self.encoder_hidden = encoder_hidden[self.encoder.n_layers - 1]
         result = self.decoder(inputs=target_variable,
                               encoder_hidden=encoder_hidden,
                               encoder_outputs=encoder_outputs,
@@ -60,11 +58,11 @@ class Seq2SeqModel(nn.Module):
     def get_loss_nll(self, acc_loss, norm_term):
         if isinstance(acc_loss, int):
             return 0
+        
         # total loss for all batches
         loss = acc_loss.data
         loss /= norm_term
         loss =  (Variable(loss).data)[0]
-        #print (type(loss))
         return loss
 
 
