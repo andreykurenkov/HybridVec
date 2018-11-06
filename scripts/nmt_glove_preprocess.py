@@ -17,21 +17,6 @@ from baseline import BaselineModel
 import json
 from config import eval_config
 
-# CONFIG = dict(
-#         title="def2vec",
-#         description="Translating definitions to word vectors",
-#         log_dir='logs',
-#         random_seed=42,
-#         learning_rate=.0005,
-#         max_epochs=5,
-#         batch_size=16,
-#         n_hidden=150,
-#         print_freq=1,
-#         write_embed_freq=100,
-#         weight_decay=0,
-#         save_path="checkpoints/model_weights.torch"
-# )
-
 def get_args():
     """
     Gets the run_name, run_comment, and epoch of the model being evaluated
@@ -68,23 +53,6 @@ def get_word(word):
 
 if __name__ == "__main__":
     config, name, glove_file, train_data_flag = load_config()
-
-    # GLOVE_TOTAL_K = 400
-
-    # provided_file = 'data/nmt/glove/glove_%dk_provided.txt'%(num_k_keep)
-    # held_out_file = 'data/nmt/glove/glove_%dk_held_out.txt'%(GLOVE_TOTAL_K-num_k_keep)
-    # with open(glove_file,'r') as glove_f:
-    #     glove_lines = glove_f.readlines()
-
-    # with open(provided_file,'w') as provided:
-    #     for i in range(num_k_keep*1000):
-    #         provided.write(glove_lines[i])
-    #     # Include unk token
-    #     provided.write(glove_lines[-1])
-
-    # with open(held_out_file,'w') as held_out:
-    #     for i in range(num_k_keep*1000, len(glove_lines)-1):
-    #         held_out.write(glove_lines[i])
 
     VOCAB_DIM = 100
     VOCAB_SOURCE = '6B'
@@ -134,7 +102,6 @@ if __name__ == "__main__":
         model = model.cuda()
 
     # shutil.copyfile(provided_file,output_file)
-
     with open(output_file,'a') as output:
         for i, data in tqdm(enumerate(data_loader, 0), total=len(data_loader)):
             words, inputs, lengths, labels = data
