@@ -4,7 +4,7 @@ import random
 import torch
 import time
 from tqdm import tqdm
-#from definitions import *
+from definitions import *
 from torch.utils.data import Dataset, DataLoader
 
 INPUT_METHOD_ALL_CONCAT = "concat_defs"
