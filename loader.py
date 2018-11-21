@@ -33,11 +33,13 @@ class DefinitionsDataset(Dataset):
         line = self.vocab_lines[idx]
         split_line = line.split()
         word = split_line[0]
+        
         if self.input_method == INPUT_METHOD_ONE:
             definition = get_a_definition(word)
         elif self.input_method == INPUT_METHOD_ALL_CONCAT:
             definition = get_definitions_concat(word)
-            embedding = np.array([float(val) for val in split_line[1:]])
+
+        embedding = np.array([float(val) for val in split_line[1:]])
         return word, definition, embedding
 
     def __getitem__(self, idx):
