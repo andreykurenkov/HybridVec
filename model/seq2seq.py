@@ -1,5 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
+from utils import *
+from torch.autograd import Variable
 
 class Seq2seq(nn.Module):
     """ Standard sequence-to-sequence architecture with configurable encoder
@@ -51,4 +53,28 @@ class Seq2seq(nn.Module):
                               encoder_outputs=encoder_outputs,
                               function=self.decode_function,
                               teacher_forcing_ratio=teacher_forcing_ratio)
-        return result
+        return result, encoder_hidden[self.encoder.n_layers - 1]
+
+
+    def calculate_loss(self, inputs, output, labels, words):
+      (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = output
+      criterion = nn.NLLLoss()
+      acc_loss = 0
+      norm_term = 0
+      for step, step_output in enumerate(decoder_outputs):
+          batch_size = inputs.shape[0]
+          if step > (inputs.shape[1] -1): continue
+          labeled_vals = Variable((inputs).long()[:, step])
+          labeled_vals.requires_grad = False
+          pred = step_output.contiguous().view(batch_size, -1)
+          acc_loss += criterion(pred, labeled_vals)
+          norm_term += 1
+      if type(acc_loss) is int:
+          raise ValueError("No loss to back propagate.")
+      batch_loss = get_loss_nll(acc_loss, norm_term)
+      return acc_loss, batch_loss
+      # print statistics
+    
+    def get_def_embeddings(self, output):
+      (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = output
+      return encoder_hidden.data.cpu()

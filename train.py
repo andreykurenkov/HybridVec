@@ -1,25 +1,23 @@
-from __future__ import print_function
-import sys
 import os
-import collections
-import traceback
+import numpy as np
+
+import argparse
 import torch
 import torch.optim as optim
 import torch.nn as nn
-import numpy as np
-from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
+import torch.nn.init as init
+import torchtext.vocab as vocab
+
 from model import Def2VecModel, Seq2SeqModel
 from baseline import BaselineModel
 from torch.autograd import Variable
-import torchtext.vocab as vocab
-from tensorboardX import SummaryWriter
 from loader import *
-import torch.nn.init as init
 from tqdm import tqdm
 from time import time
 from config import train_config
 from pytorch_monitor import monitor_module, init_experiment
-import argparse
+
+from tensorboardX import SummaryWriter
 
 DEBUG_LOG = False
 

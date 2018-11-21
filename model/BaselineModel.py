@@ -1,12 +1,9 @@
-from __future__ import division, print_function
+
+import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
 import torchtext.vocab as vocab
 from torch.autograd import Variable
-import numpy as np
-
 
 class BaselineModel(nn.Module):
 

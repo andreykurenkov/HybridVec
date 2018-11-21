@@ -1,20 +1,12 @@
 """
  Classes and function for answering analogy questions
 """
-
-import logging
-from collections import OrderedDict
-import six
 from six.moves import range
-import scipy
 import pandas as pd
-from itertools import product
 
-#logger = logging.getLogger(__name__)
 import sklearn
 from eval_datasets.analogy import *
 from eval_utils import batched
-from embedding import Embedding
 
 class SimpleAnalogySolver(sklearn.base.BaseEstimator):
     """

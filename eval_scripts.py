@@ -4,18 +4,15 @@
 """
 import logging
 import numpy as np
-from sklearn.cluster import AgglomerativeClustering, KMeans
+
 from eval_datasets.similarity import fetch_MEN, fetch_WS353, fetch_SimLex999, fetch_MTurk, fetch_RG65, fetch_RW
-from eval_datasets.categorization import fetch_AP, fetch_battig, fetch_BLESS, fetch_ESSLI_1a, fetch_ESSLI_2b, \
-    fetch_ESSLI_2c
+from eval_datasets.categorization import fetch_AP, fetch_battig, fetch_BLESS, fetch_ESSLI_1a, fetch_ESSLI_2b, fetch_ESSLI_2c
+
 from analogy import *
 from six import iteritems
 from embedding import Embedding
 
 logger = logging.getLogger(__name__)
-
-
-
 
 
 def evaluate_analogy(w, X, y, method="add", k=None, category=None, batch_size=100):
@@ -207,7 +204,6 @@ def evaluate_on_all(w):
     print("Analogy prediction accuracy on {} {}".format("SemEval2012", analogy_results["SemEval2012_2"]))
 
     # Calculate results on categorization
-
     analogy = pd.DataFrame([analogy_results])
     sim = pd.DataFrame([similarity_results])
     results = sim.join(analogy)

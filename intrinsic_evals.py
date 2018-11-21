@@ -1,28 +1,21 @@
-from __future__ import print_function
-from eval_scripts import evaluate_on_all
-from tqdm import tqdm
-import sys
-import torch.nn.functional as F
-import collections
-import traceback
-import torch
-import torch.optim as optim
-import torch.nn as nn
-import numpy as np
-from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
-from time import time
-from model import Def2VecModel, Seq2SeqModel
-from torch.autograd import Variable
-import torchtext.vocab as vocab
-from tensorboardX import SummaryWriter
-from pytorch_monitor import monitor_module, init_experiment
-from loader import *
-from config import eval_config
 import json
 import argparse
-from seq2seq import EncoderRNN, DecoderRNN
+
+import numpy as np
+import torch
+import torch.nn as nn
+import torchtext.vocab as vocab
+
+from model import Seq2SeqModel
+from model import BaselineModel
+from torch.autograd import Variable
+from loader import *
+from config import eval_config
 from collections import OrderedDict
-from baseline import BaselineModel
+from eval_scripts import evaluate_on_all
+from tqdm import tqdm
+
+from tensorboardX import SummaryWriter
 
 # # runs over all the words in glove and returns embeddings for each one
 # def get_embeddings():
@@ -120,8 +113,6 @@ def main():
   embeddings = get_embeddings()
   #embeddings = load_embeddings()
   evaluate_on_all(embeddings)
-
-
 
 
 if __name__ == "__main__":

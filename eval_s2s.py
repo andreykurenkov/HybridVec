@@ -1,25 +1,20 @@
-from __future__ import print_function
 from tqdm import tqdm
-import sys
-import torch.nn.functional as F
-import collections
-import traceback
+import json
+import argparse
+
+import numpy as np
 import torch
 import torch.optim as optim
 import torch.nn as nn
-import numpy as np
-from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
-from time import time
-from model import Def2VecModel, Seq2SeqModel
-from torch.autograd import Variable
+import torch.nn.functional as F
 import torchtext.vocab as vocab
-from tensorboardX import SummaryWriter
-from pytorch_monitor import monitor_module, init_experiment
+
+from model import Seq2SeqModel
+from torch.autograd import Variable
+
 from loader import *
 from config import eval_config
-import json
-import argparse
-from seq2seq import EncoderRNN, DecoderRNN
+from model import EncoderRNN, DecoderRNN
 from collections import OrderedDict
 
 DEBUG_LOG = False
@@ -73,8 +68,8 @@ def write_output(f, pred, inputs, words, vocab_size):
     f.write("\n\n")
 
 def load_dicts(d):
-  e_dict = collections.OrderedDict()
-  d_dict = collections.OrderedDict()
+  e_dict = OrderedDict()
+  d_dict = OrderedDict()
 
   for key in d:
     if "encoder" in key:
@@ -83,20 +78,6 @@ def load_dicts(d):
       d_dict = d[key]
 
   return (e_dict, d_dict)
-
-
-
-
-def get_loss_nll(acc_loss, norm_term):
-
-    if isinstance(acc_loss, int):
-        return 0
-    # total loss for all batches
-    loss = acc_loss.data
-    loss /= norm_term
-    loss =  (Variable(loss).data)[0]
-    #print (type(loss))
-    return loss
 
 if __name__ == "__main__":
   f = open('input-output-max100.txt','w')
@@ -133,12 +114,9 @@ if __name__ == "__main__":
                       )
 
 
-
-
   # encoder_dict, decoder_dict = load_dicts(torch.load(config.save_path))
   # encoder.load_state_dict(encoder_dict)
   # decoder.load_state_dict(decoder_dict)
-
   model = Seq2SeqModel(encoder = encoder,
                       decoder = decoder
                       )
@@ -165,7 +143,6 @@ if __name__ == "__main__":
   pred_defns = {}
   out_defns = {}
 
-
   for i, data in tqdm(enumerate(test_loader, 0), total=len(test_loader)):
       words, inputs, lengths, labels = data
       labels = Variable(labels)
@@ -178,7 +155,6 @@ if __name__ == "__main__":
       acc_loss = 0
       norm_term = 0
 
-
       for step, step_output in enumerate(decoder_outputs):
           batch_size = inputs.shape[0]
           if step > (inputs.shape[1] -1): continue
@@ -188,11 +164,9 @@ if __name__ == "__main__":
           acc_loss += criterion(pred, labeled_vals)
           norm_term += 1
 
-
       batch_loss = get_loss_nll(acc_loss, norm_term)
       running_loss += batch_loss
       n_batches += 1
-
 
       #write to fil
       word_preds = []

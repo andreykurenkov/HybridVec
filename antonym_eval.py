@@ -1,27 +1,19 @@
-from __future__ import print_function
-from eval_scripts import evaluate_on_all
 from tqdm import tqdm
-import os, sys
-import torch.nn.functional as F
-import collections
-import traceback
+import os
+import json
+import argparse
+
+import numpy as np
 import torch
 import torch.optim as optim
 import torch.nn as nn
-import numpy as np
-from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
-from time import time
-from model import Def2VecModel, Seq2SeqModel
-from torch.autograd import Variable
 import torchtext.vocab as vocab
-from tensorboardX import SummaryWriter
-from pytorch_monitor import monitor_module, init_experiment
+
+from model import Seq2SeqModel
+from torch.autograd import Variable
+
 from loader import *
 from config import eval_config
-import json
-import argparse
-from seq2seq import EncoderRNN, DecoderRNN
-from collections import OrderedDict
 from baseline import BaselineModel
 from nltk.corpus import wordnet
 
@@ -117,7 +109,7 @@ def get_embeddings():
 
       outputs = model(inputs, lengths)
       for idx, word in enumerate(words):
-        out_embeddings[word] = model.get_def_embeddings()[idx, :]
+        out_embeddings[word] = model.get_def_embeddings(outputs)[idx, :]
 
   # out_dir = "outputs/def2vec/checkpoints/{}".format(name)
   #       if not os.path.exists(out_dir):

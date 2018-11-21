@@ -1,27 +1,20 @@
-from __future__ import print_function
-from tqdm import tqdm
-import sys
-import torch.nn.functional as F
-import collections
-import traceback
-import torch
-import torch.optim as optim
-import torch.nn as nn
-import numpy as np
-from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
-from time import time
-from model import Def2VecModel
-from torch.autograd import Variable
-import torchtext.vocab as vocab
-from tensorboardX import SummaryWriter
-from pytorch_monitor import monitor_module, init_experiment
-from loader import *
-from config import eval_config
 import json
 import argparse
 
-DEBUG_LOG = False
+import torch
+import numpy as np
+import torch.optim as optim
+import torch.nn as nn
+import torchtext.vocab as vocab
 
+from tqdm import tqdm
+from torch.autograd import Variable
+
+from model import Def2VecModel
+from loader import *
+from config import eval_config
+
+DEBUG_LOG = False
 
 def get_args():
     """
