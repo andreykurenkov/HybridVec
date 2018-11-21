@@ -11,10 +11,8 @@ class Seq2SeqModel(Seq2seq):
     """ sequence-to-sequence architecture with specific encoder and decoder.
     """
     def __init__(self, config, decode_function=F.log_softmax):
-        super(Seq2SeqModel, self).__init__()
-        #vocab_reduced = True if config.vocab_size < 400000 else False
-
-        encoder = EncoderRNN(vocab_size = config.vocab_size,
+        super(Seq2SeqModel, self).__init__(
+            encoder = EncoderRNN(vocab_size = config.vocab_size,
                           max_len = config.max_len, 
                           hidden_size = config.hidden_size, 
                           embed_size = config.vocab_dim,
@@ -25,9 +23,8 @@ class Seq2SeqModel(Seq2seq):
                           rnn_cell=config.cell_type.lower(),
                           variable_lengths=False,
                           embedding=None, #randomly initialized,
-                          )
-
-        decoder = DecoderRNN(vocab_size = config.vocab_size,
+                        ),
+            decoder = DecoderRNN(vocab_size = config.vocab_size,
                           max_len = config.max_len,
                           hidden_size = config.hidden_size,
                           n_layers= config.num_layers,
@@ -36,7 +33,7 @@ class Seq2SeqModel(Seq2seq):
                           input_dropout_p=config.dropout,
                           dropout_p=config.dropout,
                           use_attention=config.use_attention
-                          )
-        self.encoder = encoder
-        self.decoder = decoder
+                        )
+        )
+                          
         self.encoder_hidden = None
