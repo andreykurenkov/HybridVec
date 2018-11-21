@@ -21,7 +21,7 @@ from config import train_config
 from pytorch_monitor import monitor_module, init_experiment
 import argparse
 
-DEBUG_LOG = True
+DEBUG_LOG = False
 
 config = train_config()
 

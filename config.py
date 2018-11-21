@@ -15,7 +15,7 @@ class base_config(object):
         # hyperparams
         self.random_seed=42
         self.learning_rate=.0001
-        self.max_epochs=15
+        self.max_epochs=5
         self.batch_size=64
         self.n_hidden=250
         # logging params
@@ -61,7 +61,7 @@ def eval_config(d, run_name, run_comment, epoch, verbose):
     e.log_dir='logs'
     e.batch_size = 16
     e.dropout = 0
-    name = run_name + '-' + run_comment + "-" + run_comment
+    name = run_name + '-' + run_comment #+ "-" + run_comment
     e.save_path="outputs/def2vec/checkpoints/{}/epoch_{}/model_weights.torch".format(name, epoch)
     e.packing = False
     e.input_method=INPUT_METHOD_ONE
