@@ -103,7 +103,7 @@ def get_embeddings():
 
       outputs = model(inputs, lengths)
       for idx, word in enumerate(words):
-        out_embeddings[word] = model.get_def_embeddings()[idx, :]
+        out_embeddings[word] = model.get_def_embeddings(outputs)[idx, :]
 
   # out_dir = "outputs/def2vec/checkpoints/{}".format(name)
   #       if not os.path.exists(out_dir):
