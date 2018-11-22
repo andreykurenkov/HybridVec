@@ -4,7 +4,7 @@ import torchtext.vocab as vocab
 import argparse
 import shutil
 from tqdm import tqdm
-from hybridvec.model import Def2VecModel
+from hybridvec.models import Def2VecModel
 from torch.autograd import Variable
 from hybridvec.loader import *
 
