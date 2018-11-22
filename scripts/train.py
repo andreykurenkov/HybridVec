@@ -8,12 +8,14 @@ import torch.nn as nn
 import torch.nn.init as init
 import torchtext.vocab as vocab
 
-from hybridvec.models import Seq2seq, BaselineModel, EncoderRNN, DecoderRNN
 from torch.autograd import Variable
-from loader import *
+
+from hybridvec.loader import *
+from hybridvec.config import train_config
+from hybridvec.models import Seq2seq, BaselineModel, EncoderRNN, DecoderRNN
+
 from tqdm import tqdm
 from time import time
-from config import train_config
 from pytorch_monitor import monitor_module, init_experiment
 
 from tensorboardX import SummaryWriter
@@ -79,12 +81,13 @@ if __name__ == "__main__":
                       dropout_p=config.dropout,
                       use_attention=config.use_attention
                 )
-        model = Seq2seq(config)
+        model = Seq2seq(encoder=encoder, decoder=decoder)
 
     if config.load_path is None:
         model.apply(weights_init)
     else:
         model.load_state_dict(torch.load(config.load_path))
+        
     model.apply(weights_init)
 
     if use_gpu:

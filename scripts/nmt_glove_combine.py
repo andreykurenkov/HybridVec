@@ -4,9 +4,9 @@ import torchtext.vocab as vocab
 import argparse
 import shutil
 from tqdm import tqdm
-from model import Def2VecModel
+from hybridvec.model import Def2VecModel
 from torch.autograd import Variable
-from loader import *
+from hybridvec.loader import *
 
 CONFIG = dict(
         title="def2vec",

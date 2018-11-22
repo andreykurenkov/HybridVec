@@ -4,10 +4,12 @@ import torch.nn as nn
 import torchtext.vocab as vocab
 import argparse
 from tqdm import tqdm
-from model import Def2VecModel
 from torch.autograd import Variable
-from loader import *
 from pytorch_monitor import init_experiment
+
+from hybridvec.loader import *
+from hybridvec.model import Def2VecModel
+
 
 CONFIG = dict(
         title="def2vec",

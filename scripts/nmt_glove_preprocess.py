@@ -10,12 +10,14 @@ import torchtext.vocab as vocab
 import argparse
 import shutil
 from tqdm import tqdm
-from model import Def2VecModel
 from torch.autograd import Variable
-from loader import *
-from baseline import BaselineModel
+
+from hybridvec.loader import *
+from hybridvec.models import BaselineModel
+from hybridvec.models import Def2VecModel
+
 import json
-from config import eval_config
+from hybridvec.config import eval_config
 
 def get_args():
     """
