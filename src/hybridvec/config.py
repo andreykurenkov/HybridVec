@@ -1,4 +1,4 @@
-from loader import *
+from .loader import *
 
 
 class base_config(object):

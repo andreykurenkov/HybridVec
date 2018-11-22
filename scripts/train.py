@@ -8,8 +8,7 @@ import torch.nn as nn
 import torch.nn.init as init
 import torchtext.vocab as vocab
 
-from model import Def2VecModel, Seq2SeqModel
-from baseline import BaselineModel
+from hybridvec.models import Seq2seq, BaselineModel, EncoderRNN, DecoderRNN
 from torch.autograd import Variable
 from loader import *
 from tqdm import tqdm
@@ -54,8 +53,33 @@ if __name__ == "__main__":
     print ('vocab dim', config.vocab_dim)
     
     model_type = get_model_type()
-    if model_type == 'baseline': model = BaselineModel(vocab, config=config, use_cuda = use_gpu)
-    elif model_type == 's2s': model = Seq2SeqModel(config)
+    if model_type == 'baseline': 
+        model = BaselineModel(vocab, config=config, use_cuda = use_gpu)
+    elif model_type == 's2s': 
+        # too many parameters, could just pass 'config'
+        encoder = EncoderRNN(vocab_size = config.vocab_size,
+                      max_len = config.max_len, 
+                      hidden_size = config.hidden_size, 
+                      embed_size = config.vocab_dim,
+                      input_dropout_p=config.dropout,
+                      dropout_p=config.dropout,
+                      n_layers=config.num_layers,
+                      bidirectional=config.use_bidirection,
+                      rnn_cell=config.cell_type.lower(),
+                      variable_lengths=False,
+                      embedding=None, #randomly initialized,
+                )
+        decoder = DecoderRNN(vocab_size = config.vocab_size,
+                      max_len = config.max_len,
+                      hidden_size = config.hidden_size,
+                      n_layers= config.num_layers,
+                      rnn_cell=config.cell_type.lower(),
+                      bidirectional=config.use_bidirection,
+                      input_dropout_p=config.dropout,
+                      dropout_p=config.dropout,
+                      use_attention=config.use_attention
+                )
+        model = Seq2seq(config)
 
     if config.load_path is None:
         model.apply(weights_init)

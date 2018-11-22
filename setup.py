@@ -7,7 +7,7 @@ setup(name='hybridvec',
       description='HybridVec project code',
       author='Andrey Kurenkov',
       package_dir = {'': 'src'},
-      packages=['hybridvec'],
-      install_requires=requirements,
+      packages=['hybridvec','hybridvec.models','hybridvec.utils'],
+      install_requires=[],
       test_suite='test'
      )

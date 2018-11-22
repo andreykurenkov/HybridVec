@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from utils import *
+from ..utils import *
 from torch.autograd import Variable
 
 class Seq2seq(nn.Module):
