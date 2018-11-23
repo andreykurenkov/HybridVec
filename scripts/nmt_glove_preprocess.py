@@ -64,17 +64,7 @@ if __name__ == "__main__":
     TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
     FULL_FILE = 'data/glove/glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
 
-    model = BaselineModel(vocab,
-                             vocab_size = config.vocab_size,
-                             embed_size = config.vocab_dim,
-                             output_size = config.vocab_dim,
-                             hidden_size = config.hidden_size,
-                             use_packing = config.packing,
-                             use_bidirection = config.use_bidirection,
-                             use_attention = config.use_attention,
-                             cell_type = config.cell_type,
-                             use_cuda = use_gpu,
-                             use_glove_init = config.use_glove_init)
+    model = BaselineModel(vocab, config=config, use_cuda = use_gpu)
 
     model.load_state_dict(torch.load(config.save_path), strict = True)
 
