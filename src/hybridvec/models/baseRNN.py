@@ -42,12 +42,12 @@ class BaseRNN(nn.Module):
         # input dropout hook
         self.input_dropout = nn.Dropout(p = config.dropout)
 
-        if config.rnn_cell.lower() == 'lstm':
+        if config.cell_type.lower() == 'lstm':
             self.rnn_cell = nn.LSTM
-        elif config.rnn_cell.lower() == 'gru':
+        elif config.cell_type.lower() == 'gru':
             self.rnn_cell = nn.GRU
         else:
-            raise ValueError("Unsupported RNN Cell: {0}".format(config.rnn_cell))
+            raise ValueError("Unsupported RNN Cell: {0}".format(config.cell_type.lower()))
 
     def forward(self, *args, **kwargs):
         raise NotImplementedError()
