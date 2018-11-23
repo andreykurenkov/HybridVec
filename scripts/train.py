@@ -40,7 +40,8 @@ def weights_init(m):
 
 def get_model_type():
   """
-  Argument at command line for model type, either 'baseline' for baseline model or 's2s' for seq2seq model
+  Argument at command line for model type, either 'baseline' for baseline model 
+  or 's2s' for seq2seq model
   """
   parser = argparse.ArgumentParser()
   parser.add_argument("model_type")
@@ -48,7 +49,8 @@ def get_model_type():
   return args.model_type 
 
 if __name__ == "__main__":
-    vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
+    vocab = vocab.GloVe(name=config.vocab_source, 
+                        dim=config.vocab_dim)
     use_gpu = torch.cuda.is_available()
 
     print("Using GPU:", use_gpu)
@@ -56,32 +58,17 @@ if __name__ == "__main__":
     
     model_type = get_model_type()
     if model_type == 'baseline': 
-        model = BaselineModel(vocab, config=config, use_cuda = use_gpu)
+        model = BaselineModel(vocab, 
+                            config = config, 
+                            use_cuda = use_gpu)
+
     elif model_type == 's2s': 
-        # too many parameters, could just pass 'config'
-        encoder = EncoderRNN(vocab_size = config.vocab_size,
-                      max_len = config.max_len, 
-                      hidden_size = config.hidden_size, 
-                      embed_size = config.vocab_dim,
-                      input_dropout_p=config.dropout,
-                      dropout_p=config.dropout,
-                      n_layers=config.num_layers,
-                      bidirectional=config.use_bidirection,
-                      rnn_cell=config.cell_type.lower(),
-                      variable_lengths=False,
-                      embedding=None, #randomly initialized,
-                )
-        decoder = DecoderRNN(vocab_size = config.vocab_size,
-                      max_len = config.max_len,
-                      hidden_size = config.hidden_size,
-                      n_layers= config.num_layers,
-                      rnn_cell=config.cell_type.lower(),
-                      bidirectional=config.use_bidirection,
-                      input_dropout_p=config.dropout,
-                      dropout_p=config.dropout,
-                      use_attention=config.use_attention
-                )
-        model = Seq2seq(encoder=encoder, decoder=decoder)
+        encoder = EncoderRNN(config = config,
+                            variable_lengths = False, 
+                            embedding = None)
+        decoder = DecoderRNN(config = config)
+        model = Seq2seq(encoder = encoder, 
+                        decoder=decoder)
 
     if config.load_path is None:
         model.apply(weights_init)
@@ -109,12 +96,9 @@ if __name__ == "__main__":
                                    num_workers = config.num_workers,
                                    shuffle=config.shuffle,
                                    vocab_size = config.vocab_size)
-
-
     optimizer = optim.Adam(model.parameters(),
-                           lr=config.learning_rate,
-                           weight_decay=config.weight_decay)
-
+                           lr = config.learning_rate,
+                           weight_decay = config.weight_decay)
 
     writer, conf = init_experiment(config.__dict__) #pytorch-monitor needs a dict
     if DEBUG_LOG:
@@ -122,7 +106,6 @@ if __name__ == "__main__":
 
     total_time = 0
     total_iter = 0
-
     embed_outs = None
     embed_labels = []
 
@@ -142,8 +125,11 @@ if __name__ == "__main__":
             optimizer.zero_grad()
             outputs = model(inputs, lengths)
             
-            loss_object, loss_val = model.calculate_loss(inputs, outputs, labels, words)
-
+            loss_object, loss_val = model.calculate_loss(
+                                                    inputs, 
+                                                    outputs, 
+                                                    labels, 
+                                                    words)
             loss_object.backward()
             optimizer.step()
 
@@ -167,21 +153,16 @@ if __name__ == "__main__":
                 diff = end-start
                 total_time+=diff
                 print('Epoch: %d, batch: %d, loss: %.4f , time/iter: %.2fs, total time: %.2fs' %
-                             (epoch + 1, i + 1,
-                              running_loss / config.print_freq,
-                              diff/config.print_freq,
-                              total_time))
+                    (epoch + 1, i + 1, running_loss / config.print_freq, diff/config.print_freq, total_time))
                 start = end
                 running_loss = 0.0
 
             if i % config.write_embed_freq == (config.write_embed_freq-1):
-
                 writer.add_embedding(embed_outs,
                                      metadata=embed_labels,
                                      global_step=total_iter)
 
             if i % config.eval_freq == (config.eval_freq - 1):
-
                 val_loss = 0.0
                 for data in tqdm(val_loader, total=len(val_loader)):
                     words, inputs, lengths, labels = data
@@ -196,18 +177,23 @@ if __name__ == "__main__":
 
                     loss_object, loss_val = model.calculate_loss(inputs, outputs, labels, words)
                     val_loss += loss_val
+                
                 writer.add_scalar('val_loss', val_loss / len(val_loader), total_iter)
                 print('Epoch: %d, batch: %d, val loss: %.4f' %
                              (epoch + 1, i + 1, val_loss / len(val_loader)))
-
+            # increase iteration
             total_iter += 1
+        
         name = config.run_name + '-' + config.run_comment
         out_dir = "outputs/def2vec/checkpoints/{}".format(config.run_name)
+
         if not os.path.exists(out_dir):
             os.makedirs(out_dir)
+        
         out_path = "outputs/def2vec/checkpoints/{}/epoch_{}".format(config.run_name, epoch + 1)
         if not os.path.exists(out_path):
             os.makedirs(out_path)
+        
         torch.save(model.state_dict(), out_path + "/" + config.save_path)
 
     writer.export_scalars_to_json("./all_scalars.json")

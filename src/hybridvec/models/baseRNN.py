@@ -7,7 +7,7 @@ class BaseRNN(nn.Module):
     Applies a multi-layer RNN to an input sequence.
     Note:
         Do not use this class directly, use one of the sub classes.
-    Args:
+    Args (pass by config):
         vocab_size (int): size of the vocabulary
         max_len (int): maximum allowed length for the sequence to be processed
         hidden_size (int): number of features in the hidden state `h`
@@ -27,22 +27,27 @@ class BaseRNN(nn.Module):
     SYM_MASK = "MASK"
     SYM_EOS = "EOS"
 
-    def __init__(self, vocab_size, max_len, hidden_size, input_dropout_p, dropout_p, n_layers, rnn_cell):
+    def __init__(self, config):
         super(BaseRNN, self).__init__()
-        self.vocab_size = vocab_size
-        self.max_len = max_len
-        self.hidden_size = hidden_size
-        self.n_layers = n_layers
-        self.input_dropout_p = input_dropout_p
-        self.input_dropout = nn.Dropout(p=input_dropout_p)
-        if rnn_cell.lower() == 'lstm':
+        self.vocab_size = config.vocab_size
+        self.max_len = config.max_len
+        self.hidden_size = config.hidden_size
+        self.n_layers = config.n_layers
+        self.bidirectional = config.use_bidirection,
+
+        # input/output dropout probability
+        self.input_dropout_p = config.dropout
+        self.dropout_p = config.dropout
+
+        # input dropout hook
+        self.input_dropout = nn.Dropout(p = config.dropout)
+
+        if config.rnn_cell.lower() == 'lstm':
             self.rnn_cell = nn.LSTM
-        elif rnn_cell.lower() == 'gru':
+        elif config.rnn_cell.lower() == 'gru':
             self.rnn_cell = nn.GRU
         else:
-            raise ValueError("Unsupported RNN Cell: {0}".format(rnn_cell))
-
-        self.dropout_p = dropout_p
+            raise ValueError("Unsupported RNN Cell: {0}".format(config.rnn_cell))
 
     def forward(self, *args, **kwargs):
         raise NotImplementedError()

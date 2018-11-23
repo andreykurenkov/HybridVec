@@ -36,22 +36,28 @@ class EncoderRNN(BaseRNN):
          >>> output, hidden = encoder(input)
 
     """
-
-    def __init__(self, vocab_size, max_len = 784, hidden_size = 150, embed_size = 100,
-                 input_dropout_p=0, dropout_p=0,
-                 n_layers=2, bidirectional=True, rnn_cell='gru', variable_lengths=False,
-                 embedding=None, update_embedding=True):
-        super(EncoderRNN, self).__init__(vocab_size, max_len, hidden_size,
-                input_dropout_p, dropout_p, n_layers, rnn_cell)
-
+    def __init__(self, config, 
+                 variable_lengths=False, 
+                 embedding=None, 
+                 update_embedding=True):
+        
+        super(EncoderRNN, self).__init__(config)
+        
+        self.embed_size = config.vocab_dim
         self.variable_lengths = variable_lengths
-        self.embedding = nn.Embedding(vocab_size+3, embed_size, padding_idx=0) #+2 for the start and end symbol and +1 for unk token
+        self.embedding = nn.Embedding(self.vocab_size+3, self.embed_size, padding_idx=0) 
         self.embedding.weight.data[0:,:] = 0
+
         if embedding is not None:
             self.embedding.weight = nn.Parameter(embedding)
+        
         self.embedding.weight.requires_grad = update_embedding
-        self.rnn = self.rnn_cell(embed_size, hidden_size, n_layers,
-                                 batch_first=True, bidirectional=bidirectional, dropout=dropout_p)
+        self.rnn = self.rnn_cell(self.embed_size, 
+                                self.hidden_size, 
+                                self.n_layers,
+                                batch_first = True, 
+                                bidirectional = self.bidirectional, 
+                                dropout = self.dropout_p)
 
     def forward(self, input_var, input_lengths=None):
         """

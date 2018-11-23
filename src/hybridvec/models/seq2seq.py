@@ -45,8 +45,10 @@ class Seq2seq(nn.Module):
         self.encoder.rnn.flatten_parameters()
         self.decoder.rnn.flatten_parameters()
 
-    def forward(self, input_variable, input_lengths=None, target_variable=None,
-                teacher_forcing_ratio=0):
+    def forward(self, input_variable, 
+                    input_lengths=None, 
+                    target_variable=None,
+                    teacher_forcing_ratio=0):
         encoder_outputs, encoder_hidden = self.encoder(input_variable, input_lengths)
         result = self.decoder(inputs=target_variable,
                               encoder_hidden=encoder_hidden,
@@ -57,24 +59,25 @@ class Seq2seq(nn.Module):
 
 
     def calculate_loss(self, inputs, output, labels, words):
-      (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = output
-      criterion = nn.NLLLoss()
-      acc_loss = 0
-      norm_term = 0
-      for step, step_output in enumerate(decoder_outputs):
-          batch_size = inputs.shape[0]
-          if step > (inputs.shape[1] -1): continue
-          labeled_vals = Variable((inputs).long()[:, step])
-          labeled_vals.requires_grad = False
-          pred = step_output.contiguous().view(batch_size, -1)
-          acc_loss += criterion(pred, labeled_vals)
-          norm_term += 1
-      if type(acc_loss) is int:
-          raise ValueError("No loss to back propagate.")
-      batch_loss = get_loss_nll(acc_loss, norm_term)
-      return acc_loss, batch_loss
-      # print statistics
+        (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = output
+        criterion = nn.NLLLoss()
+        acc_loss = 0
+        norm_term = 0
+        for step, step_output in enumerate(decoder_outputs):
+            batch_size = inputs.shape[0]
+            if step > (inputs.shape[1] -1): continue
+            labeled_vals = Variable((inputs).long()[:, step])
+            labeled_vals.requires_grad = False
+            pred = step_output.contiguous().view(batch_size, -1)
+            acc_loss += criterion(pred, labeled_vals)
+            norm_term += 1
+
+        if type(acc_loss) is int:
+            raise ValueError("No loss to back propagate.")
+
+        batch_loss = get_loss_nll(acc_loss, norm_term)
+        return acc_loss, batch_loss
     
     def get_def_embeddings(self, output):
-      (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = output
-      return encoder_hidden.data.cpu()
+        (decoder_outputs, decoder_hidden, ret_dicts), encoder_hidden  = output
+        return encoder_hidden.data.cpu()
