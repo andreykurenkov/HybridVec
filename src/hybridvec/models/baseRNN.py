@@ -32,7 +32,7 @@ class BaseRNN(nn.Module):
         self.vocab_size = config.vocab_size
         self.max_len = config.max_len
         self.hidden_size = config.hidden_size
-        self.n_layers = config.n_layers
+        self.n_layers = config.num_layers
         self.bidirectional = config.use_bidirection,
 
         # input/output dropout probability
