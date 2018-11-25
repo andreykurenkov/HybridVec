@@ -66,14 +66,22 @@ if __name__ == "__main__":
 
     print("Using GPU:", use_gpu)
     print ('vocab dim', config.vocab_dim)
-    
-    model_type = get_model_type()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("run_name")
+    parser.add_argument("run_comment")
+    parser.add_argument("epoch")
+    args = parser.parse_args()
+    model_type, run_comment, epoch = args.run_name, args.run_comment, args.epoch
+    name = model_type + '-' + run_comment
+    config.load_path = "outputs/def2vec/checkpoints/{}/epoch_{}/model_weights.torch".format(name, epoch)
+
     if model_type == 'baseline': 
         model = BaselineModel(vocab, 
                             config = config, 
                             use_cuda = use_gpu)
 
-    elif model_type == 's2s': 
+    elif model_type == 'seq2seq':
         encoder = EncoderRNN(config = config,
                             variable_lengths = False, 
                             embedding = None)
