@@ -67,6 +67,7 @@ if __name__ == "__main__":
     print("Using GPU:", use_gpu)
     print ('vocab dim', config.vocab_dim)
 
+    # continue from last training
     parser = argparse.ArgumentParser()
     parser.add_argument("run_name")
     parser.add_argument("run_comment")
