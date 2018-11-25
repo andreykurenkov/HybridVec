@@ -15,7 +15,7 @@ class base_config(object):
         # hyperparams
         self.random_seed=42
         self.learning_rate=.0001
-        self.max_epochs=5
+        self.max_epochs=15
         self.batch_size=64
         self.n_hidden=250
         # logging params
