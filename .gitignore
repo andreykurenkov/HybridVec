@@ -6,5 +6,4 @@ runs/
 libs/
 outputs/
 env/
-eval/
 all_scalars.json
