@@ -139,10 +139,10 @@ def get_definitions_concat(word, filter_repetition = False, concat_str=" . . . "
     """
     definitions = None
     try:
-	definitions = get_wordnet_definitions(word)
-	#combine_defs(definitions, get_wordnet_definitions(word))
-	#combine_defs(definitions, get_glosbe_definitions(word))
-	#combine_defs(definitions, get_wordnik_definitions(word))
+        definitions = get_wordnet_definitions(word)
+        #combine_defs(definitions, get_wordnet_definitions(word))
+        #combine_defs(definitions, get_glosbe_definitions(word))
+        #combine_defs(definitions, get_wordnik_definitions(word))
             
         if definitions:
             definitions = concat_str.join(definitions)

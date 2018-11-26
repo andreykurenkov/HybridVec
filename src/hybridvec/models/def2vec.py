@@ -1,15 +1,11 @@
-from __future__ import division, print_function
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import torchtext.vocab as vocab
 from torch.autograd import Variable
-import numpy as np
-
 
 class Def2VecModel(nn.Module):
-
+  """ Standard sequence-to-sequence architecture with configurable encoder
+    and decoder.
+  """
   def __init__(self,
                vocab,
                output_size=100,
