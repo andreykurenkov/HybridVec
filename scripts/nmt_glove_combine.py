@@ -1,16 +1,12 @@
-from __future__ import print_function
-import collections
-import torch
-import torch.optim as optim
-import torch.nn as nn
 import numpy as np
+import torch.nn as nn
 import torchtext.vocab as vocab
 import argparse
 import shutil
 from tqdm import tqdm
-from model import Def2VecModel
+from hybridvec.models import Def2VecModel
 from torch.autograd import Variable
-from loader import *
+from hybridvec.loader import *
 
 CONFIG = dict(
         title="def2vec",
