@@ -124,11 +124,15 @@ def save_config(config):
     model_path = "outputs/{}-{}-{}".format(config.model_type, config.run_name, config.vocab_dim)
     
     # a bit awkward since pytorch-monitor is going to change our config!
-    config_path = model_path + "config.json"
+    config_path = model_path + "/config.json"
     with open(config_path, 'w') as f:
         json.dump(config.__dict__, f)
 
 # get the last saved model path
 def get_model_path(config):
     model_path = "outputs/{}-{}-{}".format(config.model_type, config.run_name, config.vocab_dim)
-    return model_path + "/epoch_{}/model_weights.torch".format(config.load_epoch)
+    model_path += "/epoch_{}".format(config.load_epoch)
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
+
+    return model_path + "/model_weights.torch"
