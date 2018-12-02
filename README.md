@@ -6,7 +6,10 @@ Repo for CS 224N project
 Note: besides stuff in requrements.txt, should also install PyTorch (0.4) and Torchnet (https://github.com/pytorch/tnt)
 Assumes use of Python 2.7.
 
-## Windows: install all latest tools and packages.
+## Windows: 
+Install all latest tools and packages.
+Python 3.6
+PyTorch 0.5
 
 # Usage:
 ## Training 
