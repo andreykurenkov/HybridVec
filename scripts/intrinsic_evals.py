@@ -16,16 +16,6 @@ from web.evaluate import evaluate_on_all
 
 import logging
 
-try:
-    torch._utils._rebuild_tensor_v2
-except AttributeError:
-    def _rebuild_tensor_v2(storage, storage_offset, size, stride, requires_grad, backward_hooks):
-        tensor = torch._utils._rebuild_tensor(storage, storage_offset, size, stride)
-        tensor.requires_grad = requires_grad
-        tensor._backward_hooks = backward_hooks
-        return tensor
-    torch._utils._rebuild_tensor_v2 = _rebuild_tensor_v2
-
 #   # if not run the model on all the glove files and print the scores
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', level=logging.DEBUG, datefmt='%I:%M:%S')
 logger = logging.getLogger(__name__)
