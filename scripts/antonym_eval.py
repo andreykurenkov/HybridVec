@@ -1,29 +1,23 @@
 from __future__ import print_function
-from eval_scripts import evaluate_on_all
+from web.evaluate import evaluate_on_all
+
 from tqdm import tqdm
 import os, sys
-import torch.nn.functional as F
 import collections
 import traceback
 import torch
 import torch.optim as optim
 import torch.nn as nn
 import numpy as np
-from sklearn.metrics import precision_score, accuracy_score, recall_score, mean_squared_error
-from time import time
-from model import Def2VecModel, Seq2SeqModel
+
 from torch.autograd import Variable
 import torchtext.vocab as vocab
-from tensorboardX import SummaryWriter
-from pytorch_monitor import monitor_module, init_experiment
-from loader import *
-from config import eval_config
-import json
-import argparse
-from seq2seq import EncoderRNN, DecoderRNN
-from collections import OrderedDict
-from baseline import BaselineModel
+
 from nltk.corpus import wordnet
+
+from hybridvec.loader import *
+from hybridvec.config import *
+from hybridvec.models import *
 
 # # runs over all the words in glove and returns embeddings for each one
 # def get_embeddings():
@@ -59,7 +53,7 @@ def load_config():
     config = None
     with open(path) as f:
         config = dict(json.load(f))
-        config = eval_config(config, run_name, run_comment, epoch, verbose)
+        config = load_config(eval=True)
     return (config, name, model_type)
 
 def create_data():

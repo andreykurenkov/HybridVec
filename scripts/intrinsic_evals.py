@@ -11,10 +11,7 @@ import torchtext.vocab as vocab
 from hybridvec.loader import *
 from hybridvec.config import *
 from hybridvec.models import *
-#from hybridvec.eval import evaluate_on_all
 
-from web.embeddings import fetch_GloVe, load_embedding
-from web.datasets.utils import _get_dataset_dir
 from web.evaluate import evaluate_on_all
 
 import logging

@@ -62,29 +62,6 @@ class base_config(object):
 def train_config():
     return base_config()
 
-#creates a config based on a dictionary config loaded in from the model being evaluated
-def eval_config(d, run_name, run_comment, epoch, verbose):
-    e = base_config()
-
-    #update base
-    for k in d:
-        setattr(e, k, d[k])
-
-    e.run_name=run_name 
-    e.run_comment=run_comment
-    e.log_dir='logs'
-    e.batch_size = 16
-    e.dropout = 0
-    name = run_name + '-' + run_comment #+ "-" + run_comment
-    e.save_path = "outputs/def2vec/checkpoints/{}/epoch_{}/model_weights.torch".format(name, epoch)
-    e.packing = False
-    e.input_method=INPUT_METHOD_ONE
-    if verbose:
-            print ("Evaluation model will be loaded from {}".format(e.save_path))
-
-    return e
-
-
 def get_cfg_from_args():
     """
     Gets configuration from command line
@@ -115,7 +92,7 @@ def load_config(eval = False):
         setattr(config, k, dataT(dict_cfg[k]))
 
     # follow the current convention
-    model_path = "outputs/{}-{}-{}".format(config.model_type, config.run_name, config.hidden_size)
+    model_path = "outputs/{}-{}-{}".format(config.model_type, config.run_name, config.vocab_dim)
     if not os.path.exists(model_path):
         os.makedirs(model_path)
 
@@ -144,7 +121,7 @@ def load_config(eval = False):
 # call after init_experiment to save a copy of current config
 def save_config(config):
     # config exist based on model and comment, use the saved one
-    model_path = "outputs/{}-{}-{}".format(config.model_type, config.run_name, config.hidden_size)
+    model_path = "outputs/{}-{}-{}".format(config.model_type, config.run_name, config.vocab_dim)
     
     # a bit awkward since pytorch-monitor is going to change our config!
     config_path = model_path + "config.json"
@@ -153,5 +130,5 @@ def save_config(config):
 
 # get the last saved model path
 def get_model_path(config):
-    model_path = "outputs/{}-{}-{}".format(config.model_type, config.run_name, config.hidden_size)
+    model_path = "outputs/{}-{}-{}".format(config.model_type, config.run_name, config.vocab_dim)
     return model_path + "/epoch_{}/model_weights.torch".format(config.load_epoch)

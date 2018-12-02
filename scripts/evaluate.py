@@ -16,7 +16,6 @@ import torchtext.vocab as vocab
 from tensorboardX import SummaryWriter
 
 from loader import *
-from config import eval_config
 import json
 import argparse
 
@@ -44,7 +43,7 @@ def load_config():
     config = None
     with open(path) as f:
         config = dict(json.load(f))
-        config = eval_config(config, run_name, run_comment, epoch, verbose)
+        config = load_config(eval=True)
     return config
 
 def get_word(word):
