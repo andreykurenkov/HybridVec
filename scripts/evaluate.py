@@ -14,7 +14,7 @@ from model import Def2VecModel
 from torch.autograd import Variable
 import torchtext.vocab as vocab
 from tensorboardX import SummaryWriter
-from pytorch_monitor import monitor_module, init_experiment
+
 from loader import *
 from config import eval_config
 import json

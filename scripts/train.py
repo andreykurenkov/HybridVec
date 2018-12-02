@@ -27,16 +27,10 @@ from hybridvec.models import *
 
 from tqdm import tqdm
 from time import time
-from pytorch_monitor import monitor_module, init_experiment
 
 from tensorboardX import SummaryWriter
 
 DEBUG_LOG = False
-
-config = train_config()
-
-TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt'%(config.vocab_source,config.vocab_dim)
-VAL_FILE = 'data/glove/val_glove.%s.%sd.txt'%(config.vocab_source, config.vocab_dim)
 
 def weights_init_xavier(m):
     """
@@ -49,16 +43,25 @@ def weights_init_xavier(m):
         nn.init.xavier_normal(m.weight_ih_l0)
 
 if __name__ == "__main__":
-    vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
-    use_gpu = torch.cuda.is_available()
 
+    use_gpu = torch.cuda.is_available()
     print("Using GPU:", use_gpu)
-    print ('vocab dim', config.vocab_dim)
 
     # continue from last training
     config = load_config()
-    writer, conf = init_experiment(config.__dict__)
+
+    # pymonitor change things, not a good idea. I have to restore the one I passed in.
+    #run_name = config.run_name
+    #writer, conf = init_experiment(config.__dict__)
+    #config.run_name = run_name
+
+    config.use_glove_init = False
     save_config(config)
+    vocab = vocab.GloVe(name=config.vocab_source, dim=config.vocab_dim)
+    print ('vocab dim', config.vocab_dim)
+
+    TRAIN_FILE = 'data/glove/train_glove.%s.%sd.txt' % (config.vocab_source, config.vocab_dim)
+    VAL_FILE = 'data/glove/val_glove.%s.%sd.txt' % (config.vocab_source, config.vocab_dim)
 
     model_type = config.model_type
     model_path = get_model_path(config)
@@ -107,8 +110,8 @@ if __name__ == "__main__":
                             lr = config.learning_rate,
                             weight_decay = config.weight_decay)
 
-    if DEBUG_LOG:
-        monitor_module(model, writer)
+    #if DEBUG_LOG:
+    #    monitor_module(model, writer)
 
     total_time = 0
     total_iter = 0
@@ -137,7 +140,6 @@ if __name__ == "__main__":
 
             # print statistics
             running_loss += loss_val
-            writer.add_scalar('loss', loss_val, total_iter)
             if embed_outs is None:
                 embed_outs = model.get_def_embeddings(outputs)
                 embed_labels = words
@@ -159,11 +161,6 @@ if __name__ == "__main__":
                 start = end
                 running_loss = 0.0
 
-            if i % config.write_embed_freq == (config.write_embed_freq-1):
-                writer.add_embedding(embed_outs,
-                                     metadata=embed_labels,
-                                     global_step=total_iter)
-
             if i % config.eval_freq == (config.eval_freq - 1):
                 val_loss = 0.0
                 for data in tqdm(val_loader, total=len(val_loader)):
@@ -180,16 +177,19 @@ if __name__ == "__main__":
                     loss_object, loss_val = model.calculate_loss(inputs, outputs, labels, words)
                     val_loss += loss_val
                 
-                writer.add_scalar('val_loss', val_loss / len(val_loader), total_iter)
                 print('Epoch: %d, batch: %d, val loss: %.4f' %
                              (epoch + 1, i + 1, val_loss / len(val_loader)))
             # increase iteration
             total_iter += 1
 
         config.load_epoch = epoch + 1
-        torch.save(model.state_dict(), get_model_path(config))
 
-    writer.export_scalars_to_json("./all_scalars.json")
-    writer.close()
+        #out_dir = "outputs/def2vec/checkpoints/{}-{}".format(config.run_name, config.run_commennt)
+        #if not os.path.exists(out_dir):
+        #    os.makedirs(out_dir)
+        #out_path = "outputs/def2vec/checkpoints/{}-{}/epoch_{}".format(config.run_name, config.run_commennt, epoch + 1)
+        #if not os.path.exists(out_path):
+        #    os.makedirs(out_path)
+        torch.save(model.state_dict(), get_model_path(config))
 
     print('Finished Training')

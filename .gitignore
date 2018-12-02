@@ -1,5 +1,8 @@
 *.pyc
 data/
+build/
+dist/
+src/hybridvec.egg-info/
 runs/
 .vector_cache/
 .DS_Store
