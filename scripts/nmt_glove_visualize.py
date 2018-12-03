@@ -5,7 +5,6 @@ import torchtext.vocab as vocab
 import argparse
 from tqdm import tqdm
 from torch.autograd import Variable
-from pytorch_monitor import init_experiment
 
 from hybridvec.loader import *
 from hybridvec.model import Def2VecModel

@@ -3,7 +3,8 @@ import json
 import argparse
 from .loader import *
 
-
+""" Please do not initialize a None for any field, otherwise the type info will not be available, 
+"""
 class base_config(object):
     def __init__ (self):
         self.title="def2vec"
@@ -15,7 +16,7 @@ class base_config(object):
         self.vocab_dim = 100
         self.vocab_source = '6B'
         self.vocab_size = 50000
-        self.load_path = None
+        self.load_path = 'None'
         self.load_epoch = 0
         # hyperparams
         self.random_seed=42
@@ -54,32 +55,12 @@ class base_config(object):
         self.reg_weight = 0.01
         self.glove_aux_weight = 0.01
 
+        #misc not configuration related but uses the same arg parsing together with config
+        self.train_data_flag = True
+
 
 def train_config():
     return base_config()
-
-#creates a config based on a dictionary config loaded in from the model being evaluated
-def eval_config(d, run_name, run_comment, epoch, verbose):
-    e = base_config()
-
-    #update base
-    for k in d:
-        setattr(e, k, d[k])
-
-    e.run_name=run_name 
-    e.run_comment=run_comment
-    e.log_dir='logs'
-    e.batch_size = 16
-    e.dropout = 0
-    name = run_name + '-' + run_comment #+ "-" + run_comment
-    e.save_path = "outputs/def2vec/checkpoints/{}/epoch_{}/model_weights.torch".format(name, epoch)
-    e.packing = False
-    e.input_method=INPUT_METHOD_ONE
-    if verbose:
-            print ("Evaluation model will be loaded from {}".format(e.save_path))
-
-    return e
-
 
 def get_cfg_from_args():
     """
@@ -93,27 +74,46 @@ def get_cfg_from_args():
     return args
 
 # use the saved config first, if not exist, generate from command line.
-def load_config():
+def load_config(eval = False):
     """
     Load in the right config file from desired model to evaluate
     """
     config = base_config()
+    # eval specific config
+    if eval == True:
+        config.batch_size = 16
+        config.dropout = 0
+        config.packing = False
+        config.input_method=INPUT_METHOD_ONE
+
     dict_cfg = vars(get_cfg_from_args())
     for k in dict_cfg:
-        setattr(config, k, dict_cfg[k])
+        dataT = type(getattr(config,k))
+        setattr(config, k, dataT(dict_cfg[k]))
 
     # follow the current convention
-    model_path = "outputs/{}".format(config.title)
-    log_path = model_path + '/logs'
+    model_path = "outputs/{}-{}-{}".format(config.model_type, config.run_name, config.vocab_dim)
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
 
-    # config exist based on model and comment, use the saved one
-    config_path = log_path + "/{}-{}/config.json".format(config.run_name, config.run_comment)
+    # used for training, all configuration from command line
+    if eval == False:
+        return config
+
+    # config exist based on model and comment, use the saved one. called by evals
+    config_path = model_path + "/config.json"
     try:
         if os.path.exists(config_path):
+            load_epoch = config.load_epoch
             with open(config_path) as f:
-                dict_cfg = dict(json.load(f))
+                json_cfg = dict(json.load(f))
+                # use dict_cfg, because of the nasty pymonitor put something new in
                 for k in dict_cfg:
-                    setattr(config, k, dict_cfg[k])
+                    dataT = type(getattr(config,k))
+                    setattr(config, k, dataT(json_cfg[k]))
+
+            #restore things that is from cmd line
+            config.load_epoch = load_epoch
     except:
         print("no config.json found, will create one instead")
     return config
@@ -121,23 +121,18 @@ def load_config():
 # call after init_experiment to save a copy of current config
 def save_config(config):
     # config exist based on model and comment, use the saved one
-    model_path = "outputs/{}".format(config.title)
-    log_path = model_path + '/logs'
+    model_path = "outputs/{}-{}-{}".format(config.model_type, config.run_name, config.vocab_dim)
+    
     # a bit awkward since pytorch-monitor is going to change our config!
-    config_path = log_path + "/{}/config.json".format(config.run_name)
+    config_path = model_path + "/config.json"
     with open(config_path, 'w') as f:
         json.dump(config.__dict__, f)
 
-
-# get current log
-def get_log_path(config):
-    return "outputs/{}/logs".format(config.run_name)
-
-#get checkpoint path
-def get_checkpoint_path(config):
-    return "outputs/{}/checkpoints".format(config.run_name)
-
 # get the last saved model path
 def get_model_path(config):
-    return "outputs/{}/checkpoints/{}-{}/epoch_{}/model_weights.torch".format(
-        config.title, config.run_name, config.run_comment, config.load_epoch)
+    model_path = "outputs/{}-{}-{}".format(config.model_type, config.run_name, config.vocab_dim)
+    model_path += "/epoch_{}".format(config.load_epoch)
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
+
+    return model_path + "/model_weights.torch"

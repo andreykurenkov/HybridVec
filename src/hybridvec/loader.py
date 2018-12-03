@@ -15,7 +15,7 @@ INPUT_METHOD_RANDOM = "random_words"
 class DefinitionsDataset(Dataset):
 
     def __init__(self, vocab_file, glove, input_method, shuffle, embedding_size, vocab_size):
-        with open(vocab_file, "r") as f:
+        with open(vocab_file, mode="r", encoding="utf8") as f:
             self.vocab_lines = f.readlines()
         self.glove = glove
         self.embedding_size = embedding_size
@@ -134,7 +134,7 @@ def fill_cache(vocab_file,
                     in order not to trigger rate limits
         print_defs: whether to print defs
     """
-    with open(vocab_file, "r") as f:
+    with open(vocab_file, "r", encoding="utf8") as f:
         lines = f.readlines()
     pbar = tqdm(lines)
     no_def_count = 0
