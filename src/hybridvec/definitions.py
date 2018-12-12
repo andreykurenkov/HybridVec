@@ -10,8 +10,9 @@ import wikipedia
 from wordnik import swagger, WordApi
 from vocabulary.vocabulary import Vocabulary as vb
 
-reload(sys)
-sys.setdefaultencoding('utf8')
+if (sys.version_info < (3, 0)):
+    reload(sys)
+    sys.setdefaultencoding('utf8')
 
 apiUrl = 'http://api.wordnik.com/v4'
 apiKey = 'a1b28252f1c2bd049897a03d4e81e85c5d6dbca71cb8dcac8'
@@ -139,10 +140,10 @@ def get_definitions_concat(word, filter_repetition = False, concat_str=" . . . "
     """
     definitions = None
     try:
-	definitions = get_wordnet_definitions(word)
-	#combine_defs(definitions, get_wordnet_definitions(word))
-	#combine_defs(definitions, get_glosbe_definitions(word))
-	#combine_defs(definitions, get_wordnik_definitions(word))
+        definitions = get_wordnet_definitions(word)
+        #combine_defs(definitions, get_wordnet_definitions(word))
+        #combine_defs(definitions, get_glosbe_definitions(word))
+        #combine_defs(definitions, get_wordnik_definitions(word))
             
         if definitions:
             definitions = concat_str.join(definitions)
