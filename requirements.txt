@@ -59,7 +59,7 @@ torchtext==0.2.1
 torchvision==0.1.8
 tornado==4.5.3
 tqdm==4.19.6
-urllib3==1.22
+urllib3==1.26.5
 visdom==0.1.7
 Vocabulary==1.0.4
 Werkzeug==0.14.1
