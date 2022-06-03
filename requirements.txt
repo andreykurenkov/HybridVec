@@ -6,7 +6,7 @@ backports.ssl-match-hostname==3.5.0.1
 backports.weakref==1.0.post1
 beautifulsoup4==4.6.0
 bleach==1.5.0
-bottle==0.12.13
+bottle==0.12.20
 certifi==2018.1.18
 cffi==1.11.5
 chardet==3.0.4
